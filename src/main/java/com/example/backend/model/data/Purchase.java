@@ -50,7 +50,7 @@ public class Purchase {
     private LocalDateTime creationTime;
 
     @Column(name = "installed_version", nullable = false)
-    private Float installedVersion;
+    private String installedVersion;
 
     @Column(name = "last_updated")
     private LocalDateTime lastUpdated;

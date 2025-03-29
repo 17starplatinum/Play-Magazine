@@ -2,6 +2,7 @@ package com.example.backend.services.util;
 
 import com.example.backend.exceptions.accepted.EmailSendingException;
 import com.example.backend.model.auth.User;
+import com.example.backend.model.data.Subscription;
 import com.example.backend.repositories.UserRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
@@ -81,7 +82,6 @@ public class NotificationService {
                     <body>
                         <h2>Новая заявка на автора</h2>
                         <p>Пользователь %s (%s) подал заявку на получение статуса автора.</p>
-                        <p><a href="%s/admin/author-requests/%s">Перейти к рассмотрению заявки</a></p>
                     </body>
                 </html>
                 """.formatted(
@@ -92,5 +92,33 @@ public class NotificationService {
         );
 
         sendEmail(adminEmails, subject, content);
+    }
+
+    public void notifyUserAboutSubscriptionCancellation(User user, Subscription subscription) {
+        String subject = "Отмена подписки";
+        String content = """
+                 <html>
+                     <body>
+                     <h2>Уважаемый %s,</h2>
+                     <p>Вы отменили подписку %s на приложении %s.</p>
+                     <p>С уважением,<br>Команда AppStore</p>
+                     </body>
+                 </html>
+                """.formatted(user.getUsername(), subscription.getName() , subscription.getApp().getName());
+        sendEmail(user.getEmail(), subject, content);
+    }
+
+    public void notifyUserAboutSubscriptionAutoRenewal(User user, Subscription subscription) {
+        String subject = "Отмена автопродления подписки";
+        String content = """
+                <html>
+                    <body>
+                    <h2>Уважаемый %s,</h2>
+                    <p>Вы отключили автоматическое продление подписки %s на приложении %s.</p>
+                    <p>С уважением,<br>Команда AppStore</p>
+                    </body>
+                </html>
+                """.formatted(user.getUsername(), subscription.getName(), subscription.getApp().getName());
+        sendEmail(user.getEmail(), subject, content);
     }
 }

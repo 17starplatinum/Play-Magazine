@@ -27,6 +27,9 @@ public class Subscription {
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
+    @Column(name = "name", nullable = false)
+    private String name;
+
     @ManyToOne
     @JoinColumn(name = "app_id", nullable = false)
     private App app;
@@ -41,8 +44,12 @@ public class Subscription {
     private LocalDate endDate;
 
     @Builder.Default
-    @Column(name = "auto_renewal")
+    @Column(name = "auto_renewal", nullable = false)
     private Boolean autoRenewal = true;
+
+    @Builder.Default
+    @Column(name = "active", nullable = false)
+    private Boolean active = true;
 
     @ManyToOne
     @JoinColumn(name = "card_id")

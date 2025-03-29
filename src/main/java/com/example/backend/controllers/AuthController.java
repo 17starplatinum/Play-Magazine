@@ -43,7 +43,7 @@ public class AuthController {
         return ResponseEntity.ok(userService.getCurrentUser().getRequestStatus());
     }
 
-    @PostMapping("/edit-info")
+    @PatchMapping("/edit-info")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> updateUserInfo(@RequestBody EditProfileRequest request) {
         authenticationService.updateUserInfo(request);

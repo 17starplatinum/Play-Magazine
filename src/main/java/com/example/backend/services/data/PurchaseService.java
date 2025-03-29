@@ -119,6 +119,7 @@ public class PurchaseService {
                         .build()
         );
     }
+
     public List<Purchase> getUserPurchases(UserDetails currentUser) {
         User user = userRepository.findByEmail(currentUser.getUsername())
                 .orElseThrow(() -> new UserNotFoundException("Пользователь не найден", new RuntimeException()));

@@ -79,8 +79,6 @@ public class AppService {
         GlobalMemory memory = si.getHardware().getMemory();
         List<HWDiskStore> diskStores = si.getHardware().getDiskStores();
 
-
-
         if(app.getMinRamMb() > memory.getTotal()){
             compatibilityIssues.add(String.format(
                     "Не хватает памяти ОЗУ: требуется %dМб, а доступно только %dМб",
@@ -104,8 +102,6 @@ public class AppService {
                 ));
             }
         }
-
-
 
         if(!app.getOsRequirements().matches(os.getFamily())) {
             compatibilityIssues.add(String.format(
@@ -145,7 +141,7 @@ public class AppService {
                 .description(appDto.getDescription())
                 .available(true)
                 .releaseDate(LocalDate.now())
-                .version(1.0f)
+                .version("1.0")
                 .filePath(filePath)
                 .build();
         if (appDto.isSubscription() && (appDto.getSubscriptionPrice() == null || appDto.getSubscriptionPrice() == 0)) {

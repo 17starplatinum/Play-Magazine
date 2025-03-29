@@ -58,7 +58,7 @@ public class App {
     private LocalDate releaseDate;
 
     @Column(name = "version", nullable = false)
-    private Float version;
+    private String version;
 
     @Column(name = "file_path", nullable = false)
     private String filePath;
@@ -111,6 +111,6 @@ public class App {
     }
 
     public boolean isNewerVersion(Float version) {
-        return this.version > version;
+        return Double.parseDouble(this.version) > version;
     }
 }
