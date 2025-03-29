@@ -9,7 +9,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface AppRepository extends JpaRepository<App, UUID> {
-    List<App> findByAvailable();
+    List<App> findByAvailableTrue();
     List<App> findByAuthor(User author);
-    Optional<App> findByIdAndAvailable(UUID id);
+    Optional<App> findByIdAndAvailableTrue(UUID id);
 }

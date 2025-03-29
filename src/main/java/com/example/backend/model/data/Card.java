@@ -39,9 +39,6 @@ public class Card {
     @Pattern(regexp = "^\\d{3}$")
     private String cvv;
 
-    @Column(name = "balance", nullable = false)
-    private double balance;
-
     @Column(name = "expired", nullable = false)
     private LocalDate expired;
 

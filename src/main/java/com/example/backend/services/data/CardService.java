@@ -9,21 +9,22 @@ import com.example.backend.model.auth.User;
 import com.example.backend.repositories.CardRepository;
 import com.example.backend.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
-import java.nio.file.attribute.UserPrincipal;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class CardService {
+    private static final String USER_NOT_FOUND_MSG = "Пользователь не найден";
     private final CardRepository cardRepository;
     private final UserRepository userRepository;
 
-    public Card addCard(CardDto cardDto, UserPrincipal currentUser) {
-        User user = userRepository.findById(currentUser.getId())
-                .orElseThrow(() -> new UserNotFoundException("Пользователь не найден", new RuntimeException()));
+    public Card addCard(CardDto cardDto, UserDetails currentUser) {
+        User user = userRepository.findByEmail(currentUser.getUsername())
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MSG, new RuntimeException()));
         if(cardRepository.existsByUserAndNumberAndDeletedFalse(user, cardDto.getNumber())) {
             throw new CardAlreadyExistsException("Карта с таким номером уже существует", new RuntimeException());
         }
@@ -37,16 +38,16 @@ public class CardService {
         return cardRepository.save(card);
     }
 
-    public List<Card> getUserCards(UserPrincipal currentUser) {
-        User user = userRepository.findById(currentUser.getId())
-                .orElseThrow(() -> new UserNotFoundException("Пользователь не найден", new RuntimeException()));
+    public List<Card> getUserCards(UserDetails currentUser) {
+        User user = userRepository.findByEmail(currentUser.getUsername())
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MSG, new RuntimeException()));
 
         return cardRepository.findByUserAndDeletedFalse(user);
     }
 
-    public void deleteCard(UUID cardId, UserPrincipal currentUser) {
-        User user = userRepository.findById(currentUser.getId())
-                .orElseThrow(() -> new UserNotFoundException("Пользователь не найден", new RuntimeException()));
+    public void deleteCard(UUID cardId, UserDetails currentUser) {
+        User user = userRepository.findByEmail(currentUser.getUsername())
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MSG, new RuntimeException()));
 
         Card card = cardRepository.findByIdAndUser(cardId, user)
                 .orElseThrow(() -> new CardNotFoundException("Карта не найдена", new RuntimeException()));

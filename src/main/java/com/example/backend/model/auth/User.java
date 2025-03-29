@@ -1,6 +1,9 @@
 package com.example.backend.model.auth;
 
 import com.example.backend.model.data.App;
+import com.example.backend.model.data.Card;
+import com.example.backend.model.data.Purchase;
+import com.example.backend.model.data.Review;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,10 +15,7 @@ import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.time.LocalDate;
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "users")
@@ -51,6 +51,20 @@ public class User implements UserDetails {
 
     @Column(name = "is_blocked", nullable = false)
     private boolean isBlocked;
+
+    @Builder.Default
+    @Column(name = "balance", nullable = false)
+    private double balance = 0;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Card> cards;
+
+    @Builder.Default
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Purchase> purchases = new ArrayList<>();
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Review> reviews;
 
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(

@@ -8,13 +8,15 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
 
-import java.nio.file.attribute.UserPrincipal;
+import java.util.List;
+import java.util.UUID;
 
-@RestController("/cards")
+@RestController
+@RequestMapping("/api/v1/cards")
 @RequiredArgsConstructor
 public class CardController {
     private final CardService cardService;
@@ -23,7 +25,22 @@ public class CardController {
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Card> addCard(
             @Valid @RequestBody CardDto cardDto,
-            UserPrincipal currentUser) {
+            @AuthenticationPrincipal UserDetails currentUser) {
         return ResponseEntity.status(HttpStatus.CREATED).body(cardService.addCard(cardDto, currentUser));
+    }
+
+    @GetMapping
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<List<Card>> getCards(@AuthenticationPrincipal UserDetails currentUser) {
+        return ResponseEntity.ok(cardService.getUserCards(currentUser));
+    }
+
+    @DeleteMapping("/{cardId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> deleteCard(
+            @PathVariable UUID cardId,
+            @AuthenticationPrincipal UserDetails currentUser) {
+        cardService.deleteCard(cardId, currentUser);
+        return ResponseEntity.noContent().build();
     }
 }
