@@ -29,6 +29,7 @@ import oshi.hardware.HWDiskStore;
 import oshi.software.os.OperatingSystem;
 
 import java.io.IOException;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -175,6 +176,8 @@ public class AppService {
             return appRepository.save(app);
         } catch (IOException e) {
             throw new AppUpdateException("Не удалось читать содержимое файла", e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new IllegalStateException("Не удалось вычислить хэш файла", e);
         }
     }
 
