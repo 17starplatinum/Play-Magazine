@@ -66,12 +66,14 @@ public class AuthenticationService {
     }
 
     @Transactional
-    public void updateUserInfo(UUID uuid, EditProfileRequest request, String token) {
+    public void updateUserInfo(EditProfileRequest request) {
+        UUID uuid = request.getId();
+        String token = request.getToken();
         token = token.substring(7);
         String email = jwtService.extractUserName(token);
-        if (!userService.getByUsername(email).getId().equals(uuid))
+        if (!userService.getByUsername(email).getId().equals(uuid)) {
             throw new IllegalArgumentException("Something went wrong!");
-
+        }
         String newName = request.getName();
         LocalDate newBirthday = request.getBirthday();
         String newSurname = request.getSurname();

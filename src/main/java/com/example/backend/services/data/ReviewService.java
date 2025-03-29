@@ -2,10 +2,10 @@ package com.example.backend.services.data;
 
 
 import com.example.backend.dto.data.ReviewDto;
-import com.example.backend.exceptions.AppNotFoundException;
-import com.example.backend.exceptions.AppNotPurchasedException;
-import com.example.backend.exceptions.ReviewAlreadyExistsException;
-import com.example.backend.exceptions.UserNotFoundException;
+import com.example.backend.exceptions.prerequisites.ReviewAlreadyExistsException;
+import com.example.backend.exceptions.notfound.UserNotFoundException;
+import com.example.backend.exceptions.notfound.AppNotFoundException;
+import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
 import com.example.backend.model.auth.User;
 import com.example.backend.model.data.App;
 import com.example.backend.model.data.Review;

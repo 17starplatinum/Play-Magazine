@@ -5,6 +5,7 @@ import com.example.backend.model.auth.User;
 import com.example.backend.repositories.UserRepository;
 import com.example.backend.security.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -33,8 +34,7 @@ public class UserService {
      */
     public void create(User user) {
         if (userRepository.existsByEmail(user.getEmail())) {
-            // Заменить на свои исключения
-            throw new RuntimeException("Пользователь с таким email уже существует");
+            throw new BadCredentialsException("Пользователь с таким email уже существует");
         }
 
         save(user);
@@ -88,10 +88,11 @@ public class UserService {
      * Выдача прав администратора текущему пользователю
      * <p>
      * Нужен для демонстрации
+     * @deprecated так как у нас теперь есть более-менее внятная система ролей, этот метод больше не является актуальным.
      */
-    @Deprecated
-    public void getAdmin() {
-        var user = getCurrentUser();
+    @Deprecated(forRemoval = true)
+        public void getAdmin() {
+            var user = getCurrentUser();
         user.setRole(Role.ADMIN);
         save(user);
     }
@@ -102,7 +103,14 @@ public class UserService {
         return getByUsername(email).getId().equals(uuid);
     }
 
-    @Deprecated
+    /**
+     * Находит информацию о пользователя через его ID и соответствующего JWT-токена.
+     * @param uuid ID
+     * @param token JWT-токен
+     * @return пользователь
+     * @deprecated так как были реализованы репозиторий, этот метод больше не является актуальным.
+     */
+    @Deprecated(forRemoval = true)
     public User getUserInfoById(UUID uuid, String token) {
         if (checkValidUser(uuid, token))
             return getById(uuid);

@@ -1,26 +1,36 @@
 package com.example.backend.services.data;
 
+import com.example.backend.dto.data.app.AppDownloadResponse;
+import com.example.backend.dto.data.app.AppDto;
 import com.example.backend.dto.util.AppCompatibilityResponse;
-import oshi.SystemInfo;
-import oshi.hardware.GlobalMemory;
-import oshi.hardware.HWDiskStore;
-import oshi.software.os.OperatingSystem;
-import com.example.backend.dto.data.AppDto;
-import com.example.backend.exceptions.AppNotFoundException;
-import com.example.backend.exceptions.AppNotPurchasedException;
-import com.example.backend.exceptions.UserNotFoundException;
-import com.example.backend.model.data.App;
+import com.example.backend.exceptions.accepted.AppDownloadException;
+import com.example.backend.exceptions.notfound.AppNotFoundException;
+import com.example.backend.exceptions.notfound.UserNotFoundException;
+import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
+import com.example.backend.exceptions.prerequisites.AppUpToDateException;
+import com.example.backend.exceptions.accepted.AppUpdateException;
+import com.example.backend.exceptions.prerequisites.InvalidApplicationConfigException;
 import com.example.backend.model.auth.User;
+import com.example.backend.model.data.App;
+import com.example.backend.model.data.Purchase;
 import com.example.backend.repositories.AppRepository;
+import com.example.backend.repositories.PurchaseRepository;
 import com.example.backend.repositories.UserRepository;
+import com.example.backend.services.util.FileUtils;
 import com.example.backend.services.util.MinioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
+import oshi.SystemInfo;
+import oshi.hardware.GlobalMemory;
+import oshi.hardware.HWDiskStore;
+import oshi.software.os.OperatingSystem;
 
+import java.io.IOException;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
@@ -28,15 +38,39 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class AppService {
+    private static final String APP_NOT_FOUND = "Приложение не найдено";
     private final AppRepository appRepository;
     private final UserRepository userRepository;
     private final MinioService minioService;
     private final PurchaseService purchaseService;
+    private final PurchaseRepository purchaseRepository;
     private final ReviewService reviewService;
+
+    public AppDownloadResponse prepareAppDownload(UUID appId, UserDetails currentUser) {
+        App app = appRepository.findById(appId)
+                .orElseThrow(() -> new AppNotFoundException(APP_NOT_FOUND, new RuntimeException()));
+
+        User user = userRepository.findByEmail(currentUser.getUsername())
+                .orElseThrow(() -> new UserNotFoundException("Пользователь не найден", new RuntimeException()));
+
+        Purchase purchase = purchaseRepository.findByUserAndApp(user, app)
+                .orElseThrow(() -> new AppNotPurchasedException("Приложение не куплено", new RuntimeException()));
+
+        boolean updateAvailable = app.isNewerVersion(purchase.getInstalledVersion());
+        return AppDownloadResponse.builder()
+                .appId(app.getId())
+                .name(app.getName())
+                .currentVersion(purchase.getInstalledVersion())
+                .availableVersion(app.getVersion())
+                .updateAvailable(updateAvailable)
+                .fileSize(app.getFileSize())
+                .fileHash(app.getFileHash())
+                .build();
+    }
 
     public AppCompatibilityResponse checkCompatibility(UUID appId) {
         App app = appRepository.findById(appId)
-                .orElseThrow(() -> new AppNotFoundException("Приложение не найдено", new RuntimeException()));
+                .orElseThrow(() -> new AppNotFoundException(APP_NOT_FOUND, new RuntimeException()));
         List<String> compatibilityIssues = new ArrayList<>();
 
         SystemInfo si = new SystemInfo();
@@ -92,7 +126,7 @@ public class AppService {
 
     public App getAppById(UUID appId) {
         return appRepository.findById(appId)
-                .orElseThrow(() -> new AppNotFoundException("Приложение не найдено", new RuntimeException()));
+                .orElseThrow(() -> new AppNotFoundException(APP_NOT_FOUND, new RuntimeException()));
     }
 
     public App createApp(AppDto appDto, UserDetails currentUser, MultipartFile file) {
@@ -105,26 +139,65 @@ public class AppService {
                 .name(appDto.getName())
                 .author(author)
                 .price(appDto.getPrice())
+                .isSubscription(appDto.isSubscription())
+                .subscriptionPrice(appDto.getSubscriptionPrice())
                 .description(appDto.getDescription())
                 .available(true)
                 .releaseDate(LocalDate.now())
                 .version(1.0f)
                 .filePath(filePath)
                 .build();
-
+        if (appDto.isSubscription() && (appDto.getSubscriptionPrice() == null || appDto.getSubscriptionPrice() == 0)) {
+            throw new InvalidApplicationConfigException("У приложении с подписками должна быть цена", new RuntimeException());
+        }
         return appRepository.save(app);
     }
 
-    public byte[] downloadAppFile(UUID appId, UserDetails currentUser) {
+    public App updateApp(UUID appId, MultipartFile file, UserDetails currentUser, float versionBump) {
+        App app = getAppById(appId);
+        User user = userRepository.findByEmail(currentUser.getUsername())
+                .orElseThrow(() -> new UserNotFoundException("Пользователь не найдено", new RuntimeException()));
+        if (!app.getAuthor().equals(user)) {
+            throw new InvalidDataAccessApiUsageException("Вы не являетесь создателем приложения");
+        }
+
+        try {
+            minioService.deleteFile(app.getFilePath());
+            String filePath = minioService.uploadFile(file, UUID.randomUUID().toString());
+            byte[] fileContent = file.getBytes();
+
+            app.setVersion(app.getVersion() + versionBump);
+            app.setFileHash(filePath);
+            app.setFileSize(file.getSize());
+            app.setFileHash(FileUtils.calculateFileHash(fileContent));
+            app.setLastUpdated(LocalDateTime.now());
+
+            return appRepository.save(app);
+        } catch (IOException e) {
+            throw new AppUpdateException("Не удалось читать содержимое файла", e);
+        }
+    }
+
+    public byte[] downloadAppFile(UUID appId, UserDetails currentUser, boolean forceUpdate) {
         App app = getAppById(appId);
         User user = userRepository.findByEmail(currentUser.getUsername())
                 .orElseThrow(() -> new UserNotFoundException("Пользователь не найдено", new RuntimeException()));
 
-        if(purchaseService.hasUserPurchasedApp(user, app)) {
-            throw new AppNotPurchasedException("Приложение не куплено", new RuntimeException());
-        }
+        Purchase purchase = purchaseRepository.findByUserAndApp(user, app)
+                .orElseThrow(() -> new AppNotPurchasedException("Приложение не куплено", new RuntimeException()));
 
-        return minioService.downloadFile(app.getFilePath());
+        if (!forceUpdate && !app.isNewerVersion(purchase.getInstalledVersion())) {
+            throw new AppUpToDateException("Приложение актуально", new RuntimeException());
+        }
+        try {
+            byte[] fileContent = minioService.downloadFile(app.getFilePath());
+            purchase.setInstalledVersion(app.getVersion());
+            purchase.setLastUpdated(LocalDateTime.now());
+            purchaseRepository.save(purchase);
+            return fileContent;
+        } catch (Exception e) {
+            throw new AppDownloadException("Не удалось скачать файл приложения", e);
+        }
     }
 
     public void deleteApp(UUID appId, UserDetails currentUser) {

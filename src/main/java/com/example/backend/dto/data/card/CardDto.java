@@ -1,17 +1,25 @@
-package com.example.backend.dto.data;
+package com.example.backend.dto.data.card;
 
-
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Future;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Data
+@Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class CardDto {
+    @NotNull
+    private UUID id;
+
     @NotNull
     @Size(min = 16, max = 19)
     @Pattern(regexp = "\\d+")

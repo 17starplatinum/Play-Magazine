@@ -1,6 +1,7 @@
 package com.example.backend.model.data;
 
 import com.example.backend.model.auth.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import lombok.AllArgsConstructor;
@@ -23,6 +24,7 @@ public class Purchase {
     @Id
     @UuidGenerator
     @Column(name = "id")
+    @JsonIgnore
     private UUID id;
 
     @ManyToOne
@@ -46,4 +48,14 @@ public class Purchase {
 
     @Column(name = "creation_time")
     private LocalDateTime creationTime;
+
+    @Column(name = "installed_version", nullable = false)
+    private Float installedVersion;
+
+    @Column(name = "last_updated")
+    private LocalDateTime lastUpdated;
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "purchase_type", nullable = false)
+    private PurchaseType purchaseType;
 }

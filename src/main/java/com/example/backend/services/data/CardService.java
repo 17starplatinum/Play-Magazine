@@ -1,11 +1,12 @@
 package com.example.backend.services.data;
 
-import com.example.backend.dto.data.CardDto;
-import com.example.backend.exceptions.CardNotFoundException;
-import com.example.backend.exceptions.CardAlreadyExistsException;
-import com.example.backend.exceptions.UserNotFoundException;
-import com.example.backend.model.data.Card;
+import com.example.backend.dto.data.card.CardDto;
+import com.example.backend.dto.data.card.DepositRequest;
+import com.example.backend.exceptions.notfound.UserNotFoundException;
+import com.example.backend.exceptions.prerequisites.CardAlreadyExistsException;
+import com.example.backend.exceptions.notfound.CardNotFoundException;
 import com.example.backend.model.auth.User;
+import com.example.backend.model.data.Card;
 import com.example.backend.repositories.CardRepository;
 import com.example.backend.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;
@@ -25,7 +26,7 @@ public class CardService {
     public Card addCard(CardDto cardDto, UserDetails currentUser) {
         User user = userRepository.findByEmail(currentUser.getUsername())
                 .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MSG, new RuntimeException()));
-        if(cardRepository.existsByUserAndNumberAndDeletedFalse(user, cardDto.getNumber())) {
+        if (cardRepository.existsByUserAndNumber(user, cardDto.getNumber())) {
             throw new CardAlreadyExistsException("Карта с таким номером уже существует", new RuntimeException());
         }
         Card card = Card.builder()
@@ -33,7 +34,6 @@ public class CardService {
                 .number(cardDto.getNumber())
                 .cvv(cardDto.getCvv())
                 .expired(cardDto.getExpired())
-                .deleted(false)
                 .build();
         return cardRepository.save(card);
     }
@@ -42,7 +42,17 @@ public class CardService {
         User user = userRepository.findByEmail(currentUser.getUsername())
                 .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MSG, new RuntimeException()));
 
-        return cardRepository.findByUserAndDeletedFalse(user);
+        return cardRepository.findByUser(user);
+    }
+
+    public void depositInCard(DepositRequest depositRequest, UserDetails currentUser) {
+        User user = userRepository.findByEmail(currentUser.getUsername())
+                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MSG, new RuntimeException()));
+        Card card = cardRepository.findByIdAndUser(depositRequest.getCardId(), user)
+                .orElseThrow(() -> new CardNotFoundException("Карта не найдена", new RuntimeException()));
+
+        card.setBalance(card.getBalance() + depositRequest.getAmount());
+        cardRepository.save(card);
     }
 
     public void deleteCard(UUID cardId, UserDetails currentUser) {
@@ -52,9 +62,6 @@ public class CardService {
         Card card = cardRepository.findByIdAndUser(cardId, user)
                 .orElseThrow(() -> new CardNotFoundException("Карта не найдена", new RuntimeException()));
 
-        card.setDeleted(true);
-        cardRepository.save(card);
+        cardRepository.delete(card);
     }
-
-
 }

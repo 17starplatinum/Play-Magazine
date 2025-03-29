@@ -1,10 +1,10 @@
 package com.example.backend.model.data;
 
 import com.example.backend.model.auth.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -13,6 +13,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
@@ -43,6 +44,10 @@ public class App {
     @Column(name = "price", nullable = false)
     private Float price;
 
+    @Positive
+    @Column(name = "subscription_price")
+    private Float subscriptionPrice;
+
     @Column(name = "description", columnDefinition = "TEXT")
     private String description;
 
@@ -55,8 +60,16 @@ public class App {
     @Column(name = "version", nullable = false)
     private Float version;
 
-    @Column(name = "file_paths", nullable = false)
+    @Column(name = "file_path", nullable = false)
     private String filePath;
+
+    @Builder.Default
+    @Column(name = "is_subscription")
+    private boolean isSubscription = false;
+
+    @Positive
+    @Column(name = "subscription_period", nullable = false)
+    private Integer subscriptionPeriod;
 
     @Positive
     @Column(name = "min_ram_mb", nullable = false)
@@ -70,18 +83,34 @@ public class App {
     @Column(name = "os_requirements", nullable = false)
     private String osRequirements;
 
+    @Column(name = "file_size")
+    private Long fileSize;
+
+    @Column(name = "file_hash")
+    private String fileHash;
+
+    @Column(name = "last_updated")
+    private LocalDateTime lastUpdated;
+
+    @JsonIgnore
     @Builder.Default
     @OneToMany(mappedBy = "app", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Purchase> purchases = new ArrayList<>();
 
+    @JsonIgnore
     @Builder.Default
     @OneToMany(mappedBy = "app", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Review> reviews = new ArrayList<>();
 
-    @ManyToMany(mappedBy = "downloadedApps", fetch = FetchType.LAZY)
+    @JsonIgnore
+    @ManyToMany(mappedBy = "downloadedApps")
     private Set<User> usersWhoDownloaded;
 
     public boolean isFree() {
-        return price == 0;
+        return price == 0 && (!isSubscription() || subscriptionPrice == 0);
+    }
+
+    public boolean isNewerVersion(Float version) {
+        return this.version > version;
     }
 }

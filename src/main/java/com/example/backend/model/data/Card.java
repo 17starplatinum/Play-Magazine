@@ -1,6 +1,7 @@
 package com.example.backend.model.data;
 
 import com.example.backend.model.auth.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -24,10 +25,12 @@ public class Card {
     @Id
     @UuidGenerator
     @Column(name = "id")
+    @JsonIgnore
     private UUID id;
 
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
+    @JsonIgnore
     private User user;
 
     @Column(name = "number", nullable = false)
@@ -42,6 +45,11 @@ public class Card {
     @Column(name = "expired", nullable = false)
     private LocalDate expired;
 
-    @Column(name = "deleted", nullable = false)
-    private Boolean deleted;
+    @Builder.Default
+    @Column(name = "balance", nullable = false)
+    private double balance = 0;
+
+    @Builder.Default
+    @Column(name = "is_default", nullable = false)
+    private Boolean isDefault = false;
 }

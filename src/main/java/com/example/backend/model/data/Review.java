@@ -2,6 +2,7 @@ package com.example.backend.model.data;
 
 
 import com.example.backend.model.auth.User;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
@@ -15,7 +16,7 @@ import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
-@Table
+@Table(name = "reviews")
 @Data
 @Builder
 @NoArgsConstructor
@@ -24,6 +25,7 @@ public class Review {
     @Id
     @UuidGenerator
     @Column(name = "id")
+    @JsonIgnore
     private UUID id;
 
     @Min(1)
