@@ -1,18 +1,16 @@
 package com.example.backend.security.auth;
 
 import com.example.backend.dto.auth.*;
-import com.example.backend.model.Role;
-import com.example.backend.model.User;
-import com.example.backend.model.UserVerification;
+import com.example.backend.model.auth.Role;
+import com.example.backend.model.auth.User;
+import com.example.backend.model.data.UserVerification;
 import com.example.backend.security.jwt.JwtService;
-import com.example.backend.services.EmailService;
-import com.example.backend.services.UserService;
 import com.example.backend.services.UserVerificationService;
+import com.example.backend.services.auth.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -79,6 +77,7 @@ public class AuthenticationService {
         return new JwtAuthenticationResponse(jwt);
     }
 */
+
     /**
      * Аутентификация пользователя
      *
@@ -103,7 +102,7 @@ public class AuthenticationService {
         return userService.getByUsername(email).isEnableTwoFA();
     }
 
-    public UserVerification createUserVerification(String email){
+    public UserVerification createUserVerification(String email) {
         return userVerificationService.createUserVerification(email);
     }
 
@@ -116,12 +115,14 @@ public class AuthenticationService {
     }
 
     @Transactional
-    public void updateUserInfo(UUID uuid, EditProfileRequest request, String token) {
+    public void updateUserInfo(EditProfileRequest request) {
+        UUID uuid = request.getId();
+        String token = request.getToken();
         token = token.substring(7);
         String email = jwtService.extractUserName(token);
-        if (!userService.getByUsername(email).getId().equals(uuid))
+        if (!userService.getByUsername(email).getId().equals(uuid)) {
             throw new IllegalArgumentException("Something went wrong!");
-
+        }
         String newName = request.getName();
         LocalDate newBirthday = request.getBirthday();
         String newSurname = request.getSurname();

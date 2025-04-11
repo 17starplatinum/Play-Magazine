@@ -1,6 +1,6 @@
 package com.example.backend.security.jwt;
 
-import com.example.backend.model.User;
+import com.example.backend.model.auth.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;

@@ -1,6 +1,6 @@
 package com.example.backend.services;
 
-import com.example.backend.model.UserVerification;
+import com.example.backend.model.data.UserVerification;
 import com.example.backend.repositories.UserVerificationRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

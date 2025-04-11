@@ -1,6 +1,6 @@
 package com.example.backend.repositories;
 
-import com.example.backend.model.UserVerification;
+import com.example.backend.model.data.UserVerification;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 
