@@ -48,36 +48,6 @@ public class AuthenticationService {
         return new JwtAuthenticationResponse(jwt);
     }
 
-    /*public JwtAuthenticationResponse check2FA(CodeVerificationRequest request) {
-
-    }*//*
-
-    public JwtAuthenticationResponse signing(SignInRequest request) {
-        String email = request.getEmail();
-        String password = request.getPassword();
-
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
-                email,
-                password
-        ));
-
-        UserDetails user = userService
-                .userDetailsService()
-                .loadUserByUsername(email);
-
-        var jwt = jwtService.generateToken(user);
-        userVerificationService
-                .getVerificationIdByEmail(email)
-                .ifPresent(userVerificationService::deleteVerificationCode);
-
-        UserVerification userVerification = userVerificationService.createUserVerification(email);
-
-        emailService.sendVerificationEmail(email, userVerification.getVerificationCode());
-
-        return new JwtAuthenticationResponse(jwt);
-    }
-*/
-
     /**
      * Аутентификация пользователя
      *
