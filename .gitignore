@@ -31,7 +31,6 @@ build/
 
 ### VS Code ###
 .vscode/
-<<<<<<< HEAD
-=======
+
+.idea/
 /out/
->>>>>>> e7c8b88f4068932d3e0910d1e070053debf8da1b
