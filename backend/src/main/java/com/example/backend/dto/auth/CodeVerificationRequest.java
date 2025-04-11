@@ -14,5 +14,13 @@ public class CodeVerificationRequest {
     @Email(message = "Email адрес должен быть в формате user@example.com")
     private String email;
     private String code;
-    private UUID verificationCodeId;
+    private String verificationCodeId;
+
+    public UUID getVerificationCodeId() {
+        try {
+            return UUID.fromString(verificationCodeId);
+        } catch (IllegalArgumentException e) {
+            throw new IllegalArgumentException("Invalid verification code id!");
+        }
+    }
 }

@@ -1,10 +1,7 @@
 package com.example.backend.controllers;
 
 
-import com.example.backend.dto.auth.CodeVerificationRequest;
-import com.example.backend.dto.auth.JwtAuthenticationResponse;
-import com.example.backend.dto.auth.SignInRequest;
-import com.example.backend.dto.auth.SignUpRequest;
+import com.example.backend.dto.auth.*;
 import com.example.backend.model.UserVerification;
 import com.example.backend.security.auth.AuthenticationService;
 import jakarta.validation.Valid;
@@ -53,7 +50,7 @@ public class AuthController {
             @RequestParam("email") String email,
             @RequestParam("codeId") String codeId
     ) {
-        return ResponseEntity.ok().body("email=" + email + "&codeId=" + codeId);
+        return ResponseEntity.ok().body(new CodeVerificationResponse(email, codeId));
     }
 
     @PostMapping("/2fa")
