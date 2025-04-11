@@ -3,6 +3,7 @@ package com.example.backend.model.auth;
 import com.example.backend.model.data.App;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.Email;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -40,18 +41,24 @@ public class User implements UserDetails {
     @Column(name = "password", length = 64, nullable = false)
     private String password;
 
+    @Email
     @Column(name = "email", length = 32, nullable = false)
     private String email;
 
+    @Builder.Default
     @Column(name = "role", nullable = false)
     @Enumerated(EnumType.STRING)
-    private Role role;
+    private Role role = Role.USER;
 
     @Column(name = "birthday")
     private LocalDate birthday;
 
+    @Builder.Default
     @Column(name = "is_blocked", nullable = false)
-    private boolean isBlocked;
+    private boolean isBlocked = false;
+
+    @Column(name = "enable_two_fa", nullable = false)
+    private boolean enableTwoFA;
 
     @DecimalMin("0.00")
     @Column(name = "spending_limit")

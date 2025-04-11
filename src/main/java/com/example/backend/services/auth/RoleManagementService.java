@@ -6,7 +6,6 @@ import com.example.backend.exceptions.badcredentials.InvalidRequestException;
 import com.example.backend.exceptions.prerequisites.InvalidRoleAssignmentException;
 import com.example.backend.exceptions.accepted.RequestPendingException;
 import com.example.backend.model.auth.Role;
-import com.example.backend.model.auth.User;
 import com.example.backend.repositories.UserRepository;
 import com.example.backend.services.util.NotificationService;
 import jakarta.transaction.Transactional;

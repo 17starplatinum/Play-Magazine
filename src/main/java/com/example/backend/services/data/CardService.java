@@ -5,8 +5,6 @@ import com.example.backend.dto.data.card.DepositRequest;
 import com.example.backend.exceptions.notfound.UserNotFoundException;
 import com.example.backend.exceptions.prerequisites.CardAlreadyExistsException;
 import com.example.backend.exceptions.notfound.CardNotFoundException;
-import com.example.backend.model.auth.User;
-import com.example.backend.model.data.Card;
 import com.example.backend.repositories.CardRepository;
 import com.example.backend.repositories.UserRepository;
 import lombok.RequiredArgsConstructor;

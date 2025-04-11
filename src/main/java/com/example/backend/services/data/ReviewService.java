@@ -6,7 +6,6 @@ import com.example.backend.exceptions.prerequisites.ReviewAlreadyExistsException
 import com.example.backend.exceptions.notfound.UserNotFoundException;
 import com.example.backend.exceptions.notfound.AppNotFoundException;
 import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
-import com.example.backend.model.auth.User;
 import com.example.backend.model.data.App;
 import com.example.backend.model.data.Review;
 import com.example.backend.repositories.AppRepository;

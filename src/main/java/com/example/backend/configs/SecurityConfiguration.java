@@ -43,12 +43,9 @@ public class SecurityConfiguration {
                 }))
                 // Настройка доступа к конечным точкам
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("/api/v1/auth/**").permitAll()
-                        .requestMatchers("/api/v1/admin/**").hasRole(Role.ADMIN.name())
-                        .requestMatchers("/api/v1/apps/**").authenticated()
-                        .requestMatchers("/api/v1/cards/**").authenticated()
-                        .requestMatchers("/api/v1/purchases/**").authenticated()
-                        .anyRequest().permitAll())
+                        .requestMatchers("/auth/**", "/test/**").permitAll()
+                        .requestMatchers("/admin/**").hasRole(Role.ADMIN.name())
+                        .anyRequest().authenticated())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

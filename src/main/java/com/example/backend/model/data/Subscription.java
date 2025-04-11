@@ -1,6 +1,5 @@
 package com.example.backend.model.data;
 
-import com.example.backend.model.auth.User;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

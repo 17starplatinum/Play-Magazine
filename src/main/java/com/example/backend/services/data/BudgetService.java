@@ -3,7 +3,6 @@ package com.example.backend.services.data;
 import com.example.backend.dto.data.budget.BudgetDto;
 import com.example.backend.dto.data.budget.BudgetStatusDto;
 import com.example.backend.exceptions.prerequisites.BudgetExceededException;
-import com.example.backend.model.auth.User;
 import com.example.backend.repositories.PurchaseRepository;
 import com.example.backend.repositories.UserRepository;
 import jakarta.transaction.Transactional;

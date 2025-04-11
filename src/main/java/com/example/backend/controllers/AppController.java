@@ -10,7 +10,6 @@ import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
 import com.example.backend.exceptions.prerequisites.AppUpToDateException;
 import com.example.backend.model.data.App;
 import com.example.backend.model.data.Review;
-import com.example.backend.services.auth.UserService;
 import com.example.backend.services.data.AppService;
 import com.example.backend.services.data.ReviewService;
 import jakarta.validation.Valid;
