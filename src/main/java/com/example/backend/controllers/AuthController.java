@@ -1,22 +1,28 @@
 package com.example.backend.controllers;
 
 import com.example.backend.dto.auth.*;
-import com.example.backend.model.data.UserVerification;
+import com.example.backend.model.auth.User;
+import com.example.backend.model.auth.UserVerification;
 import com.example.backend.security.auth.AuthenticationService;
+import com.example.backend.services.auth.RoleManagementService;
+import com.example.backend.services.auth.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
 
 @RestController
-@RequestMapping("/auth")
+@RequestMapping("/api/v1/auth")
 @RequiredArgsConstructor
 public class AuthController {
     private final AuthenticationService authenticationService;
+    private final RoleManagementService roleManagementService;
+    private final UserService userService;
 
     @PostMapping("/register")
     public JwtAuthenticationResponse signUp(@RequestBody @Valid SignUpRequest request) {
@@ -47,6 +53,14 @@ public class AuthController {
         return ResponseEntity.ok().body(new CodeVerificationResponse(email, codeId));
     }
 
+    @PostMapping("/request")
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<String> requestAuthorRole(@RequestParam String requestedRole) {
+        User currentUser = userService.getCurrentUser();
+        roleManagementService.requestRole(currentUser.getId(), requestedRole);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body("Заявка успешно подана");
+    }
+
     @PostMapping("/2fa")
     public ResponseEntity<?> check2FA(
             @RequestBody @Valid CodeVerificationRequest request
@@ -58,6 +72,13 @@ public class AuthController {
         }
 
         return ResponseEntity.badRequest().body("Wrong code!");
+    }
+
+    @PatchMapping("/edit-info")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> updateUserInfo(@RequestBody EditProfileRequest request) {
+        authenticationService.updateUserInfo(request);
+        return ResponseEntity.ok("Информация успешно обновлена");
     }
 
     @GetMapping("/success")

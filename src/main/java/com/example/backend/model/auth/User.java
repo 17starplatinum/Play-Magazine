@@ -1,9 +1,10 @@
 package com.example.backend.model.auth;
 
-import com.example.backend.model.data.App;
+import com.example.backend.model.data.app.App;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,7 +14,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.time.LocalDate;
 import java.util.Collection;
 import java.util.List;
 import java.util.Set;
@@ -26,55 +26,29 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class User implements UserDetails {
-
     @Id
     @UuidGenerator
-    @Column(name = "id")
     private UUID id;
 
-    @Column(name = "name", length = 32, nullable = false)
-    private String name;
-
-    @Column(name = "surname", length = 32, nullable = false)
-    private String surname;
-
-    @Column(name = "password", length = 64, nullable = false)
+    @Column(length = 64, nullable = false)
     private String password;
 
-    @Email
-    @Column(name = "email", length = 32, nullable = false)
+    @NotNull
+    @Email(message = "E-mail адрес должен быть в формате 'user@example.com'")
     private String email;
 
+    @NotNull
     @Builder.Default
-    @Column(name = "role", nullable = false)
     @Enumerated(EnumType.STRING)
     private Role role = Role.USER;
 
-    @Column(name = "birthday")
-    private LocalDate birthday;
-
-    @Builder.Default
-    @Column(name = "is_blocked", nullable = false)
-    private boolean isBlocked = false;
-
-    @Column(name = "enable_two_fa", nullable = false)
+    @NotNull
     private boolean enableTwoFA;
 
-    @DecimalMin("0.00")
-    @Column(name = "spending_limit")
-    private Float spendingLimit;
-
+    @NotNull
     @Builder.Default
-    @Column(name = "current_spending")
-    private Float currentSpending = 0F;
-
-    @Builder.Default
-    @Column(name = "last_limit_reset")
-    private LocalDate lastLimitReset = LocalDate.now();
-
-    @Column(name = "request_status")
     @Enumerated(EnumType.STRING)
-    private RequestStatus requestStatus;
+    private RequestStatus requestStatus = RequestStatus.NOT_REQUESTED;
 
     @ManyToMany
     @JoinTable(
@@ -82,7 +56,7 @@ public class User implements UserDetails {
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "app_id", referencedColumnName = "id")
     )
-    private transient Set<App> downloadedApps;
+    private Set<App> downloadedApps;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

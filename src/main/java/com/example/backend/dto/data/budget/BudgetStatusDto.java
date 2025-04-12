@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class BudgetStatusDto {
-    private Float budget;
-    private Float spending;
-    private Float remaining;
+    private Double budget;
+    private Double spending;
+    private Double remaining;
 }
