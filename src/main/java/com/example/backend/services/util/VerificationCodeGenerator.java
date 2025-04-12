@@ -1,4 +1,4 @@
-package com.example.backend.utils;
+package com.example.backend.services.util;
 
 import java.security.SecureRandom;
 

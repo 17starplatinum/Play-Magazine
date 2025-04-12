@@ -45,7 +45,7 @@ public class PurchaseService {
     private final SubscriptionInfoRepository infoRepository;
 
     public Purchase purchaseApp(PurchaseRequest purchaseRequest) {
-        App app = appRepository.findByIdAndAvailableTrue(purchaseRequest.getAppId())
+        App app = appRepository.findById(purchaseRequest.getAppId())
                 .orElseThrow(() -> new AppNotFoundException("Приложение не найдено"));
 
         User user = userService.getCurrentUser();

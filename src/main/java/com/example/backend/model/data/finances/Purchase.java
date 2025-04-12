@@ -31,6 +31,6 @@ public class Purchase {
     private App app;
 
     @ManyToOne
-    @Column(name = "transaction_id", nullable = false)
+    @JoinColumn(name = "transaction_id", nullable = false)
     private MonetaryTransaction monetaryTransaction;
 }

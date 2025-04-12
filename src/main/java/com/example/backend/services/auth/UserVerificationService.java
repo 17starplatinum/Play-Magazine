@@ -1,7 +1,8 @@
-package com.example.backend.services;
+package com.example.backend.services.auth;
 
 import com.example.backend.model.auth.UserVerification;
-import com.example.backend.repositories.UserVerificationRepository;
+import com.example.backend.repositories.auth.UserVerificationRepository;
+import com.example.backend.services.util.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

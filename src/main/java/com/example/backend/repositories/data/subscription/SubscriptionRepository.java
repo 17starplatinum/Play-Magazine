@@ -14,7 +14,5 @@ public interface SubscriptionRepository extends JpaRepository<Subscription, UUID
 
     Optional<Subscription> findByIdAndUser(UUID subscriptionId, User user);
 
-    Subscription findBySubscriptionInfo(SubscriptionInfo subscriptionInfo);
-
     void deleteBySubscriptionInfoIn(List<SubscriptionInfo> subscriptionInfos);
 }

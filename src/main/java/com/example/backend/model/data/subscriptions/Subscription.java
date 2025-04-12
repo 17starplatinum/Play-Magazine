@@ -1,6 +1,7 @@
 package com.example.backend.model.data.subscriptions;
 
 import com.example.backend.model.auth.User;
+import com.example.backend.model.data.app.App;
 import com.example.backend.model.data.finances.Card;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -27,6 +28,10 @@ public class Subscription {
     @NotNull
     @NotBlank
     private String name;
+
+    @ManyToOne
+    @JoinColumn(name = "app_id", nullable = false)
+    private App app;
 
     @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)

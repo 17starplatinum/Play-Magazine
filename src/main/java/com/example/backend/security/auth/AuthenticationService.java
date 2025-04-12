@@ -3,9 +3,11 @@ package com.example.backend.security.auth;
 import com.example.backend.dto.auth.*;
 import com.example.backend.model.auth.Role;
 import com.example.backend.model.auth.User;
-import com.example.backend.model.data.UserVerification;
+import com.example.backend.model.auth.UserProfile;
+import com.example.backend.model.auth.UserVerification;
+import com.example.backend.repositories.auth.UserProfileRepository;
 import com.example.backend.security.jwt.JwtService;
-import com.example.backend.services.UserVerificationService;
+import com.example.backend.services.auth.UserVerificationService;
 import com.example.backend.services.auth.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -25,6 +27,7 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final UserProfileRepository userProfileRepository;
 
     /**
      * Регистрация пользователя
@@ -35,8 +38,6 @@ public class AuthenticationService {
     public JwtAuthenticationResponse signUp(SignUpRequest request) {
 
         var user = User.builder()
-                .name(request.getName())
-                .surname(request.getSurname())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
@@ -99,6 +100,7 @@ public class AuthenticationService {
         String newPassword = request.getNewPassword();
         String oldPassword = request.getPassword();
         User user = userService.getById(uuid);
+        UserProfile userProfile = userProfileRepository.findByUser(user);
 
         if (newPassword != null && oldPassword != null) {
             if (!passwordEncoder.matches(oldPassword, user.getPassword()))
@@ -107,23 +109,25 @@ public class AuthenticationService {
             user.setPassword(passwordEncoder.encode(newPassword));
         }
 
-        if (newSurname != null) user.setSurname(newSurname);
-        if (newName != null) user.setName(newName);
-        if (newBirthday != null) user.setBirthday(newBirthday);
+        if (newSurname != null) userProfile.setSurname(newSurname);
+        if (newName != null) userProfile.setName(newName);
+        if (newBirthday != null) userProfile.setBirthday(newBirthday);
 
-        userService.save(user);
+
+        userProfileRepository.save(userProfile);
     }
 
     public UserInfoResponse getUserInfoByJwtToken(String token) {
         String email = jwtService.extractUserName(token);
         User user = userService.getByUsername(email);
+        UserProfile userProfile = userProfileRepository.findByUser(user);
 
         return UserInfoResponse.builder()
                 .id(user.getId())
                 .email(email)
-                .name(user.getName())
-                .surname(user.getSurname())
-                .birthday(user.getBirthday())
+                .name(userProfile.getName())
+                .surname(userProfile.getSurname())
+                .birthday(userProfile.getBirthday())
                 .build();
     }
 }

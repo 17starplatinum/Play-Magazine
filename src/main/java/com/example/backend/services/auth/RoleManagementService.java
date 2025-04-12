@@ -6,17 +6,20 @@ import com.example.backend.exceptions.prerequisites.AlreadyInRoleException;
 import com.example.backend.exceptions.prerequisites.InvalidRoleAssignmentException;
 import com.example.backend.model.auth.Role;
 import com.example.backend.model.auth.User;
+import com.example.backend.model.auth.UserProfile;
+import com.example.backend.repositories.auth.UserProfileRepository;
 import com.example.backend.repositories.auth.UserRepository;
 import com.example.backend.services.util.NotificationService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
 
 import static com.example.backend.model.auth.RequestStatus.*;
+import static com.example.backend.model.auth.Role.ADMIN;
 import static com.example.backend.model.auth.Role.DEVELOPER;
+import static com.example.backend.model.auth.RequestStatus.APPROVED;
 
 @Service
 @RequiredArgsConstructor
@@ -24,10 +27,11 @@ public class RoleManagementService {
     private final UserRepository userRepository;
     private final NotificationService notificationService;
     private final UserService userService;
+    private final UserProfileRepository userProfileRepository;
 
     @Transactional
-    public void requestRole(String requestedRole) {
-        User user = userService.getCurrentUser();
+    public String requestRole(UUID userId, String requestedRole) {
+        User user = userService.getById(userId);
 
         Role role = Role.valueOf(requestedRole.toUpperCase());
 
@@ -39,32 +43,45 @@ public class RoleManagementService {
             throw new RequestPendingException("Заявка уже в ожидании");
         }
 
-        user.setRequestStatus(PENDING);
-        userRepository.save(user);
+        if (!adminExists()) {
+            user.setRole(ADMIN);
+            user.setRequestStatus(APPROVED);
+            userRepository.save(user);
+            notificationService.notifyAdminsAboutNewAuthorRequest(user);
+            return "У системы нет администратора. Поэтому роль передается вам.";
+        } else {
+            user.setRequestStatus(PENDING);
+            userRepository.save(user);
+            notificationService.notifyAdminsAboutNewAuthorRequest(user);
+            return "Заявка успешно подана. Дождитесь отмашки админа или модератора.";
+        }
 
-        notificationService.notifyAdminsAboutNewAuthorRequest(user);
+    }
+
+    private boolean adminExists() {
+        return userRepository.existsByRole(ADMIN);
     }
 
     @Transactional
-    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN')")
-    public void approveRequest(UUID userId, String approvedBy) {
-        User user = userService.getCurrentUser();
+    public void approveRequest(UUID userId) {
+        User user = userService.getById(userId);
 
         if (user.getRequestStatus() != PENDING) {
-            throw new InvalidRequestException("Заявка пользователя не обрабатывается");
+            throw new InvalidRequestException("Заявка пользователя не в состоянии обработки");
         }
+
 
         user.setRole(DEVELOPER);
         user.setRequestStatus(APPROVED);
         userRepository.save(user);
 
-        notificationService.notifyUserAboutAuthorRequestApproval(user, approvedBy);
+        UserProfile cred = userProfileRepository.findByUser(userService.getCurrentUser());
+        notificationService.notifyUserAboutAuthorRequestApproval(user, cred.getName(), DEVELOPER.getName());
     }
 
     @Transactional
-    @PreAuthorize("hasRole('MODERATOR') or hasRole('ADMIN')")
-    public void rejectRequest(UUID userId, String rejectedBy, String reason) {
-        User user = userService.getCurrentUser();
+    public void rejectRequest(UUID userId, String role, String reason) {
+        User user = userService.getById(userId);
 
         if (user.getRequestStatus() != PENDING) {
             throw new InvalidRequestException("Нельзя отклонить уже обработанную заявку");
@@ -73,13 +90,13 @@ public class RoleManagementService {
         user.setRequestStatus(REJECTED);
         userRepository.save(user);
 
-        notificationService.notifyUserAboutAuthorRequestRejection(user, rejectedBy, reason);
+        UserProfile cred = userProfileRepository.findByUser(userService.getCurrentUser());
+        notificationService.notifyUserAboutAuthorRequestRejection(user, cred.getName(), role, reason);
     }
 
     @Transactional
-    @PreAuthorize("hasRole('ADMIN')")
     public void grantRole(UUID userId, String newRole) {
-        User user = userService.getCurrentUser();
+        User user = userService.getById(userId);
 
         Role roleToBe = Role.valueOf(newRole.toUpperCase());
         if (roleToBe.compare(DEVELOPER) < 0 && user.getRequestStatus() != APPROVED) {
@@ -88,5 +105,7 @@ public class RoleManagementService {
 
         user.setRole(roleToBe);
         userRepository.save(user);
+        UserProfile cred = userProfileRepository.findByUser(userService.getCurrentUser());
+        notificationService.notifyUserAboutAuthorRequestApproval(user, cred.getName(), newRole);
     }
 }

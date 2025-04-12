@@ -76,6 +76,7 @@ public class UserService {
      * @return текущий пользователь
      */
     public User getCurrentUser() {
+        // Получение имени пользователя из контекста Spring Security
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
         return getByUsername(username);
     }
@@ -89,12 +90,11 @@ public class UserService {
      * Выдача прав администратора текущему пользователю
      * <p>
      * Нужен для демонстрации
-     *
      * @deprecated так как у нас теперь есть более-менее внятная система ролей, этот метод больше не является актуальным.
      */
     @Deprecated(forRemoval = true)
-    public void getAdmin() {
-        var user = getCurrentUser();
+        public void getAdmin() {
+            var user = getCurrentUser();
         user.setRole(Role.ADMIN);
         save(user);
     }
@@ -111,8 +111,7 @@ public class UserService {
 
     /**
      * Находит информацию о пользователя через его ID и соответствующего JWT-токена.
-     *
-     * @param uuid  ID
+     * @param uuid ID
      * @param token JWT-токен
      * @return пользователь
      * @deprecated так как были реализованы репозиторий, этот метод больше не является актуальным.

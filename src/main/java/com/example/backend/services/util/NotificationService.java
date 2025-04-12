@@ -42,35 +42,54 @@ public class NotificationService {
         }
     }
 
-    public void notifyUserAboutAuthorRequestApproval(User user, String approvedBy) {
-        String subject = "Ваша заявка на автора одобрена";
+    public void notifyUserAboutAuthorRequestApproval(User user, String approvedBy, String role) {
+        String message = switch (role) {
+            case "ADMIN" -> {
+                role = "админа";
+                yield "Теперь вы имеете право свободно управлять ролями всех других пользователей.";
+            }
+            case "MODERATOR" -> {
+                role = "модератора";
+                yield "Теперь вы имеете право управлять запросами на повышение роли, а также удалить приложения.";
+            }
+            case "DEVELOPER" -> {
+                role = "автора";
+                yield "Теперь вы можете публиковать свои приложения в нашем магазине.";
+            }
+            default -> {
+                role = "";
+                yield "";
+            }
+        };
+
+        String subject = "Ваша заявка на %s одобрена".formatted(role);
         String content = """
                 <html>
                     <body>
                         <h2>Поздравляем, %s!</h2>
                         <p>Ваша заявка на получение статуса автора была одобрена администратором %s.</p>
-                        <p>Теперь вы можете публиковать свои приложения в нашем магазине.</p>
+                        <p>%s</p>
                         <p>С уважением,<br>Команда PlayMagazine</p>
                     </body>
                 </html>
-                """.formatted(user.getUsername(), approvedBy);
+                """.formatted(user.getUsername(), approvedBy, message);
 
         sendEmail(user.getEmail(), subject, content);
     }
 
-    public void notifyUserAboutAuthorRequestRejection(User user, String rejectedBy, String reason) {
-        String subject = "Результат рассмотрения вашей заявки на автора";
+    public void notifyUserAboutAuthorRequestRejection(User user, String rejectedBy, String reason, String role) {
+        String subject = "Результат рассмотрения вашей заявки на %s".formatted(role);
         String content = """
                 <html>
                     <body>
                         <h2>Уважаемый %s,</h2>
-                        <p>К сожалению, ваша заявка на получение статуса автора была отклонена администратором %s.</p>
+                        <p>К сожалению, ваша заявка на получение статуса %s была отклонена администратором %s.</p>
                         <p><strong>Причина:</strong> %s</p>
                         <p>Вы можете подать новую заявку через 30 дней, исправив указанные замечания.</p>
-                        <p>С уважением,<br>Команда AppStore</p>
+                        <p>С уважением,<br>Команда PlayMagazine</p>
                     </body>
                 </html>
-                """.formatted(user.getUsername(), rejectedBy, reason);
+                """.formatted(user.getUsername(), role, rejectedBy, reason);
 
         sendEmail(user.getEmail(), subject, content);
     }
@@ -101,7 +120,7 @@ public class NotificationService {
                      <body>
                      <h2>Уважаемый %s,</h2>
                      <p>Вы отменили подписку %s на приложении %s.</p>
-                     <p>С уважением,<br>Команда AppStore</p>
+                     <p>С уважением,<br>Команда PlayMagazine</p>
                      </body>
                  </html>
                 """.formatted(user.getUsername(), subscription.getName() , subscription.getSubscriptionInfo().getApp().getName());
@@ -115,7 +134,7 @@ public class NotificationService {
                     <body>
                     <h2>Уважаемый %s,</h2>
                     <p>Вы отключили автоматическое продление подписки %s на приложении %s.</p>
-                    <p>С уважением,<br>Команда AppStore</p>
+                    <p>С уважением,<br>Команда PlayMagazine</p>
                     </body>
                 </html>
                 """.formatted(user.getUsername(), subscription.getName(), subscription.getSubscriptionInfo().getApp().getName());

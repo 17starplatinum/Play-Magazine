@@ -35,7 +35,7 @@ public class CardService {
                 .user(user)
                 .number(cardDto.getNumber())
                 .cvv(cardDto.getCvv())
-                .expiryDate(cardDto.getExpired())
+                .expiryDate(cardDto.getExpiryDate())
                 .build();
         return cardRepository.save(card);
     }

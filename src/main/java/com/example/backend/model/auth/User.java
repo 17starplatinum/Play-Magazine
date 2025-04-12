@@ -4,6 +4,7 @@ import com.example.backend.model.data.app.App;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Null;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -37,8 +38,12 @@ public class User implements UserDetails {
     private String email;
 
     @NotNull
+    @Builder.Default
     @Enumerated(EnumType.STRING)
-    private Role role;
+    private Role role = Role.USER;
+
+    @NotNull
+    private boolean enableTwoFA;
 
     @NotNull
     @Builder.Default
@@ -51,7 +56,7 @@ public class User implements UserDetails {
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "app_id", referencedColumnName = "id")
     )
-    private transient Set<App> downloadedApps;
+    private Set<App> downloadedApps;
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

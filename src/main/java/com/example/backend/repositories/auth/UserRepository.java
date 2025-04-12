@@ -1,6 +1,7 @@
 package com.example.backend.repositories.auth;
 
 import com.example.backend.model.auth.RequestStatus;
+import com.example.backend.model.auth.Role;
 import com.example.backend.model.auth.User;
 import jakarta.annotation.Nonnull;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -20,6 +21,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findById(@Nonnull UUID id);
 
     boolean existsByEmail(String email);
+
+    boolean existsByRole(Role role);
 
     @Query("SELECT u.email FROM User u WHERE u.role = 'ADMIN'")
     List<String> findAdminEmails();

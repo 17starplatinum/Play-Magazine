@@ -1,6 +1,6 @@
-package com.example.backend.model.data;
+package com.example.backend.model.auth;
 
-import com.example.backend.utils.VerificationCodeGenerator;
+import com.example.backend.services.util.VerificationCodeGenerator;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;

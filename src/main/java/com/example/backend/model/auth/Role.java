@@ -1,7 +1,9 @@
 package com.example.backend.model.auth;
 
+import lombok.AllArgsConstructor;
 import lombok.Getter;
 
+@AllArgsConstructor
 public enum Role {
     ADMIN ("Admin", 4),
     MODERATOR ("Moderator", 3),
@@ -13,11 +15,6 @@ public enum Role {
     private final String name;
 
     private final int value;
-
-    Role(String name, int value) {
-        this.name  = name;
-        this.value = value;
-    }
 
     @Override
     public String toString() {

@@ -1,0 +1,194 @@
+{
+ "resources": [
+  {
+   "_id": "req_1",
+   "parentId": "wrk_1",
+   "modified": 1702840800000,
+   "created": 1702840800000,
+   "url": "http://localhost:8080/auth/register",
+   "name": "Register User",
+   "description": "Registers a new user.",
+   "method": "POST",
+   "body": {
+    "mimeType": "application/json",
+    "text": "{\n    \"name\": \"test_curl\",\n    \"surname\": \"admin\",\n    \"email\": \"admin@welcome.ru\",\n    \"password\": \"admin\"\n}"
+   },
+   "parameters": [],
+   "headers": [
+    {
+     "name": "Content-Type",
+     "value": "application/json",
+     "description": ""
+    }
+   ],
+   "authentication": {},
+   "metaSortKey": -1702840800000,
+   "isPrivate": false,
+   "settingStoreCookies": true,
+   "settingSendCookies": true,
+   "settingDisableRenderRequestBody": false,
+   "settingEncodeUrl": true,
+   "settingRebuildPath": true,
+   "_type": "request"
+  },
+  {
+   "_id": "req_2",
+   "parentId": "wrk_1",
+   "modified": 1702840800000,
+   "created": 1702840800000,
+   "url": "http://localhost:8080/auth/login",
+   "name": "Login User (Get email and codeId)",
+   "description": "Logs in a user to retrieve the email and codeId.  Assumes JSON response.",
+   "method": "POST",
+   "body": {
+    "mimeType": "application/json",
+    "text": "{\n    \"email\": \"admin@welcome.ru\",\n    \"password\": \"admin\"\n}"
+   },
+   "parameters": [],
+   "headers": [
+    {
+     "name": "Content-Type",
+     "value": "application/json",
+     "description": ""
+    }
+   ],
+   "authentication": {},
+   "metaSortKey": -1702840800000,
+   "isPrivate": false,
+   "settingStoreCookies": true,
+   "settingSendCookies": true,
+   "settingDisableRenderRequestBody": false,
+   "settingEncodeUrl": true,
+   "settingRebuildPath": true,
+   "_type": "request"
+  },
+  {
+   "_id": "req_3",
+   "parentId": "wrk_1",
+   "modified": 1702840800000,
+   "created": 1702840800000,
+   "url": "http://localhost:8080/auth/2fa",
+   "name": "2FA Verification (From Variables - INVALID CODE)",
+   "description": "Attempts 2FA verification using the email and codeId from the login response, with an invalid code.   IMPORTANT: Adjust JSONPath in request 2 and 3 to point to the correct response properties.",
+   "method": "POST",
+   "body": {
+    "mimeType": "application/json",
+    "text": "{\n    \"verificationCodeId\": \"{{ $response.body.#2*JSONPath*$.codeId }}\",\n    \"email\": \"{{ $response.body.#2*JSONPath*$.email }}\",\n    \"code\": \"INVALID_CODE\"\n}"
+   },
+   "parameters": [],
+   "headers": [
+    {
+     "name": "Content-Type",
+     "value": "application/json",
+     "description": ""
+    }
+   ],
+   "authentication": {},
+   "metaSortKey": -1702840800000,
+   "isPrivate": false,
+   "settingStoreCookies": true,
+   "settingSendCookies": true,
+   "settingDisableRenderRequestBody": false,
+   "settingEncodeUrl": true,
+   "settingRebuildPath": true,
+   "_type": "request"
+  },
+  {
+   "_id": "req_4",
+   "parentId": "wrk_1",
+   "modified": 1702840800000,
+   "created": 1702840800000,
+   "url": "http://localhost:8080/auth/2fa",
+   "name": "2FA Verification (Static UUID - INVALID CODE)",
+   "description": "Attempts 2FA verification with a static, invalid UUID and the extracted email (assuming it's still valid).",
+   "method": "POST",
+   "body": {
+    "mimeType": "application/json",
+    "text": "{\n    \"verificationCodeId\": \"AAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAA\",\n    \"email\": \"{{ $response.body.#2*JSONPath*$.email }}\",\n    \"code\": \"INVALID_CODE\"\n}"
+   },
+   "parameters": [],
+   "headers": [
+    {
+     "name": "Content-Type",
+     "value": "application/json",
+     "description": ""
+    }
+   ],
+   "authentication": {},
+   "metaSortKey": -1702840800000,
+   "isPrivate": false,
+   "settingStoreCookies": true,
+   "settingSendCookies": true,
+   "settingDisableRenderRequestBody": false,
+   "settingEncodeUrl": true,
+   "settingRebuildPath": true,
+   "_type": "request"
+  },
+  {
+   "_id": "req_5",
+   "parentId": "wrk_1",
+   "modified": 1702840800000,
+   "created": 1702840800000,
+   "url": "http://localhost:8080/auth/2fa",
+   "name": "2FA Verification (Invalid Code and Invalid Email)",
+   "description": "Attempts 2FA verification with hardcoded invalid credentials (to test error handling).  Does NOT rely on a previous response.",
+   "method": "POST",
+   "body": {
+    "mimeType": "application/json",
+    "text": "{\n    \"verificationCodeId\": \"CODE_ID\",\n    \"email\": \"invalid_mail@mail.ru\",\n    \"code\": \"INVALID_CODE\"\n}"
+   },
+   "parameters": [],
+   "headers": [
+    {
+     "name": "Content-Type",
+     "value": "application/json",
+     "description": ""
+    }
+   ],
+   "authentication": {},
+   "metaSortKey": -1702840800000,
+   "isPrivate": false,
+   "settingStoreCookies": true,
+   "settingSendCookies": true,
+   "settingDisableRenderRequestBody": false,
+   "settingEncodeUrl": true,
+   "settingRebuildPath": true,
+   "_type": "request"
+  },
+  {
+   "_id": "wrk_1",
+   "parentId": null,
+   "modified": 1702840800000,
+   "created": 1702840800000,
+   "name": "Auth API Tests",
+   "description": "",
+   "scope": "collection",
+   "metaSortKey": 0,
+   "_type": "workspace"
+  },
+  {
+   "_id": "env_1",
+   "parentId": "wrk_1",
+   "modified": 1702840800000,
+   "created": 1702840800000,
+   "name": "Base Environment",
+   "data": {},
+   "color": null,
+   "isPrivate": false,
+   "metaSortKey": 0,
+   "_type": "environment"
+  },
+  {
+   "_id": "jar_1",
+   "parentId": "wrk_1",
+   "modified": 1702840800000,
+   "created": 1702840800000,
+   "name": "Default Jar",
+   "cookies": [],
+   "_type": "cookie_jar"
+  }
+ ],
+ "__export_format": 4,
+ "__export_date": "2023-12-17T16:40:00.000Z",
+ "__export_source": "insomnia.desktop.app:v2023.5.8"
+}
