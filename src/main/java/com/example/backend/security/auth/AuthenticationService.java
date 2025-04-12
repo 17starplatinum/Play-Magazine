@@ -3,7 +3,9 @@ package com.example.backend.security.auth;
 import com.example.backend.dto.auth.*;
 import com.example.backend.model.auth.Role;
 import com.example.backend.model.auth.User;
+import com.example.backend.model.data.UserVerification;
 import com.example.backend.security.jwt.JwtService;
+import com.example.backend.services.UserVerificationService;
 import com.example.backend.services.auth.UserService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +21,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class AuthenticationService {
     private final UserService userService;
+    private final UserVerificationService userVerificationService;
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
@@ -49,20 +52,36 @@ public class AuthenticationService {
      * Аутентификация пользователя
      *
      * @param request данные пользователя
-     * @return токен
      */
-    public JwtAuthenticationResponse signIn(SignInRequest request) {
+    public void signIn(SignInRequest request) {
         authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(
                 request.getEmail(),
                 request.getPassword()
         ));
+    }
 
+    public String generateToken(String email) {
         var user = userService
                 .userDetailsService()
-                .loadUserByUsername(request.getEmail());
+                .loadUserByUsername(email);
 
-        var jwt = jwtService.generateToken(user);
-        return new JwtAuthenticationResponse(jwt);
+        return jwtService.generateToken(user);
+    }
+
+    public boolean is2FAEnable(String email) {
+        return userService.getByUsername(email).isEnableTwoFA();
+    }
+
+    public UserVerification createUserVerification(String email) {
+        return userVerificationService.createUserVerification(email);
+    }
+
+    public boolean check2FA(CodeVerificationRequest request) {
+        return userVerificationService.isValidVerificationCode(
+                request.getVerificationCodeId(),
+                request.getCode(),
+                request.getEmail()
+        );
     }
 
     @Transactional

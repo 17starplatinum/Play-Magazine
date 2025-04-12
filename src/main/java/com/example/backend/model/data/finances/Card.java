@@ -1,6 +1,5 @@
 package com.example.backend.model.data.finances;
 
-import com.example.backend.model.auth.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
