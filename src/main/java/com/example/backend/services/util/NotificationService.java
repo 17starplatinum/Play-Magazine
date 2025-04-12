@@ -2,8 +2,8 @@ package com.example.backend.services.util;
 
 import com.example.backend.exceptions.accepted.EmailSendingException;
 import com.example.backend.model.auth.User;
-import com.example.backend.model.data.Subscription;
-import com.example.backend.repositories.UserRepository;
+import com.example.backend.model.data.subscriptions.Subscription;
+import com.example.backend.repositories.auth.UserRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -12,6 +12,8 @@ import org.springframework.core.env.Environment;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 @Slf4j
 @Service
@@ -26,7 +28,7 @@ public class NotificationService {
             MimeMessage message = mailSender.createMimeMessage();
             MimeMessageHelper messageHelper = new MimeMessageHelper(message, true, "UTF-8");
 
-            messageHelper.setFrom(env.getProperty("spring.mail.username"));
+            messageHelper.setFrom(Objects.requireNonNull(env.getProperty("spring.mail.username")));
             messageHelper.setTo(to);
             messageHelper.setSubject(subject);
             messageHelper.setText(text, true);
@@ -86,9 +88,7 @@ public class NotificationService {
                 </html>
                 """.formatted(
                 user.getUsername(),
-                user.getEmail(),
-                env.getProperty("app.frontend.admin-panel-url"),
-                user.getId()
+                user.getEmail()
         );
 
         sendEmail(adminEmails, subject, content);
@@ -104,7 +104,7 @@ public class NotificationService {
                      <p>С уважением,<br>Команда AppStore</p>
                      </body>
                  </html>
-                """.formatted(user.getUsername(), subscription.getName() , subscription.getApp().getName());
+                """.formatted(user.getUsername(), subscription.getName() , subscription.getSubscriptionInfo().getApp().getName());
         sendEmail(user.getEmail(), subject, content);
     }
 
@@ -118,7 +118,7 @@ public class NotificationService {
                     <p>С уважением,<br>Команда AppStore</p>
                     </body>
                 </html>
-                """.formatted(user.getUsername(), subscription.getName(), subscription.getApp().getName());
+                """.formatted(user.getUsername(), subscription.getName(), subscription.getSubscriptionInfo().getApp().getName());
         sendEmail(user.getEmail(), subject, content);
     }
 }

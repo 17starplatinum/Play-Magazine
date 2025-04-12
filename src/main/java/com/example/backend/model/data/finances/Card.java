@@ -1,8 +1,9 @@
-package com.example.backend.model.data;
+package com.example.backend.model.data.finances;
 
 import com.example.backend.model.auth.User;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
@@ -21,35 +22,32 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class Card {
-
     @Id
     @UuidGenerator
-    @Column(name = "id")
-    @JsonIgnore
     private UUID id;
 
-    @ManyToOne
+    @ManyToOne(optional = false)
     @JoinColumn(name = "user_id", nullable = false)
     @JsonIgnore
     private User user;
 
-    @Column(name = "number", nullable = false)
+    @NotNull
     @Size(min = 16, max = 19)
     @Pattern(regexp = "\\d+")
     private String number;
 
-    @Column(name = "cvv", nullable = false)
+    @NotNull
     @Pattern(regexp = "^\\d{3}$")
     private String cvv;
 
-    @Column(name = "expired", nullable = false)
-    private LocalDate expired;
+    @NotNull
+    private LocalDate expiryDate;
 
+    @NotNull
     @Builder.Default
-    @Column(name = "balance", nullable = false)
     private double balance = 0;
 
+    @NotNull
     @Builder.Default
-    @Column(name = "is_default", nullable = false)
     private Boolean isDefault = false;
 }

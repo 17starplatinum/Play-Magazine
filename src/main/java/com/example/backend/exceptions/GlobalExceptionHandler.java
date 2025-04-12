@@ -8,7 +8,6 @@ import com.example.backend.exceptions.badcredentials.InvalidRequestException;
 import com.example.backend.exceptions.dto.ErrorResponseDto;
 import com.example.backend.exceptions.notfound.AppNotFoundException;
 import com.example.backend.exceptions.notfound.CardNotFoundException;
-import com.example.backend.exceptions.notfound.UserNotFoundException;
 import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
 import com.example.backend.exceptions.prerequisites.*;
 import org.springframework.http.HttpStatus;
@@ -47,7 +46,6 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({
             AppNotFoundException.class,
-            UserNotFoundException.class,
             CardNotFoundException.class
     })
     public ResponseEntity<Object> handleUserNotFoundException() {
@@ -60,7 +58,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({
-            AlreadyDeveloperException.class,
+            AlreadyInRoleException.class,
             AppAlreadyPurchasedException.class,
             AppUpToDateException.class,
             BudgetExceededException.class,
@@ -68,10 +66,9 @@ public class GlobalExceptionHandler {
             InsufficientFundsException.class,
             InvalidApplicationConfigException.class,
             InvalidRoleAssignmentException.class,
-
             ReviewAlreadyExistsException.class
     })
-    public ResponseEntity<Object> handleAlreadyDeveloperException() {
+    public ResponseEntity<Object> handleBadPrerequisiteException() {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.PRECONDITION_FAILED.value(),
                 "Условие, необходимое для действия, не соблюдено",
@@ -86,7 +83,7 @@ public class GlobalExceptionHandler {
             RequestPendingException.class,
             EmailSendingException.class
     })
-    public ResponseEntity<Object> handleAppDownloadException() {
+    public ResponseEntity<Object> handleIncompleteProcessingException() {
         ErrorResponseDto responseDto = new ErrorResponseDto(
             HttpStatus.ACCEPTED.value(),
                 "Запрос принят, но невозможно завершить",
@@ -96,12 +93,22 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AppNotPurchasedException.class)
-    public ResponseEntity<Object> handleAppNotFoundException() {
+    public ResponseEntity<Object> handleAppNotPurchasedException() {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.PAYMENT_REQUIRED.value(),
                 "Требуется платёж для совершения этого действия",
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.PAYMENT_REQUIRED);
+    }
+
+    @ExceptionHandler(SecurityException.class)
+    public ResponseEntity<Object> handleSecurityException() {
+        ErrorResponseDto responseDto = new ErrorResponseDto(
+                HttpStatus.FORBIDDEN.value(),
+                "Вам не разрешен доступ к этому ресурсу",
+                System.currentTimeMillis()
+        );
+        return new ResponseEntity<>(responseDto, HttpStatus.FORBIDDEN);
     }
 }

@@ -2,8 +2,8 @@ package com.example.backend.controllers;
 
 import com.example.backend.dto.auth.RoleChangeRequestDto;
 import com.example.backend.model.auth.User;
-import com.example.backend.repositories.UserRepository;
 import com.example.backend.services.auth.RoleManagementService;
+import com.example.backend.services.auth.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -13,19 +13,17 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static com.example.backend.model.auth.RequestStatus.PENDING;
-
 @RestController
 @RequestMapping("/api/v1/admin")
 @RequiredArgsConstructor
 public class AdminController {
     private final RoleManagementService roleManagementService;
-    private final UserRepository userRepository;
+    private final UserService userService;
 
     @GetMapping("/requests")
     @PreAuthorize("hasRole('MODERATOR') || hasRole('ADMIN')")
-    public List<User> getPendingRequests() {
-        return userRepository.findByRequestStatus(String.valueOf(PENDING));
+    public List<User> getUsersByRequestStatus(@RequestParam String requestStatus) {
+        return userService.findByRequestStatus(requestStatus);
     }
 
     @PostMapping("/approve")

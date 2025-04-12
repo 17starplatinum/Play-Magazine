@@ -1,5 +1,6 @@
-package com.example.backend.repositories;
+package com.example.backend.repositories.auth;
 
+import com.example.backend.model.auth.RequestStatus;
 import com.example.backend.model.auth.User;
 import jakarta.annotation.Nonnull;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -23,6 +24,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Query("SELECT u.email FROM User u WHERE u.role = 'ADMIN'")
     List<String> findAdminEmails();
 
-    @Query("SELECT u.requestStatus FROM User u WHERE u.role = :role")
-    List<User> findByRequestStatus(@Param("role") String role);
+    @Query("SELECT u FROM User u WHERE u.requestStatus = :requestStatus")
+    List<User> findByRequestStatus(@Param("requestStatus") RequestStatus requestStatus);
 }

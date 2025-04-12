@@ -1,6 +1,9 @@
 package com.example.backend.controllers;
 
-import com.example.backend.dto.auth.*;
+import com.example.backend.dto.auth.EditProfileRequest;
+import com.example.backend.dto.auth.JwtAuthenticationResponse;
+import com.example.backend.dto.auth.SignInRequest;
+import com.example.backend.dto.auth.SignUpRequest;
 import com.example.backend.model.auth.RequestStatus;
 import com.example.backend.security.auth.AuthenticationService;
 import com.example.backend.services.auth.RoleManagementService;
@@ -32,8 +35,8 @@ public class AuthController {
 
     @PostMapping("/request")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<String> requestAuthorRole() {
-        roleManagementService.requestRole(userService.getCurrentUser());
+    public ResponseEntity<String> requestAuthorRole(@RequestParam String requestedRole) {
+        roleManagementService.requestRole(requestedRole);
         return ResponseEntity.status(HttpStatus.ACCEPTED).body("Заявка успешно подана");
     }
 

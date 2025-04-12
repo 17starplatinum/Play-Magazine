@@ -2,6 +2,7 @@ package com.example.backend.model.data;
 
 
 import com.example.backend.model.auth.User;
+import com.example.backend.model.data.app.App;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;

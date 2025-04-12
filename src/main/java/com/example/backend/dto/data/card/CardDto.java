@@ -31,5 +31,5 @@ public class CardDto {
 
     @NotNull
     @Future
-    private LocalDate expired;
+    private LocalDate expiryDate;
 }

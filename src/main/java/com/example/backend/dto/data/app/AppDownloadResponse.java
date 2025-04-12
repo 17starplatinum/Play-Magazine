@@ -18,9 +18,9 @@ public class AppDownloadResponse {
     @NotNull
     private String name;
     @NotNull
-    private Float currentVersion;
+    private String currentVersion;
     @NotNull
-    private Float availableVersion;
+    private String availableVersion;
 
     private boolean updateAvailable;
 

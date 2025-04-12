@@ -1,8 +1,9 @@
 package com.example.backend.services.auth;
 
+import com.example.backend.model.auth.RequestStatus;
 import com.example.backend.model.auth.Role;
 import com.example.backend.model.auth.User;
-import com.example.backend.repositories.UserRepository;
+import com.example.backend.repositories.auth.UserRepository;
 import com.example.backend.security.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
@@ -11,6 +12,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -101,6 +103,10 @@ public class UserService {
         token = token.substring(7);
         String email = jwtService.extractUserName(token);
         return getByUsername(email).getId().equals(uuid);
+    }
+
+    public List<User> findByRequestStatus(String requestStatus) {
+        return userRepository.findByRequestStatus(RequestStatus.valueOf(requestStatus.toUpperCase()));
     }
 
     /**

@@ -1,9 +1,6 @@
 package com.example.backend.controllers;
 
-
-import com.example.backend.dto.data.budget.BudgetDto;
 import com.example.backend.dto.data.budget.BudgetStatusDto;
-import com.example.backend.services.auth.UserService;
 import com.example.backend.services.data.BudgetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -15,18 +12,17 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class BudgetController {
     private final BudgetService budgetService;
-    private final UserService userService;
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<BudgetStatusDto> getBudgetStatus() {
-        return ResponseEntity.ok(budgetService.getBudgetStatus(userService.getCurrentUser()));
+        return ResponseEntity.ok(budgetService.getBudgetStatus());
     }
 
     @PostMapping("/limit")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<String> setMonthlyLimit(@RequestBody BudgetDto budgetDto) {
-        budgetService.setMonthlyLimit(budgetDto, userService.getCurrentUser());
-        return ResponseEntity.ok(String.format("Месячный бюджет (%f) установлен.", budgetDto.getSpendingLimit()));
+    public ResponseEntity<String> setMonthlyLimit(@RequestParam double limit) {
+        budgetService.setMonthlyLimit(limit);
+        return ResponseEntity.ok(String.format("Месячный бюджет (%f) установлен.", limit));
     }
 }

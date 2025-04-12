@@ -1,69 +1,132 @@
 package com.example.backend.services.data;
 
-
+import com.example.backend.dto.data.subscription.SubscriptionRequestDto;
+import com.example.backend.dto.data.subscription.SubscriptionResponseDto;
 import com.example.backend.exceptions.notfound.SubscriptionNotFoundException;
-import com.example.backend.exceptions.notfound.UserNotFoundException;
 import com.example.backend.model.auth.User;
-import com.example.backend.model.data.Subscription;
-import com.example.backend.repositories.AppRepository;
-import com.example.backend.repositories.SubscriptionRepository;
-import com.example.backend.repositories.UserRepository;
+import com.example.backend.model.data.app.App;
+import com.example.backend.model.data.finances.Card;
+import com.example.backend.model.data.finances.Invoice;
+import com.example.backend.model.data.subscriptions.Subscription;
+import com.example.backend.model.data.subscriptions.SubscriptionInfo;
+import com.example.backend.repositories.data.subscription.SubscriptionInfoRepository;
+import com.example.backend.repositories.data.subscription.SubscriptionRepository;
+import com.example.backend.services.auth.UserService;
 import com.example.backend.services.util.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class SubscriptionService {
-    private static final String USER_NOT_FOUND_MESSAGE = "User not found"; 
     private final SubscriptionRepository subscriptionRepository;
-    private final UserRepository userRepository;
-    private final AppRepository appRepository;
+    private final SubscriptionInfoRepository infoRepository;
     private final NotificationService notificationService;
+    private final UserService userService;
+    private final CardService cardService;
+    private final AppService appService;
 
-    public List<Subscription> getAllSubscriptions(UserDetails currentUser) {
-        User user = userRepository.findByEmail(currentUser.getUsername())
-                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MESSAGE, new RuntimeException()));
+    public List<SubscriptionResponseDto> getAllSubscriptions() {
+        User user = userService.getCurrentUser();
+        List<Subscription> subscriptions = subscriptionRepository.findByUser(user);
+        List<SubscriptionResponseDto> subscriptionResponseDtos = new ArrayList<>();
+        for (Subscription subscription : subscriptions) {
+            LocalDate startDate = subscription.getSubscriptionInfo().getStartDate();
+            LocalDate endDate = subscription.getSubscriptionInfo().getEndDate();
 
-        return subscriptionRepository.findByUser(user);
+            SubscriptionResponseDto responseDto = SubscriptionResponseDto.builder()
+                    .id(subscription.getId())
+                    .name(subscription.getName())
+                    .appName(subscription.getSubscriptionInfo().getApp().getName())
+                    .daysRemaining(endDate.getDayOfMonth() - startDate.getDayOfMonth())
+                    .build();
+
+            subscriptionResponseDtos.add(responseDto);
+        }
+        return subscriptionResponseDtos;
     }
 
-    public void cancelSubscription(UUID subscriptionId, UserDetails currentUser) {
-        User user = userRepository.findByEmail(currentUser.getUsername())
-                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MESSAGE, new RuntimeException()));
+    public Subscription addSubscription(SubscriptionRequestDto subscriptionRequestDto) {
+        User user = userService.getCurrentUser();
+        Card card = cardService.getCardByIdAndUser(subscriptionRequestDto.getCardId(), user);
+        App app = appService.getAppByName(subscriptionRequestDto.getAppName());
+        Subscription subscription = Subscription.builder()
+                .user(user)
+                .card(card)
+                .name(subscriptionRequestDto.getName())
+                .subscriptionInfo(
+                        SubscriptionInfo.builder()
+                                .app(app)
+                                .invoice(Invoice.builder().amount(subscriptionRequestDto.getFee()).build())
+                                .startDate(LocalDate.now())
+                                .endDate(LocalDate.now().plusDays(subscriptionRequestDto.getDays()))
+                                .autoRenewal(subscriptionRequestDto.getAutoRenewal())
+                                .active(true)
+                                .build()
+                )
+                .build();
+
+        return subscriptionRepository.save(subscription);
+    }
+
+    public SubscriptionResponseDto getSubscriptionInfo(UUID id) {
+        Subscription subscription = subscriptionRepository.findById(id).orElseThrow(() -> new SubscriptionNotFoundException("Подписка не найдена"));
+
+        LocalDate startDate = subscription.getSubscriptionInfo().getStartDate();
+        LocalDate endDate = subscription.getSubscriptionInfo().getEndDate();
+
+        return SubscriptionResponseDto.builder()
+                .id(subscription.getId())
+                .name(subscription.getName())
+                .appName(subscription.getSubscriptionInfo().getApp().getName())
+                .fee(subscription.getSubscriptionInfo().getInvoice().getAmount())
+                .startDate(startDate)
+                .endDate(endDate)
+                .daysRemaining(endDate.getDayOfMonth() - startDate.getDayOfMonth())
+                .autoRenewal(subscription.getSubscriptionInfo().getAutoRenewal())
+                .active(subscription.getSubscriptionInfo().getActive())
+                .build();
+    }
+
+    public void cancelSubscription(UUID subscriptionId) {
+        User user = userService.getCurrentUser();
 
         Subscription subscription = subscriptionRepository.findByIdAndUser(subscriptionId, user)
-                .orElseThrow(() -> new SubscriptionNotFoundException("Подписка не найдена", new RuntimeException()));
+                .orElseThrow(() -> new SubscriptionNotFoundException("Подписка не найдена"));
 
-        subscription.setActive(false);
-        subscription.setAutoRenewal(false);
-        subscriptionRepository.save(subscription);
+        SubscriptionInfo subscriptionInfo = subscription.getSubscriptionInfo();
+
+        subscriptionInfo.setActive(false);
+        subscriptionInfo.setAutoRenewal(false);
+
+        infoRepository.save(subscriptionInfo);
         notificationService.notifyUserAboutSubscriptionCancellation(user, subscription);
     }
 
-    public void cancelAutoRenewal(UUID subscriptionId, UserDetails currentUser) {
-        User user = userRepository.findByEmail(currentUser.getUsername())
-                .orElseThrow(() -> new UserNotFoundException(USER_NOT_FOUND_MESSAGE, new RuntimeException()));
+    public void cancelAutoRenewal(UUID subscriptionId) {
+        User user = userService.getCurrentUser();
 
         Subscription subscription = subscriptionRepository.findByIdAndUser(subscriptionId, user)
-                .orElseThrow(() -> new SubscriptionNotFoundException("Подписка не найдена", new RuntimeException()));
+                .orElseThrow(() -> new SubscriptionNotFoundException("Подписка не найдена"));
 
-        subscription.setAutoRenewal(false);
-        subscriptionRepository.save(subscription);
+        SubscriptionInfo subscriptionInfo = subscription.getSubscriptionInfo();
+
+        subscriptionInfo.setAutoRenewal(false);
+        infoRepository.save(subscriptionInfo);
         notificationService.notifyUserAboutSubscriptionAutoRenewal(user, subscription);
     }
 
     @Scheduled(cron = "0 0 0 * * ?")
     public void processCancelledSubscriptions() {
         LocalDate today = LocalDate.now();
-        List<Subscription> expiredSubscriptions = subscriptionRepository.findByActiveFalseAndEndDateAfter(today);
-        subscriptionRepository.deleteAll(expiredSubscriptions);
+        List<SubscriptionInfo> expiredSubscriptionsInfo = infoRepository.findByActiveFalseAndEndDateBefore(today);
+
+        subscriptionRepository.deleteBySubscriptionInfoIn(expiredSubscriptionsInfo);
     }
 }
