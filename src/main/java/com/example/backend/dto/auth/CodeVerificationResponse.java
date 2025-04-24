@@ -7,5 +7,5 @@ import lombok.Getter;
 @AllArgsConstructor
 public class CodeVerificationResponse {
     private String email;
-    private String codeId;
+    private String verificationCodeId;
 }

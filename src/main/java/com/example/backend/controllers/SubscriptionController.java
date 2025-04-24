@@ -34,13 +34,13 @@ public class SubscriptionController {
         return ResponseEntity.status(HttpStatus.CREATED).body(subscriptionService.addSubscription(subscriptionRequestDto));
     }
 
-    @PatchMapping("/{id}/cancel")
+    @PutMapping("/{id}/cancel")
     public ResponseEntity<Void> cancelSubscription(@PathVariable UUID id) {
         subscriptionService.cancelSubscription(id);
         return ResponseEntity.noContent().build();
     }
 
-    @PatchMapping("/{id}/auto-renewal")
+    @PutMapping("/{id}/auto-renewal")
     public ResponseEntity<Void> cancelAutoRenewalById(@PathVariable UUID id) {
         subscriptionService.cancelAutoRenewal(id);
         return ResponseEntity.noContent().build();

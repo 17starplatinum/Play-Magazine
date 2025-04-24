@@ -37,7 +37,7 @@ public class AuthController {
         if (authenticationService.is2FAEnable(email)) {
             UserVerification userVerification = authenticationService.createUserVerification(email);
             HttpHeaders headers = new HttpHeaders();
-            headers.setLocation(URI.create("/auth/2fa?email=" + email + "&codeId=" + userVerification.getId()));
+            headers.setLocation(URI.create("/api/v1/auth/2fa?email=" + email + "&codeId=" + userVerification.getId()));
             return new ResponseEntity<>(headers, HttpStatus.FOUND);
         }
         return ResponseEntity.ok().body(
@@ -57,8 +57,8 @@ public class AuthController {
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<String> requestAuthorRole(@RequestParam String requestedRole) {
         User currentUser = userService.getCurrentUser();
-        roleManagementService.requestRole(currentUser.getId(), requestedRole);
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body("Заявка успешно подана");
+        String response = roleManagementService.requestRole(currentUser.getId(), requestedRole);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body("Заявка успешно подана\n" + response);
     }
 
     @PostMapping("/2fa")
@@ -67,18 +67,27 @@ public class AuthController {
     ) {
         if (authenticationService.check2FA(request)) {
             HttpHeaders headers = new HttpHeaders();
-            headers.setLocation(URI.create("/auth/success?email=" + request.getEmail()));
+            headers.setLocation(URI.create("/api/v1/auth/success?email=" + request.getEmail()));
             return new ResponseEntity<>(headers, HttpStatus.FOUND);
         }
 
         return ResponseEntity.badRequest().body("Wrong code!");
     }
 
-    @PatchMapping("/edit-info")
-    @PreAuthorize("isAuthenticated()")
+    @PutMapping("/edit-info")
     public ResponseEntity<String> updateUserInfo(@RequestBody EditProfileRequest request) {
         authenticationService.updateUserInfo(request);
         return ResponseEntity.ok("Информация успешно обновлена");
+    }
+
+    @GetMapping("/edit-info")
+    public ResponseEntity<?> enable2FA(
+            @RequestParam("2fa") boolean enabled,
+            @RequestHeader("Authorization") String jwt
+    ) {
+        jwt = jwt.replace("Bearer ", "");
+        authenticationService.change2FAStatus(enabled, jwt);
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/success")

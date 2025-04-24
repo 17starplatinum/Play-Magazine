@@ -33,6 +33,13 @@ public class BudgetService {
     public BudgetStatusDto getBudgetStatus() {
         User user = userService.getCurrentUser();
         UserBudget userBudget = userBudgetRepository.findUserBudgetByUser(user);
+        if(userBudget == null) {
+            return BudgetStatusDto.builder()
+                    .budget(0D)
+                    .spending(0D)
+                    .remaining(0D)
+                    .build();
+        }
         resetSpendingIfNeeded(userBudget);
         return BudgetStatusDto.builder()
                 .budget(userBudget.getSpendingLimit())

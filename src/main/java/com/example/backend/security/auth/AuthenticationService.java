@@ -1,20 +1,19 @@
 package com.example.backend.security.auth;
 
 import com.example.backend.dto.auth.*;
-import com.example.backend.model.auth.Role;
-import com.example.backend.model.auth.User;
-import com.example.backend.model.auth.UserProfile;
-import com.example.backend.model.auth.UserVerification;
+import com.example.backend.model.auth.*;
 import com.example.backend.repositories.auth.UserProfileRepository;
+import com.example.backend.repositories.auth.UserRepository;
 import com.example.backend.security.jwt.JwtService;
 import com.example.backend.services.auth.UserVerificationService;
 import com.example.backend.services.auth.UserService;
-import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -28,6 +27,7 @@ public class AuthenticationService {
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
     private final UserProfileRepository userProfileRepository;
+    private final UserRepository userRepository;
 
     /**
      * Регистрация пользователя
@@ -43,7 +43,7 @@ public class AuthenticationService {
                 .role(Role.USER)
                 .build();
 
-        userService.create(user);
+        userService.create(user, request);
 
         var jwt = jwtService.generateToken(user);
         return new JwtAuthenticationResponse(jwt);
@@ -83,6 +83,11 @@ public class AuthenticationService {
                 request.getCode(),
                 request.getEmail()
         );
+    }
+
+    @Transactional
+    public void change2FAStatus(boolean enabled, String jwt) {
+        userRepository.enableTwoFA(enabled, jwtService.extractUserName(jwt));
     }
 
     @Transactional

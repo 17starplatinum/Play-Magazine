@@ -26,7 +26,7 @@ public class CardController {
         return ResponseEntity.status(HttpStatus.CREATED).body(cardService.addCard(cardDto));
     }
 
-    @PutMapping("/deposit/")
+    @PutMapping("/deposit")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> depositCard(@Valid @RequestBody DepositRequest depositRequest) {
         cardService.depositInCard(depositRequest);
@@ -39,7 +39,7 @@ public class CardController {
         return ResponseEntity.ok(cardService.getUserCards());
     }
 
-    @PatchMapping("/{cardId}")
+    @PutMapping("/{cardId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> setDefaultCard(@PathVariable UUID cardId) {
         cardService.setDefaultCard(cardId);

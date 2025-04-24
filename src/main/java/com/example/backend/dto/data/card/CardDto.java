@@ -18,9 +18,6 @@ import java.util.UUID;
 @AllArgsConstructor
 public class CardDto {
     @NotNull
-    private UUID id;
-
-    @NotNull
     @Size(min = 16, max = 19)
     @Pattern(regexp = "\\d+")
     private String number;

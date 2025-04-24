@@ -13,6 +13,7 @@ import com.example.backend.exceptions.prerequisites.*;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 
@@ -66,7 +67,8 @@ public class GlobalExceptionHandler {
             InsufficientFundsException.class,
             InvalidApplicationConfigException.class,
             InvalidRoleAssignmentException.class,
-            ReviewAlreadyExistsException.class
+            ReviewAlreadyExistsException.class,
+            HttpRequestMethodNotSupportedException.class
     })
     public ResponseEntity<Object> handleBadPrerequisiteException() {
         ErrorResponseDto responseDto = new ErrorResponseDto(

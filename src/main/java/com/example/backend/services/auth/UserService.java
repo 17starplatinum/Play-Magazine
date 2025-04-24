@@ -1,8 +1,9 @@
 package com.example.backend.services.auth;
 
-import com.example.backend.model.auth.RequestStatus;
-import com.example.backend.model.auth.Role;
-import com.example.backend.model.auth.User;
+import com.example.backend.dto.auth.SignUpRequest;
+import com.example.backend.model.auth.*;
+import com.example.backend.repositories.auth.UserBudgetRepository;
+import com.example.backend.repositories.auth.UserProfileRepository;
 import com.example.backend.repositories.auth.UserRepository;
 import com.example.backend.security.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +20,8 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class UserService {
     private final UserRepository userRepository;
+    private final UserBudgetRepository budgetRepository;
+    private final UserProfileRepository profileRepository;
     private final JwtService jwtService;
 
     /**
@@ -34,12 +37,26 @@ public class UserService {
     /**
      * Создание пользователя
      */
-    public void create(User user) {
+    public void create(User user, SignUpRequest signUpRequest) {
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new BadCredentialsException("Пользователь с таким email уже существует");
         }
-
         save(user);
+        UserBudget userBudget = UserBudget.builder()
+                .user(user)
+                .spendingLimit(0D)
+                .currentSpending(0D)
+                .build();
+        budgetRepository.save(userBudget);
+
+        UserProfile userProfile = UserProfile.builder()
+                .user(user)
+                .name(signUpRequest.getName())
+                .surname(signUpRequest.getSurname())
+                .build();
+        profileRepository.save(userProfile);
+        userBudget.setUser(user);
+        userProfile.setUser(user);
     }
 
     /**

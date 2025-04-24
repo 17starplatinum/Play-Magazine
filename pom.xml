@@ -12,6 +12,7 @@
     <artifactId>Play_Magazine</artifactId>
     <version>0.1</version>
     <name>Play Magazine</name>
+
     <description>Play Market Rip Off</description>
     <url />
     <licenses>
@@ -49,10 +50,6 @@
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-web</artifactId>
-        </dependency>
-        <dependency>
-            <groupId>org.springframework.boot</groupId>
-            <artifactId>spring-boot-starter-mail</artifactId>
         </dependency>
         <dependency>
             <groupId>org.springframework.boot</groupId>

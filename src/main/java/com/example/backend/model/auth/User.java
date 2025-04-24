@@ -1,6 +1,7 @@
 package com.example.backend.model.auth;
 
 import com.example.backend.model.data.app.App;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
@@ -42,7 +43,7 @@ public class User implements UserDetails {
     @Enumerated(EnumType.STRING)
     private Role role = Role.USER;
 
-    @NotNull
+    @Column(name = "enable_two_fa", nullable = false)
     private boolean enableTwoFA;
 
     @NotNull
@@ -51,6 +52,7 @@ public class User implements UserDetails {
     private RequestStatus requestStatus = RequestStatus.NOT_REQUESTED;
 
     @ManyToMany
+    @JsonIgnoreProperties({"downloadedApps"})
     @JoinTable(
             name = "user_app_downloads",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),

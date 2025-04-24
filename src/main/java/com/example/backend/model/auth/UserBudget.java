@@ -22,7 +22,7 @@ public class UserBudget {
     @UuidGenerator
     private UUID id;
 
-    @OneToOne
+    @OneToOne(optional = false)
     @JoinColumn(name = "user_id")
     private User user;
 
