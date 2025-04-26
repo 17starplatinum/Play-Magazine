@@ -25,12 +25,12 @@ public class AuthController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public JwtAuthenticationResponse signUp(@RequestBody @Valid SignUpRequest request) {
-        return authenticationService.signUp(request);
+    public ResponseEntity<JwtAuthenticationResponse> signUp(@RequestBody @Valid SignUpRequest request) {
+        return ResponseEntity.ok().body(authenticationService.signUp(request));
     }
 
     @PostMapping("/login")
-    public ResponseEntity<?> signIn(@RequestBody @Valid SignInRequest request) {
+    public ResponseEntity<JwtAuthenticationResponse> signIn(@RequestBody @Valid SignInRequest request) {
         authenticationService.signIn(request);
         String email = request.getEmail();
 
@@ -46,7 +46,7 @@ public class AuthController {
     }
 
     @GetMapping("/2fa")
-    public ResponseEntity<?> check2FAForm(
+    public ResponseEntity<CodeVerificationResponse> check2FAForm(
             @RequestParam("email") String email,
             @RequestParam("codeId") String codeId
     ) {
@@ -62,7 +62,7 @@ public class AuthController {
     }
 
     @PostMapping("/2fa")
-    public ResponseEntity<?> check2FA(
+    public ResponseEntity<String> check2FA(
             @RequestBody @Valid CodeVerificationRequest request
     ) {
         if (authenticationService.check2FA(request)) {
@@ -81,7 +81,7 @@ public class AuthController {
     }
 
     @GetMapping("/edit-info")
-    public ResponseEntity<?> enable2FA(
+    public ResponseEntity<Void> enable2FA(
             @RequestParam("2fa") boolean enabled,
             @RequestHeader("Authorization") String jwt
     ) {
@@ -91,7 +91,7 @@ public class AuthController {
     }
 
     @GetMapping("/success")
-    public ResponseEntity<?> success(@RequestParam("email") String email) {
+    public ResponseEntity<JwtAuthenticationResponse> success(@RequestParam("email") String email) {
         return ResponseEntity.ok().body(
                 new JwtAuthenticationResponse(authenticationService.generateToken(email))
         );
