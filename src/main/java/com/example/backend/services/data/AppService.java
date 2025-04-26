@@ -20,6 +20,7 @@ import com.example.backend.model.data.finances.Purchase;
 import com.example.backend.repositories.data.app.AppFileRepository;
 import com.example.backend.repositories.data.app.AppRepository;
 import com.example.backend.repositories.data.app.AppRequirementsRepository;
+import com.example.backend.repositories.data.app.AppVersionRepository;
 import com.example.backend.repositories.data.finances.PurchaseRepository;
 import com.example.backend.services.auth.UserService;
 import com.example.backend.services.util.FileUtils;
@@ -54,6 +55,7 @@ public class AppService {
     private final AppRequirementsRepository appRequirementsRepository;
     private final AppFileRepository appFileRepository;
     private final AppMapper appMapper;
+    private final AppVersionRepository appVersionRepository;
 
     public AppDownloadResponse prepareAppDownload(UUID appId) {
         App app = getAppById(appId);
