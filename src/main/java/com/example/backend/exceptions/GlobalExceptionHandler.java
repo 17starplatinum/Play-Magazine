@@ -10,31 +10,24 @@ import com.example.backend.exceptions.notfound.AppNotFoundException;
 import com.example.backend.exceptions.notfound.CardNotFoundException;
 import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
 import com.example.backend.exceptions.prerequisites.*;
+import io.jsonwebtoken.JwtException;
+import io.jsonwebtoken.security.WeakKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
-
-import java.util.Arrays;
-import java.util.Map;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> handleException(Exception ex) {
-        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(
-                Map.of(
-                        "error", ex.getMessage(),
-                        "stackTrace", Arrays.toString(ex.getStackTrace())
-                )
-        );
-    }
 
     @ExceptionHandler({
             BadCredentialsException.class,
-            InvalidRequestException.class
+            InvalidRequestException.class,
+            JwtException.class,
+            WeakKeyException.class
     })
     public ResponseEntity<Object> handleBadCredentialsException() {
         ErrorResponseDto responseDto = new ErrorResponseDto(
@@ -47,7 +40,8 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler({
             AppNotFoundException.class,
-            CardNotFoundException.class
+            CardNotFoundException.class,
+            NoResourceFoundException.class
     })
     public ResponseEntity<Object> handleUserNotFoundException() {
         ErrorResponseDto responseDto = new ErrorResponseDto(
