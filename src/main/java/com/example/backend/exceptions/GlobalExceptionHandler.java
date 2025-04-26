@@ -32,10 +32,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             BadCredentialsException.class
     })
-    public ResponseEntity<Object> handleBadCredentialsException() {
+    public ResponseEntity<Object> handleBadCredentialsException(Exception e) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.UNAUTHORIZED.value(),
-                "Неверное имя пользователя или пароль",
+                e.getMessage(),
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
@@ -50,10 +50,10 @@ public class GlobalExceptionHandler {
             MissingServletRequestParameterException.class,
             HttpMessageNotReadableException.class
     })
-    public ResponseEntity<Object> handleBadRequestException() {
+    public ResponseEntity<Object> handleBadRequestException(Exception e) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.BAD_REQUEST.value(),
-                "Запрос не подходит для обработки",
+                e.getMessage(),
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.BAD_REQUEST);
@@ -64,10 +64,10 @@ public class GlobalExceptionHandler {
             CardNotFoundException.class,
             NoResourceFoundException.class
     })
-    public ResponseEntity<Object> handleUserNotFoundException() {
+    public ResponseEntity<Object> handleUserNotFoundException(Exception e) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.NOT_FOUND.value(),
-                "Ресурс не найден",
+                e.getMessage(),
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.NOT_FOUND);
@@ -84,10 +84,10 @@ public class GlobalExceptionHandler {
             ReviewAlreadyExistsException.class,
             HttpRequestMethodNotSupportedException.class
     })
-    public ResponseEntity<Object> handleBadPrerequisiteException() {
+    public ResponseEntity<Object> handleBadPrerequisiteException(Exception e) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.PRECONDITION_FAILED.value(),
-                "Условие, необходимое для действия, не соблюдено",
+                e.getMessage(),
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.PRECONDITION_FAILED);
@@ -99,40 +99,40 @@ public class GlobalExceptionHandler {
             RequestPendingException.class,
             EmailSendingException.class
     })
-    public ResponseEntity<Object> handleIncompleteProcessingException() {
+    public ResponseEntity<Object> handleIncompleteProcessingException(Exception e) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
             HttpStatus.ACCEPTED.value(),
-                "Запрос принят, но невозможно завершить",
+                e.getMessage(),
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.ACCEPTED);
     }
 
     @ExceptionHandler(AppNotPurchasedException.class)
-    public ResponseEntity<Object> handleAppNotPurchasedException() {
+    public ResponseEntity<Object> handleAppNotPurchasedException(Exception e) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.PAYMENT_REQUIRED.value(),
-                "Требуется платёж для совершения этого действия",
+                e.getMessage(),
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.PAYMENT_REQUIRED);
     }
 
     @ExceptionHandler(AlreadyInRoleException.class)
-    public ResponseEntity<Object> handleAlreadyInRoleException() {
+    public ResponseEntity<Object> handleAlreadyInRoleException(Exception e) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.CONFLICT.value(),
-                "Пользователь уже имеет роль, которого хочет приобрести",
+                e.getMessage(),
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<Object> handleAccessDeniedException() {
+    public ResponseEntity<Object> handleAccessDeniedException(Exception e) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.FORBIDDEN.value(),
-                "У вас нет прав на доступ к этому ресурсу",
+                e.getMessage(),
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.FORBIDDEN);
