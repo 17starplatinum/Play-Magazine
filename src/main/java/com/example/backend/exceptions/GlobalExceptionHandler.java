@@ -175,4 +175,14 @@ public class GlobalExceptionHandler {
         );
         return new ResponseEntity<>(responseDto, HttpStatus.BAD_REQUEST);
     }
+
+    @ExceptionHandler(RuntimeException.class)
+    public ResponseEntity<Object> handleMinioException() {
+        ErrorResponseDto responseDto = new ErrorResponseDto(
+                HttpStatus.BAD_REQUEST.value(),
+                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                System.currentTimeMillis()
+        );
+        return new ResponseEntity<>(responseDto, HttpStatus.BAD_REQUEST);
+    }
 }
