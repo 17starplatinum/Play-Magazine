@@ -1,6 +1,5 @@
 package com.example.backend.services.data;
 
-
 import com.example.backend.dto.data.ReviewDto;
 import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
 import com.example.backend.exceptions.prerequisites.ReviewAlreadyExistsException;

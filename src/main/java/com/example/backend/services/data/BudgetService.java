@@ -7,10 +7,13 @@ import com.example.backend.model.auth.User;
 import com.example.backend.model.auth.UserBudget;
 import com.example.backend.repositories.auth.UserBudgetRepository;
 import com.example.backend.services.auth.UserService;
+import jakarta.validation.ValidationException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.time.LocalDate;
 
@@ -21,15 +24,22 @@ public class BudgetService {
     private final UserBudgetRepository userBudgetRepository;
     private final UserService userService;
     private final BudgetMapper budgetMapper;
+    private final PlatformTransactionManager transactionManager;
+    private final DefaultTransactionDefinition definition;
 
-    @Transactional
     public void setMonthlyLimit(Double limit) {
+        TransactionStatus transaction = transactionManager.getTransaction(definition);
         User user = userService.getCurrentUser();
         UserBudget userBudget = userBudgetRepository.findUserBudgetByUser(user);
-
-        userBudget.setSpendingLimit(limit);
+        try {
+            userBudget.setSpendingLimit(limit);
+        } catch (ValidationException e) {
+            transactionManager.rollback(transaction);
+            throw new ValidationException(e.getMessage());
+        }
         resetSpendingIfNeeded(userBudget);
         userBudgetRepository.save(userBudget);
+        transactionManager.commit(transaction);
     }
 
     public BudgetStatusDto getBudgetStatus() {
@@ -52,8 +62,7 @@ public class BudgetService {
         });
     }
 
-    @Transactional
-    public void recordSpending(UserBudget userBudget, double limit) {
+    public void recordSpending(UserBudget userBudget, double limit) throws ValidationException {
         resetSpendingIfNeeded(userBudget);
         if (isOverBudget(userBudget, limit)) {
             throw new BudgetExceededException(
@@ -67,7 +76,7 @@ public class BudgetService {
         userBudgetRepository.save(userBudget);
     }
 
-    private void resetSpendingIfNeeded(UserBudget userBudget) {
+    private void resetSpendingIfNeeded(UserBudget userBudget) throws ValidationException {
         if (userBudget.getLastLimitReset().getMonth() != LocalDate.now().getMonth() ||
                 userBudget.getLastLimitReset().getYear() != LocalDate.now().getYear()) {
             userBudget.setCurrentSpending(0D);

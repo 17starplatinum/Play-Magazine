@@ -3,6 +3,7 @@ package com.example.backend.services.data;
 
 import com.example.backend.dto.data.purchase.PurchaseRequest;
 import com.example.backend.exceptions.notfound.AppNotFoundException;
+import com.example.backend.exceptions.notfound.CardNotFoundException;
 import com.example.backend.exceptions.notfound.SubscriptionNotFoundException;
 import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
 import com.example.backend.exceptions.prerequisites.AppAlreadyPurchasedException;
@@ -27,7 +28,9 @@ import com.example.backend.repositories.data.subscription.SubscriptionRepository
 import com.example.backend.services.auth.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -37,7 +40,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PurchaseService {
     private final PurchaseRepository purchaseRepository;
-    private final AppRepository appRepository;
+    private final AppService appService;
     private final UserService userService;
     private final SubscriptionRepository subscriptionRepository;
     private final CardRepository cardRepository;
@@ -47,26 +50,29 @@ public class PurchaseService {
     private final SubscriptionInfoRepository infoRepository;
     private final PurchaseMapper purchaseMapper;
     private final SubscriptionMapper subscriptionMapper;
+    private final PlatformTransactionManager transactionManager;
+    private final DefaultTransactionDefinition definition;
+    private final SubscriptionService subscriptionService;
 
-    @Transactional
     public Purchase purchaseApp(PurchaseRequest purchaseRequest) {
-        App app = appRepository.findById(purchaseRequest.getAppId())
-                .orElseThrow(() -> new AppNotFoundException("Приложение не найдено"));
-
+        TransactionStatus transaction = transactionManager.getTransaction(definition);
         User user = userService.getCurrentUser();
+        try {
+            App app = appService.getAppById(purchaseRequest.getAppId());
+            Card card = cardService.getCardByIdAndUser(purchaseRequest.getCardId(), user);
+            if (app.getPrice() == 0D) {
+                return createFreePurchase(user, app);
+            }
 
-        Card card = cardService.getCardByIdAndUser(purchaseRequest.getCardId(), user);
-
-        if (app.getPrice() == 0D) {
-            return createFreePurchase(user, app);
+            if (app.hasSubscriptions()) {
+                Subscription subscription = subscriptionService.getSubscriptionById(purchaseRequest.getSubscriptionId());
+                return processSubscriptionPurchase(user, app, card, subscription);
+            }
+            return processOneTimePurchase(user, app, card);
+        } catch (AppNotFoundException | CardNotFoundException | SubscriptionNotFoundException e) {
+            transactionManager.rollback(transaction);
+            throw e;
         }
-
-        if (app.hasSubscriptions()) {
-            Subscription subscription = subscriptionRepository.findById(purchaseRequest.getSubscriptionId())
-                    .orElseThrow(() -> new SubscriptionNotFoundException("Подписка не найдена"));
-            return processSubscriptionPurchase(user, app, card, subscription);
-        }
-        return processOneTimePurchase(user, app, card);
     }
 
     private Purchase processOneTimePurchase(User user, App app, Card card) {

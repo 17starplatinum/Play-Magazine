@@ -27,7 +27,9 @@ import com.example.backend.services.util.MinioService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.web.multipart.MultipartFile;
 import oshi.SystemInfo;
 import oshi.hardware.GlobalMemory;
@@ -54,6 +56,8 @@ public class AppService {
     private final AppRequirementsRepository appRequirementsRepository;
     private final AppFileRepository appFileRepository;
     private final AppMapper appMapper;
+    private final PlatformTransactionManager transactionManager;
+    private final DefaultTransactionDefinition definition;
 
     public AppDownloadResponse prepareAppDownload(UUID appId) {
         App app = getAppById(appId);
@@ -121,12 +125,12 @@ public class AppService {
         return appRepository.findByName(name);
     }
 
-    @Transactional
     public App createApp(AppCreateRequest appCreateRequest, MultipartFile file) {
+        TransactionStatus transaction = transactionManager.getTransaction(definition);
         User author = userService.getCurrentUser();
-
         if (appCreateRequest.getType() == SUBSCRIPTION &&
                 (appCreateRequest.getSubscriptionPrice() == null || appCreateRequest.getSubscriptionPrice() <= 0)) {
+            transactionManager.rollback(transaction);
             throw new InvalidApplicationConfigException("Цена подписки должна быть положительным числом");
         }
 
@@ -147,17 +151,18 @@ public class AppService {
         version.setApp(app);
         requirements.setApp(app);
         appFile.setApp(app);
-
+        transactionManager.commit(transaction);
         return appRepository.save(app);
     }
 
-    @Transactional
     public App bumpApp(UUID appId, AppUpdateDto appUpdateDto, MultipartFile file) {
+        TransactionStatus transaction = transactionManager.getTransaction(definition);
         App app = getAppById(appId);
         User user = userService.getCurrentUser();
         AppFile appFile = app.getAppFile();
         AppVersion appVersion;
         if (!app.getAuthor().equals(user)) {
+            transactionManager.rollback(transaction);
             throw new AccessDeniedException("Вы не являетесь создателем приложения");
         }
 
@@ -179,22 +184,26 @@ public class AppService {
             appFile.setLastUpdated(LocalDateTime.now());
 
             appFileRepository.save(appFile);
+            transactionManager.commit(transaction);
             return appRepository.save(app);
         } catch (IOException e) {
+            transactionManager.rollback(transaction);
             throw new AppUpdateException("Не удалось читать содержимое файла", e);
         } catch (NoSuchAlgorithmException e) {
+            transactionManager.rollback(transaction);
             throw new IllegalStateException("Не удалось вычислить хэш файла", e);
         }
     }
 
-    @Transactional
     public byte[] downloadAppFile(UUID appId, boolean forceUpdate) {
+        TransactionStatus transaction = transactionManager.getTransaction(definition);
         App app = getAppById(appId);
         User user = userService.getCurrentUser();
         AppFile appFile = app.getAppFile();
         Purchase purchase = purchaseService.getPurchaseByUserAndApp(user, app);
 
         if (!forceUpdate && !app.isNewerThan(purchase.getApp())) {
+            transactionManager.rollback(transaction);
             throw new AppUpToDateException("Приложение актуально");
         }
         try {
@@ -202,8 +211,10 @@ public class AppService {
             byte[] fileContent = minioService.downloadFile(appFile.getFilePath());
             appFile.setLastUpdated(LocalDateTime.now());
             purchaseRepository.save(purchase);
+            transactionManager.commit(transaction);
             return fileContent;
         } catch (Exception e) {
+            transactionManager.rollback(transaction);
             throw new AppDownloadException("Не удалось скачать файл приложения", e);
         }
     }

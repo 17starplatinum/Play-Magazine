@@ -2,6 +2,8 @@ package com.example.backend.services.data;
 
 import com.example.backend.dto.data.subscription.SubscriptionRequestDto;
 import com.example.backend.dto.data.subscription.SubscriptionResponseDto;
+import com.example.backend.exceptions.notfound.AppNotFoundException;
+import com.example.backend.exceptions.notfound.CardNotFoundException;
 import com.example.backend.exceptions.notfound.SubscriptionNotFoundException;
 import com.example.backend.mappers.SubscriptionMapper;
 import com.example.backend.model.auth.User;
@@ -16,7 +18,9 @@ import com.example.backend.services.util.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -34,6 +38,8 @@ public class SubscriptionService {
     private final CardService cardService;
     private final AppService appService;
     private final SubscriptionMapper subscriptionMapper;
+    private final PlatformTransactionManager transactionManager;
+    private final DefaultTransactionDefinition definition;
 
     public List<SubscriptionResponseDto> getAllSubscriptions() {
         User user = userService.getCurrentUser();
@@ -48,13 +54,19 @@ public class SubscriptionService {
         return subscriptionResponseDtos;
     }
 
-    @Transactional
     public Subscription addSubscription(SubscriptionRequestDto subscriptionRequestDto) {
-        User user = userService.getCurrentUser();
-        Card card = cardService.getCardByIdAndUser(subscriptionRequestDto.getCardId(), user);
-        App app = appService.getAppByName(subscriptionRequestDto.getAppName());
-        Subscription subscription = subscriptionMapper.mapToModel(user, card, app, subscriptionRequestDto);
-        return subscriptionRepository.save(subscription);
+        TransactionStatus transaction = transactionManager.getTransaction(definition);
+        try {
+            User user = userService.getCurrentUser();
+            Card card = cardService.getCardByIdAndUser(subscriptionRequestDto.getCardId(), user);
+            App app = appService.getAppByName(subscriptionRequestDto.getAppName());
+            Subscription subscription = subscriptionMapper.mapToModel(user, card, app, subscriptionRequestDto);
+            transactionManager.commit(transaction);
+            return subscriptionRepository.save(subscription);
+        } catch (CardNotFoundException | AppNotFoundException e) {
+            transactionManager.rollback(transaction);
+            throw e;
+        }
     }
 
     public SubscriptionResponseDto getSubscriptionInfo(UUID id) {
@@ -66,12 +78,27 @@ public class SubscriptionService {
         return subscriptionMapper.mapToDtoFull(subscription, startDate, endDate);
     }
 
-    @Transactional
-    public void cancelSubscription(UUID subscriptionId) {
-        User user = userService.getCurrentUser();
-
-        Subscription subscription = subscriptionRepository.findByIdAndUser(subscriptionId, user)
+    public Subscription getSubscriptionById(UUID subscriptionId) {
+        return subscriptionRepository.findById(subscriptionId)
                 .orElseThrow(() -> new SubscriptionNotFoundException(USER_NOT_FOUND));
+    }
+
+    public Subscription getSubscriptionByIdAndUser(UUID subscriptionId, User user) {
+        return subscriptionRepository.findByIdAndUser(subscriptionId, user)
+                .orElseThrow(() -> new SubscriptionNotFoundException(USER_NOT_FOUND));
+    }
+
+    public void cancelSubscription(UUID subscriptionId) {
+        TransactionStatus transaction = transactionManager.getTransaction(definition);
+        User user = userService.getCurrentUser();
+        Subscription subscription;
+
+        try {
+            subscription = getSubscriptionByIdAndUser(subscriptionId, user);
+        } catch (SubscriptionNotFoundException e) {
+            transactionManager.rollback(transaction);
+            throw e;
+        }
 
         SubscriptionInfo subscriptionInfo = subscription.getSubscriptionInfo();
 
@@ -80,14 +107,20 @@ public class SubscriptionService {
 
         infoRepository.save(subscriptionInfo);
         notificationService.notifyUserAboutSubscriptionCancellation(user, subscription);
+        transactionManager.commit(transaction);
     }
 
-    @Transactional
     public void cancelAutoRenewal(UUID subscriptionId) {
+        TransactionStatus transaction = transactionManager.getTransaction(definition);
         User user = userService.getCurrentUser();
+        Subscription subscription;
 
-        Subscription subscription = subscriptionRepository.findByIdAndUser(subscriptionId, user)
-                .orElseThrow(() -> new SubscriptionNotFoundException(USER_NOT_FOUND));
+        try {
+            subscription = getSubscriptionByIdAndUser(subscriptionId, user);
+        } catch (SubscriptionNotFoundException e) {
+            transactionManager.rollback(transaction);
+            throw e;
+        }
 
         SubscriptionInfo subscriptionInfo = subscription.getSubscriptionInfo();
 
