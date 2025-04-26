@@ -44,11 +44,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             InvalidRequestException.class,
             JwtException.class,
-            WeakKeyException.class,
-            MethodArgumentNotValidException.class,
-            MethodArgumentTypeMismatchException.class,
-            MissingServletRequestParameterException.class,
-            HttpMessageNotReadableException.class
+            WeakKeyException.class
     })
     public ResponseEntity<Object> handleBadRequestException(Exception e) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
@@ -136,5 +132,43 @@ public class GlobalExceptionHandler {
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.FORBIDDEN);
+    }
+
+    @ExceptionHandler({
+            MethodArgumentNotValidException.class,
+            MethodArgumentTypeMismatchException.class
+    })
+    public ResponseEntity<Object> handleMethodArgumentNotValidException() {
+        ErrorResponseDto responseDto = new ErrorResponseDto(
+                HttpStatus.BAD_REQUEST.value(),
+                "Объект зароса не прошёл валидацию",
+                System.currentTimeMillis()
+        );
+        return new ResponseEntity<>(responseDto, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler({
+            MissingServletRequestParameterException.class
+    })
+    public ResponseEntity<Object> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
+        String message = String.format("Отсутствует следующий параметр в запросе: %s", e.getParameterName());
+        ErrorResponseDto responseDto = new ErrorResponseDto(
+                HttpStatus.BAD_REQUEST.value(),
+                message,
+                System.currentTimeMillis()
+        );
+        return new ResponseEntity<>(responseDto, HttpStatus.BAD_REQUEST);
+    }
+
+    @ExceptionHandler({
+            HttpMessageNotReadableException.class
+    })
+    public ResponseEntity<Object> handleMissingServletRequestParameterException() {
+        ErrorResponseDto responseDto = new ErrorResponseDto(
+                HttpStatus.BAD_REQUEST.value(),
+                "HTTP-запрос не может адекватно обрабатываться",
+                System.currentTimeMillis()
+        );
+        return new ResponseEntity<>(responseDto, HttpStatus.BAD_REQUEST);
     }
 }
