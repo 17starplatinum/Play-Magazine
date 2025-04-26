@@ -2,10 +2,11 @@ package com.example.backend.services.data;
 
 
 import com.example.backend.dto.data.ReviewDto;
-import com.example.backend.exceptions.prerequisites.ReviewAlreadyExistsException;
-import com.example.backend.exceptions.notfound.UserNotFoundException;
 import com.example.backend.exceptions.notfound.AppNotFoundException;
+import com.example.backend.exceptions.notfound.UserNotFoundException;
 import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
+import com.example.backend.exceptions.prerequisites.ReviewAlreadyExistsException;
+import com.example.backend.model.auth.User;
 import com.example.backend.model.data.App;
 import com.example.backend.model.data.Review;
 import com.example.backend.repositories.AppRepository;
@@ -27,18 +28,18 @@ public class ReviewService {
     private final UserRepository userRepository;
     private final PurchaseService purchaseService;
 
-    public Review createReview(UUID appId, ReviewDto reviewDto, UserDetails currentUser){
+    public Review createReview(UUID appId, ReviewDto reviewDto, UserDetails currentUser) {
         App app = appRepository.findById(appId)
                 .orElseThrow(() -> new AppNotFoundException("Приложение не найдено", new RuntimeException()));
 
         User user = userRepository.findByEmail(currentUser.getUsername())
                 .orElseThrow(() -> new UserNotFoundException("Пользователь не найден", new RuntimeException()));
 
-        if(purchaseService.hasUserPurchasedApp(user, app)) {
+        if (purchaseService.hasUserPurchasedApp(user, app)) {
             throw new AppNotPurchasedException("Вам надо приобрести приложение, прежде чем оставить отзыв на нём", new RuntimeException());
         }
 
-        if(reviewRepository.existsByUserAndApp(user, app)) {
+        if (reviewRepository.existsByUserAndApp(user, app)) {
             throw new ReviewAlreadyExistsException("Вы уже оставили отзыв на этом приложении", new RuntimeException());
         }
 

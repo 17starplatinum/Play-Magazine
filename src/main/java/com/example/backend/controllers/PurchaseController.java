@@ -1,6 +1,8 @@
 package com.example.backend.controllers;
 
 import com.example.backend.dto.data.purchase.PurchaseRequest;
+import com.example.backend.model.data.Purchase;
+import com.example.backend.services.auth.UserService;
 import com.example.backend.services.data.PurchaseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;

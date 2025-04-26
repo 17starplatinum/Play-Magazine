@@ -4,13 +4,15 @@ import com.example.backend.dto.data.app.AppDownloadResponse;
 import com.example.backend.dto.data.app.AppDto;
 import com.example.backend.dto.util.AppCompatibilityResponse;
 import com.example.backend.exceptions.accepted.AppDownloadException;
+import com.example.backend.exceptions.accepted.AppUpdateException;
 import com.example.backend.exceptions.notfound.AppNotFoundException;
 import com.example.backend.exceptions.notfound.UserNotFoundException;
 import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
 import com.example.backend.exceptions.prerequisites.AppUpToDateException;
-import com.example.backend.exceptions.accepted.AppUpdateException;
 import com.example.backend.exceptions.prerequisites.InvalidApplicationConfigException;
+import com.example.backend.model.auth.User;
 import com.example.backend.model.data.App;
+import com.example.backend.model.data.Purchase;
 import com.example.backend.repositories.AppRepository;
 import com.example.backend.repositories.PurchaseRepository;
 import com.example.backend.repositories.UserRepository;
@@ -78,8 +80,7 @@ public class AppService {
         List<HWDiskStore> diskStores = si.getHardware().getDiskStores();
 
 
-
-        if(app.getMinRamMb() > memory.getTotal()){
+        if (app.getMinRamMb() > memory.getTotal()) {
             compatibilityIssues.add(String.format(
                     "Не хватает памяти ОЗУ: требуется %dМб, а доступно только %dМб",
                     app.getMinRamMb(), memory.getTotal()
@@ -87,15 +88,15 @@ public class AppService {
         }
 
         boolean enoughDiskSpace = false;
-        for(HWDiskStore diskStore : diskStores) {
-            if(app.getMinStorageMb() < diskStore.getSize()){
+        for (HWDiskStore diskStore : diskStores) {
+            if (app.getMinStorageMb() < diskStore.getSize()) {
                 enoughDiskSpace = true;
                 break;
             }
         }
 
-        if(!enoughDiskSpace){
-            for(HWDiskStore diskStore : diskStores) {
+        if (!enoughDiskSpace) {
+            for (HWDiskStore diskStore : diskStores) {
                 compatibilityIssues.add(String.format(
                         "Не хватает пространства на диске: требуется %dМб, а доступно только %dМб",
                         app.getMinStorageMb(), diskStore.getSize()
@@ -104,8 +105,7 @@ public class AppService {
         }
 
 
-
-        if(!app.getOsRequirements().matches(os.getFamily())) {
+        if (!app.getOsRequirements().matches(os.getFamily())) {
             compatibilityIssues.add(String.format(
                     "ОС не поддерживается приложением: целевая платформа: %s, но на устройстве %s",
                     app.getOsRequirements(), os.getFamily()
@@ -203,7 +203,7 @@ public class AppService {
 
     public void deleteApp(UUID appId, UserDetails currentUser) {
         App app = getAppById(appId);
-        if(!app.getAuthor().getEmail().equals(currentUser.getUsername())) {
+        if (!app.getAuthor().getEmail().equals(currentUser.getUsername())) {
             throw new InvalidDataAccessApiUsageException("Вы не являетесь автором приложения");
         }
 

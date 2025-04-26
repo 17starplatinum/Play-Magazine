@@ -2,6 +2,8 @@ package com.example.backend.controllers;
 
 import com.example.backend.dto.data.card.CardDto;
 import com.example.backend.dto.data.card.DepositRequest;
+import com.example.backend.model.data.Card;
+import com.example.backend.services.auth.UserService;
 import com.example.backend.services.data.CardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;

@@ -2,13 +2,16 @@ package com.example.backend.services.data;
 
 
 import com.example.backend.dto.data.purchase.PurchaseRequest;
-import com.example.backend.exceptions.notfound.UserNotFoundException;
-import com.example.backend.exceptions.prerequisites.AppAlreadyPurchasedException;
 import com.example.backend.exceptions.notfound.AppNotFoundException;
-import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
 import com.example.backend.exceptions.notfound.CardNotFoundException;
+import com.example.backend.exceptions.notfound.UserNotFoundException;
+import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
+import com.example.backend.exceptions.prerequisites.AppAlreadyPurchasedException;
 import com.example.backend.exceptions.prerequisites.InsufficientFundsException;
+import com.example.backend.model.auth.User;
 import com.example.backend.model.data.App;
+import com.example.backend.model.data.Card;
+import com.example.backend.model.data.Purchase;
 import com.example.backend.model.data.Subscription;
 import com.example.backend.repositories.*;
 import lombok.RequiredArgsConstructor;
@@ -60,7 +63,7 @@ public class PurchaseService {
 
 
         boolean alreadyPurchased = hasUserPurchasedApp(user, app);
-        if(alreadyPurchased) {
+        if (alreadyPurchased) {
             throw new AppAlreadyPurchasedException("Приложение уже куплено", new RuntimeException());
         }
 
@@ -116,6 +119,7 @@ public class PurchaseService {
                         .build()
         );
     }
+
     public List<Purchase> getUserPurchases(UserDetails currentUser) {
         User user = userRepository.findByEmail(currentUser.getUsername())
                 .orElseThrow(() -> new UserNotFoundException("Пользователь не найден", new RuntimeException()));

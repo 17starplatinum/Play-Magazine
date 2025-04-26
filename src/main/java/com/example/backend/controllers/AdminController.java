@@ -1,6 +1,7 @@
 package com.example.backend.controllers;
 
 import com.example.backend.dto.auth.RoleChangeRequestDto;
+import com.example.backend.model.auth.User;
 import com.example.backend.repositories.UserRepository;
 import com.example.backend.services.auth.RoleManagementService;
 import jakarta.validation.Valid;
