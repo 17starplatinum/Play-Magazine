@@ -6,7 +6,6 @@ import com.example.backend.model.auth.User;
 import com.example.backend.model.data.app.App;
 import com.example.backend.model.data.app.AppFile;
 import com.example.backend.model.data.app.AppVersion;
-import com.example.backend.model.data.finances.Purchase;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -17,11 +16,11 @@ import java.util.List;
 
 @Component
 public class AppMapper {
-    public AppDownloadResponse mapToResponse(App app, Purchase purchase, boolean updateAvailable) {
+    public AppDownloadResponse mapToResponse(App app, boolean updateAvailable) {
         return AppDownloadResponse.builder()
                 .appId(app.getId())
                 .name(app.getName())
-                .currentVersion(purchase.getApp().getAppVersions().get(app.getAppVersions().size() - 2).toString())
+                .currentVersion(app.getPreviousVersion().getVersion())
                 .availableVersion(app.getLatestVersion().getVersion())
                 .updateAvailable(updateAvailable)
                 .fileSize(app.getAppFile().getFileSize())

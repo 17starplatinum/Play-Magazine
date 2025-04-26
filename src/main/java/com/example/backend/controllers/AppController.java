@@ -72,13 +72,8 @@ public class AppController {
     }
 
     @GetMapping("/{appId}/update-info")
-    public ResponseEntity<AppDownloadResponse> checkForUpdates(@PathVariable UUID appId) {
-        return ResponseEntity.ok(appService.prepareAppDownload(appId));
-    }
-
-    @GetMapping("/{appId}/download-info")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<AppDownloadResponse> getDownloadInfo(@PathVariable UUID appId) {
+    public ResponseEntity<AppDownloadResponse> checkForUpdates(@PathVariable UUID appId) {
         return ResponseEntity.ok(appService.prepareAppDownload(appId));
     }
 

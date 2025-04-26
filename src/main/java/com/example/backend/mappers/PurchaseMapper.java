@@ -16,7 +16,7 @@ public class PurchaseMapper {
         return Purchase.builder()
                 .app(app)
                 .user(user)
-                .monetaryTransaction(transaction)
+                .transaction(transaction)
                 .build();
     }
 

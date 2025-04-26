@@ -57,10 +57,8 @@ public class AppService {
 
     public AppDownloadResponse prepareAppDownload(UUID appId) {
         App app = getAppById(appId);
-        User user = userService.getCurrentUser();
-        Purchase purchase = purchaseService.getPurchaseByUserAndApp(user, app);
-        boolean updateAvailable = app.isNewerThan(purchase.getApp());
-        return appMapper.mapToResponse(app, purchase, updateAvailable);
+        boolean updateAvailable = app.isNewerThan(app.getPreviousVersion().getApp());
+        return appMapper.mapToResponse(app, updateAvailable);
     }
 
     public AppCompatibilityResponse checkCompatibility(UUID appId) {

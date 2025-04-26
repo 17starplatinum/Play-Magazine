@@ -39,7 +39,8 @@ public class BudgetService {
             return budgetMapper.mapToNewDto();
         }
         resetSpendingIfNeeded(userBudget);
-        return budgetMapper.mapToDto(userBudget);
+        double remainder = calculateRemaining(userBudget);
+        return budgetMapper.mapToDto(userBudget, remainder);
     }
 
     @Scheduled(cron = "0 0 0 1 * *")

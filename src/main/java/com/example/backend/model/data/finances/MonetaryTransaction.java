@@ -32,6 +32,6 @@ public class MonetaryTransaction {
     @NotNull
     private LocalDateTime processedAt;
 
-    @OneToMany(mappedBy = "transaction_id")
+    @OneToMany(mappedBy = "transaction", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Purchase> purchases;
 }

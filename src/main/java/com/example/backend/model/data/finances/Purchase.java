@@ -32,5 +32,5 @@ public class Purchase {
 
     @ManyToOne
     @JoinColumn(name = "transaction_id")
-    private MonetaryTransaction monetaryTransaction;
+    private MonetaryTransaction transaction;
 }
