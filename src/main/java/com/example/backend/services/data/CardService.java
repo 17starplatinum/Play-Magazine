@@ -10,6 +10,7 @@ import com.example.backend.model.data.finances.Card;
 import com.example.backend.repositories.data.finances.CardRepository;
 import com.example.backend.services.auth.UserService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -59,7 +60,7 @@ public class CardService {
         Card card = getCardByIdAndUser(cardId, user);
 
         if (!card.getUser().getId().equals(user.getId())) {
-            throw new SecurityException("Карта не принадлежит пользователю");
+            throw new AccessDeniedException("Карта не принадлежит пользователю");
         }
 
         if (!cardRepository.existsByIdAndUser(cardId, user)) {

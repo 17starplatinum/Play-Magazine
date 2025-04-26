@@ -59,14 +59,14 @@ public class AppController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('DEVELOPER') || hasRole('MODERATOR') || hasRole('ADMIN')")
-    public ResponseEntity<App> createApp(@Valid @ModelAttribute AppCreateRequest appCreateDto,
+    public ResponseEntity<App> createApp(@Valid @RequestBody AppCreateRequest appCreateDto,
                                          @RequestParam("file") MultipartFile file) {
         return ResponseEntity.status(HttpStatus.CREATED).body(appService.createApp(appCreateDto, file));
     }
 
     @PutMapping(path = "/{appId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasRole('DEVELOPER') || hasRole('MODERATOR') || hasRole('ADMIN')")
-    public ResponseEntity<App> updateApp(@PathVariable UUID appId, @Valid @ModelAttribute AppUpdateDto appUpdateDto,
+    public ResponseEntity<App> updateApp(@PathVariable UUID appId, @Valid @RequestBody AppUpdateDto appUpdateDto,
                                          @RequestParam("file") MultipartFile file) {
         return ResponseEntity.status(HttpStatus.CREATED).body(appService.bumpApp(appId, appUpdateDto, file));
     }

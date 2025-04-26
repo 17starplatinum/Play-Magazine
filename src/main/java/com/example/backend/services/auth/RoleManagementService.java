@@ -2,7 +2,7 @@ package com.example.backend.services.auth;
 
 import com.example.backend.exceptions.accepted.RequestPendingException;
 import com.example.backend.exceptions.badcredentials.InvalidRequestException;
-import com.example.backend.exceptions.prerequisites.AlreadyInRoleException;
+import com.example.backend.exceptions.conflict.AlreadyInRoleException;
 import com.example.backend.exceptions.prerequisites.InvalidRoleAssignmentException;
 import com.example.backend.model.auth.Role;
 import com.example.backend.model.auth.User;
@@ -101,7 +101,9 @@ public class RoleManagementService {
         if (roleToBe.compare(DEVELOPER) < 0 && user.getRequestStatus() != APPROVED) {
             throw new InvalidRoleAssignmentException("Пользователь должен быть одобренным в качестве разработчика или выше");
         }
-
+        if (user.getRole() == roleToBe) {
+            throw new AlreadyInRoleException("Пользователь уже имеет роль, которого хочет приобрести");
+        }
         user.setRole(roleToBe);
         userRepository.save(user);
         UserProfile cred = userProfileRepository.findByUser(userService.getCurrentUser());

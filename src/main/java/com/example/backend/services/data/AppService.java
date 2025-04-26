@@ -25,7 +25,7 @@ import com.example.backend.services.auth.UserService;
 import com.example.backend.services.util.FileUtils;
 import com.example.backend.services.util.MinioService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.dao.InvalidDataAccessApiUsageException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -158,7 +158,7 @@ public class AppService {
         AppFile appFile = app.getAppFile();
         AppVersion appVersion;
         if (!app.getAuthor().equals(user)) {
-            throw new InvalidDataAccessApiUsageException("Вы не являетесь создателем приложения");
+            throw new AccessDeniedException("Вы не являетесь создателем приложения");
         }
 
         try {
@@ -212,7 +212,7 @@ public class AppService {
         User currentUser = userService.getCurrentUser();
         App app = getAppById(appId);
         if(!app.getAuthor().getEmail().equals(currentUser.getUsername()) && !(currentUser.getRole().equals(Role.MODERATOR) || currentUser.getRole().equals(Role.ADMIN))) {
-            throw new InvalidDataAccessApiUsageException("У вас нет права на удаление приложения");
+            throw new AccessDeniedException("У вас нет права на удаление приложения");
         }
 
         minioService.deleteFile(app.getAppFile().getFilePath());

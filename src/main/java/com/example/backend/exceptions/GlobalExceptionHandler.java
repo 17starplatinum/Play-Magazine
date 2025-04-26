@@ -5,6 +5,7 @@ import com.example.backend.exceptions.accepted.AppUpdateException;
 import com.example.backend.exceptions.accepted.EmailSendingException;
 import com.example.backend.exceptions.accepted.RequestPendingException;
 import com.example.backend.exceptions.badcredentials.InvalidRequestException;
+import com.example.backend.exceptions.conflict.AlreadyInRoleException;
 import com.example.backend.exceptions.dto.ErrorResponseDto;
 import com.example.backend.exceptions.notfound.AppNotFoundException;
 import com.example.backend.exceptions.notfound.CardNotFoundException;
@@ -14,10 +15,15 @@ import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.security.WeakKeyException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
+import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @ControllerAdvice
@@ -38,7 +44,11 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             InvalidRequestException.class,
             JwtException.class,
-            WeakKeyException.class
+            WeakKeyException.class,
+            MethodArgumentNotValidException.class,
+            MethodArgumentTypeMismatchException.class,
+            MissingServletRequestParameterException.class,
+            HttpMessageNotReadableException.class
     })
     public ResponseEntity<Object> handleBadRequestException() {
         ErrorResponseDto responseDto = new ErrorResponseDto(
@@ -64,7 +74,6 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler({
-            AlreadyInRoleException.class,
             AppAlreadyPurchasedException.class,
             AppUpToDateException.class,
             BudgetExceededException.class,
@@ -109,11 +118,21 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(responseDto, HttpStatus.PAYMENT_REQUIRED);
     }
 
-    @ExceptionHandler(SecurityException.class)
-    public ResponseEntity<Object> handleSecurityException() {
+    @ExceptionHandler(AlreadyInRoleException.class)
+    public ResponseEntity<Object> handleAlreadyInRoleException() {
+        ErrorResponseDto responseDto = new ErrorResponseDto(
+                HttpStatus.CONFLICT.value(),
+                "Пользователь уже имеет роль, которого хочет приобрести",
+                System.currentTimeMillis()
+        );
+        return new ResponseEntity<>(responseDto, HttpStatus.CONFLICT);
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    public ResponseEntity<Object> handleAccessDeniedException() {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.FORBIDDEN.value(),
-                "Вам не разрешен доступ к этому ресурсу",
+                "У вас нет прав на доступ к этому ресурсу",
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.FORBIDDEN);
