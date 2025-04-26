@@ -1,6 +1,7 @@
 package com.example.backend.controllers;
 
 import com.example.backend.dto.data.budget.BudgetStatusDto;
+import com.example.backend.services.auth.UserService;
 import com.example.backend.services.data.BudgetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
