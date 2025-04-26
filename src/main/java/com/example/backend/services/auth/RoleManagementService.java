@@ -10,7 +10,7 @@ import com.example.backend.model.auth.UserProfile;
 import com.example.backend.repositories.auth.UserProfileRepository;
 import com.example.backend.repositories.auth.UserRepository;
 import com.example.backend.services.util.NotificationService;
-import jakarta.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
