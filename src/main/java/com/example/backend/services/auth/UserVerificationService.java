@@ -27,7 +27,7 @@ public class UserVerificationService {
                 .orElse(null);
 
         if (userVerification == null || !userVerification.isEnable())
-            throw new IllegalArgumentException("Code expired! Please get new verification code!");
+            throw new IllegalArgumentException("Срок отправленного кода истекло! Подавайте запрос на новый код ещё раз.");
 
         Instant creationInstant = Instant.ofEpochMilli(userVerification.getCreationTime());
         if (Instant.now().isAfter(creationInstant.plus(CODE_EXPIRY))) {
@@ -43,7 +43,7 @@ public class UserVerificationService {
 
             if (attempts >= MAX_ATTEMPTS) {
                 disableVerification(verificationId);
-                throw new IllegalArgumentException("Code expired! Please get new verification code!");
+                throw new IllegalArgumentException("Срок отправленного кода истекло! Подавайте запрос на новый код ещё раз.");
             }
 
             return false;
@@ -72,7 +72,7 @@ public class UserVerificationService {
             userVerificationRepository.save(userVerification);
             return userVerification.getFailedAttempts();
         }
-        throw new IllegalArgumentException("Unknown verification code!");
+        throw new IllegalArgumentException("Код верификации не опознан.");
     }
 
     private void disableVerification(UUID verificationId) {
