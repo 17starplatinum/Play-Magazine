@@ -25,6 +25,7 @@ import com.example.backend.repositories.data.subscription.SubscriptionRepository
 import com.example.backend.services.auth.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -44,6 +45,7 @@ public class PurchaseService {
     private final UserBudgetRepository userBudgetRepository;
     private final SubscriptionInfoRepository infoRepository;
 
+    @Transactional
     public Purchase purchaseApp(PurchaseRequest purchaseRequest) {
         App app = appRepository.findById(purchaseRequest.getAppId())
                 .orElseThrow(() -> new AppNotFoundException("Приложение не найдено"));

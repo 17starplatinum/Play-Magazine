@@ -16,6 +16,7 @@ import com.example.backend.services.util.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -25,6 +26,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class SubscriptionService {
+    private static final String USER_NOT_FOUND = "Подписка не найдена";
     private final SubscriptionRepository subscriptionRepository;
     private final SubscriptionInfoRepository infoRepository;
     private final NotificationService notificationService;
@@ -52,6 +54,7 @@ public class SubscriptionService {
         return subscriptionResponseDtos;
     }
 
+    @Transactional
     public Subscription addSubscription(SubscriptionRequestDto subscriptionRequestDto) {
         User user = userService.getCurrentUser();
         Card card = cardService.getCardByIdAndUser(subscriptionRequestDto.getCardId(), user);
@@ -76,7 +79,7 @@ public class SubscriptionService {
     }
 
     public SubscriptionResponseDto getSubscriptionInfo(UUID id) {
-        Subscription subscription = subscriptionRepository.findById(id).orElseThrow(() -> new SubscriptionNotFoundException("Подписка не найдена"));
+        Subscription subscription = subscriptionRepository.findById(id).orElseThrow(() -> new SubscriptionNotFoundException(USER_NOT_FOUND));
 
         LocalDate startDate = subscription.getSubscriptionInfo().getStartDate();
         LocalDate endDate = subscription.getSubscriptionInfo().getEndDate();
@@ -94,11 +97,12 @@ public class SubscriptionService {
                 .build();
     }
 
+    @Transactional
     public void cancelSubscription(UUID subscriptionId) {
         User user = userService.getCurrentUser();
 
         Subscription subscription = subscriptionRepository.findByIdAndUser(subscriptionId, user)
-                .orElseThrow(() -> new SubscriptionNotFoundException("Подписка не найдена"));
+                .orElseThrow(() -> new SubscriptionNotFoundException(USER_NOT_FOUND));
 
         SubscriptionInfo subscriptionInfo = subscription.getSubscriptionInfo();
 
@@ -109,11 +113,12 @@ public class SubscriptionService {
         notificationService.notifyUserAboutSubscriptionCancellation(user, subscription);
     }
 
+    @Transactional
     public void cancelAutoRenewal(UUID subscriptionId) {
         User user = userService.getCurrentUser();
 
         Subscription subscription = subscriptionRepository.findByIdAndUser(subscriptionId, user)
-                .orElseThrow(() -> new SubscriptionNotFoundException("Подписка не найдена"));
+                .orElseThrow(() -> new SubscriptionNotFoundException(USER_NOT_FOUND));
 
         SubscriptionInfo subscriptionInfo = subscription.getSubscriptionInfo();
 
