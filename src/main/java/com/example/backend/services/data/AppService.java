@@ -53,7 +53,6 @@ public class AppService {
     private final AppRequirementsRepository appRequirementsRepository;
     private final AppFileRepository appFileRepository;
 
-
     public AppDownloadResponse prepareAppDownload(UUID appId) {
         App app = getAppById(appId);
 

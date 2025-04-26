@@ -8,6 +8,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface UserVerificationRepository extends JpaRepository<UserVerification, UUID> {
+
     Optional<UserVerification> findByEmail(@NotNull String email);
+
     Optional<UserVerification> findByEmailAndId(@NotNull String email, @NotNull UUID uuid);
 }

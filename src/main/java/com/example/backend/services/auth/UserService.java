@@ -1,28 +1,41 @@
 package com.example.backend.services.auth;
 
+import com.example.backend.dto.auth.RoleChangeRequestDto;
 import com.example.backend.dto.auth.SignUpRequest;
+import com.example.backend.dto.auth.rolestatus.AdminRequestStatusHandler;
 import com.example.backend.model.auth.*;
 import com.example.backend.repositories.auth.UserBudgetRepository;
 import com.example.backend.repositories.auth.UserProfileRepository;
 import com.example.backend.repositories.auth.UserRepository;
 import com.example.backend.security.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
+    private static final String USER_NOT_FOUND = "Пользователь не найден";
+
     private final UserRepository userRepository;
     private final UserBudgetRepository budgetRepository;
     private final UserProfileRepository profileRepository;
     private final JwtService jwtService;
+    private Map<String, AdminRequestStatusHandler> statusHandlerMap;
+
+    @Autowired
+    public void setStatusHandlerMap(Map<String, AdminRequestStatusHandler> statusHandlerMap) {
+        this.statusHandlerMap = statusHandlerMap;
+    }
 
     /**
      * Сохранение пользователя
@@ -66,13 +79,13 @@ public class UserService {
      */
     public User getByUsername(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
+                .orElseThrow(() -> new UsernameNotFoundException(USER_NOT_FOUND));
 
     }
 
     public User getById(UUID uuid) {
         return userRepository.findById(uuid)
-                .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
+                .orElseThrow(() -> new UsernameNotFoundException(USER_NOT_FOUND));
 
     }
 
@@ -122,8 +135,28 @@ public class UserService {
         return getByUsername(email).getId().equals(uuid);
     }
 
-    public List<User> findByRequestStatus(String requestStatus) {
-        return userRepository.findByRequestStatus(RequestStatus.valueOf(requestStatus.toUpperCase()));
+    public List<RoleChangeRequestDto> findByRequestStatus(String requestStatus) {
+        return userRepository.findByRequestStatus(RequestStatus.valueOf(requestStatus)).stream().map(this::convertToRoleRequestDto).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public String getAdminRequestStatus(UUID userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException(USER_NOT_FOUND));
+        String userRole = user.getRole().name();
+        AdminRequestStatusHandler adminRequestStatusHandler = statusHandlerMap.get(userRole);
+        if (adminRequestStatusHandler == null) {
+            throw new IllegalStateException("Обработчик для статуса '" + user.getRequestStatus().toString() + "' не найден");
+        }
+        return adminRequestStatusHandler.getStatusMessage();
+    }
+
+    private RoleChangeRequestDto convertToRoleRequestDto(User user) {
+        return RoleChangeRequestDto.builder()
+                .userId(user.getId())
+                .email(user.getUsername())
+                .role(user.getRole().toString())
+                .requestStatus(user.getRequestStatus().toString())
+                .build();
     }
 
     /**

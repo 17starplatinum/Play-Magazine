@@ -46,9 +46,9 @@ public class User implements UserDetails {
     @Column(name = "enable_two_fa", nullable = false)
     private boolean enableTwoFA;
 
-    @NotNull
-    @Builder.Default
     @Enumerated(EnumType.STRING)
+    @Builder.Default
+    @Column(name = "request_status", nullable = false, length = 20)
     private RequestStatus requestStatus = RequestStatus.NOT_REQUESTED;
 
     @ManyToMany

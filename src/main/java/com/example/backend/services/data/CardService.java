@@ -8,9 +8,10 @@ import com.example.backend.model.auth.User;
 import com.example.backend.model.data.finances.Card;
 import com.example.backend.repositories.data.finances.CardRepository;
 import com.example.backend.services.auth.UserService;
-import jakarta.transaction.Transactional;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.UUID;
@@ -46,6 +47,7 @@ public class CardService {
         return cardRepository.findByUser(user);
     }
 
+    @Transactional
     public void depositInCard(DepositRequest depositRequest) {
         User user = userService.getCurrentUser();
         Card card = getCardByIdAndUser(depositRequest.getCardId(), user);

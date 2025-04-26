@@ -2,21 +2,25 @@ package com.example.backend.dto.auth;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.util.UUID;
 
 @Data
-@NoArgsConstructor
-@AllArgsConstructor
+@Builder
+@RequiredArgsConstructor
 public class RoleChangeRequestDto {
     @NotNull
     private UUID userId;
 
     @NotNull
-    private String newRole;
+    private String email;
+
+    @NotNull
+    private String role;
+
+    @NotNull
+    private String requestStatus;
 
     @Size(max = 500)
     private String reason;
