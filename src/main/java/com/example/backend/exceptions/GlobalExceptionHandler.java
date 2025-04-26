@@ -24,10 +24,7 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 public class GlobalExceptionHandler {
 
     @ExceptionHandler({
-            BadCredentialsException.class,
-            InvalidRequestException.class,
-            JwtException.class,
-            WeakKeyException.class
+            BadCredentialsException.class
     })
     public ResponseEntity<Object> handleBadCredentialsException() {
         ErrorResponseDto responseDto = new ErrorResponseDto(
@@ -36,6 +33,20 @@ public class GlobalExceptionHandler {
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
+    }
+
+    @ExceptionHandler({
+            InvalidRequestException.class,
+            JwtException.class,
+            WeakKeyException.class
+    })
+    public ResponseEntity<Object> handleBadRequestException() {
+        ErrorResponseDto responseDto = new ErrorResponseDto(
+                HttpStatus.BAD_REQUEST.value(),
+                "Запрос не подходит для обработки",
+                System.currentTimeMillis()
+        );
+        return new ResponseEntity<>(responseDto, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler({
