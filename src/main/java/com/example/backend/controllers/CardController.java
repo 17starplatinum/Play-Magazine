@@ -2,8 +2,7 @@ package com.example.backend.controllers;
 
 import com.example.backend.dto.data.card.CardDto;
 import com.example.backend.dto.data.card.DepositRequest;
-import com.example.backend.model.data.Card;
-import com.example.backend.services.auth.UserService;
+import com.example.backend.model.data.finances.Card;
 import com.example.backend.services.data.CardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -20,31 +19,38 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class CardController {
     private final CardService cardService;
-    private final UserService userService;
 
     @PostMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Card> addCard(@Valid @RequestBody CardDto cardDto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(cardService.addCard(cardDto, userService.getCurrentUser()));
+        return ResponseEntity.status(HttpStatus.CREATED).body(cardService.addCard(cardDto));
     }
 
-    @PutMapping("/deposit/")
+    @PutMapping("/deposit")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> depositCard(@Valid @RequestBody DepositRequest depositRequest) {
-        cardService.depositInCard(depositRequest, userService.getCurrentUser());
+        cardService.depositInCard(depositRequest);
         return ResponseEntity.ok(String.format("Начислено %f рублей", depositRequest.getAmount()));
     }
 
     @GetMapping
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Card>> getCards() {
-        return ResponseEntity.ok(cardService.getUserCards(userService.getCurrentUser()));
+        return ResponseEntity.ok(cardService.getUserCards());
     }
+
+    @PutMapping("/{cardId}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<String> setDefaultCard(@PathVariable UUID cardId) {
+        cardService.setDefaultCard(cardId);
+        return ResponseEntity.ok("Теперь эта карта применяется по умолчанию");
+    }
+
 
     @DeleteMapping("/{cardId}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteCard(@PathVariable UUID cardId) {
-        cardService.deleteCard(cardId, userService.getCurrentUser());
+        cardService.deleteCard(cardId);
         return ResponseEntity.noContent().build();
     }
 }

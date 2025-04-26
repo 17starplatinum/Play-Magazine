@@ -14,7 +14,8 @@ target/
 .sts4-cache
 
 ### IntelliJ IDEA ###
-.idea
+/.idea/
+*.xml
 *.iws
 *.iml
 *.ipr
@@ -31,6 +32,5 @@ build/
 
 ### VS Code ###
 .vscode/
-
-.idea/
 /out/
+

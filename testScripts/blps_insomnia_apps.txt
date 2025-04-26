@@ -1,0 +1,39 @@
+{
+  "_type": "export",
+  "__export_format": 4,
+  "__export_source": "insomnia.desktop.app:v2023.5.8",
+  "resources": [
+    {
+      "_id": "env_base",
+      "data": {
+        "base_url": "http://localhost:8080"
+      },
+      "name": "Base Environment",
+      "type": "environment"
+    },
+    {
+      "_id": "wrk_play_magazine",
+      "name": "Play Magazine API",
+      "type": "workspace"
+    },
+    {
+      "_id": "req_auth_login",
+      "name": "[Auth] Login",
+      "method": "POST",
+      "url": "{{ base_url }}/api/v1/auth/login",
+      "body": {
+        "mimeType": "application/json",
+        "text": "{\n  \"email\": \"user@example.com\",\n  \"password\": \"password123\"\n}"
+      },
+      "headers": [
+        {
+          "name": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "description": "Успешная авторизация",
+      "parentId": "wrk_play_magazine",
+      "type": "request"
+    }
+  ]
+}

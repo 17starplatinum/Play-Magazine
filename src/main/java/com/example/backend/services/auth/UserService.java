@@ -1,23 +1,41 @@
 package com.example.backend.services.auth;
 
-import com.example.backend.model.auth.Role;
-import com.example.backend.model.auth.User;
-import com.example.backend.repositories.UserRepository;
+import com.example.backend.dto.auth.RoleChangeRequestDto;
+import com.example.backend.dto.auth.SignUpRequest;
+import com.example.backend.dto.auth.rolestatus.AdminRequestStatusHandler;
+import com.example.backend.model.auth.*;
+import com.example.backend.repositories.auth.UserBudgetRepository;
+import com.example.backend.repositories.auth.UserProfileRepository;
+import com.example.backend.repositories.auth.UserRepository;
 import com.example.backend.security.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.Map;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class UserService {
+    private static final String USER_NOT_FOUND = "Пользователь не найден";
+
     private final UserRepository userRepository;
+    private final UserBudgetRepository budgetRepository;
+    private final UserProfileRepository profileRepository;
     private final JwtService jwtService;
+    private Map<String, AdminRequestStatusHandler> statusHandlerMap;
+
+    @Autowired
+    public void setStatusHandlerMap(Map<String, AdminRequestStatusHandler> statusHandlerMap) {
+        this.statusHandlerMap = statusHandlerMap;
+    }
 
     /**
      * Сохранение пользователя
@@ -32,12 +50,26 @@ public class UserService {
     /**
      * Создание пользователя
      */
-    public void create(User user) {
+    public void create(User user, SignUpRequest signUpRequest) {
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new BadCredentialsException("Пользователь с таким email уже существует");
         }
-
         save(user);
+        UserBudget userBudget = UserBudget.builder()
+                .user(user)
+                .spendingLimit(0D)
+                .currentSpending(0D)
+                .build();
+        budgetRepository.save(userBudget);
+
+        UserProfile userProfile = UserProfile.builder()
+                .user(user)
+                .name(signUpRequest.getName())
+                .surname(signUpRequest.getSurname())
+                .build();
+        profileRepository.save(userProfile);
+        userBudget.setUser(user);
+        userProfile.setUser(user);
     }
 
     /**
@@ -47,13 +79,13 @@ public class UserService {
      */
     public User getByUsername(String email) {
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
+                .orElseThrow(() -> new UsernameNotFoundException(USER_NOT_FOUND));
 
     }
 
     public User getById(UUID uuid) {
         return userRepository.findById(uuid)
-                .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
+                .orElseThrow(() -> new UsernameNotFoundException(USER_NOT_FOUND));
 
     }
 
@@ -74,6 +106,7 @@ public class UserService {
      * @return текущий пользователь
      */
     public User getCurrentUser() {
+        // Получение имени пользователя из контекста Spring Security
         var username = SecurityContextHolder.getContext().getAuthentication().getName();
         return getByUsername(username);
     }
@@ -87,12 +120,11 @@ public class UserService {
      * Выдача прав администратора текущему пользователю
      * <p>
      * Нужен для демонстрации
-     *
      * @deprecated так как у нас теперь есть более-менее внятная система ролей, этот метод больше не является актуальным.
      */
     @Deprecated(forRemoval = true)
-    public void getAdmin() {
-        var user = getCurrentUser();
+        public void getAdmin() {
+            var user = getCurrentUser();
         user.setRole(Role.ADMIN);
         save(user);
     }
@@ -103,10 +135,33 @@ public class UserService {
         return getByUsername(email).getId().equals(uuid);
     }
 
+    public List<RoleChangeRequestDto> findByRequestStatus(String requestStatus) {
+        return userRepository.findByRequestStatus(RequestStatus.valueOf(requestStatus)).stream().map(this::convertToRoleRequestDto).toList();
+    }
+
+    @Transactional(readOnly = true)
+    public String getAdminRequestStatus(UUID userId) {
+        User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException(USER_NOT_FOUND));
+        String userRole = user.getRole().name();
+        AdminRequestStatusHandler adminRequestStatusHandler = statusHandlerMap.get(userRole);
+        if (adminRequestStatusHandler == null) {
+            throw new IllegalStateException("Обработчик для статуса '" + user.getRequestStatus().toString() + "' не найден");
+        }
+        return adminRequestStatusHandler.getStatusMessage();
+    }
+
+    private RoleChangeRequestDto convertToRoleRequestDto(User user) {
+        return RoleChangeRequestDto.builder()
+                .userId(user.getId())
+                .email(user.getUsername())
+                .role(user.getRole().toString())
+                .requestStatus(user.getRequestStatus().toString())
+                .build();
+    }
+
     /**
      * Находит информацию о пользователя через его ID и соответствующего JWT-токена.
-     *
-     * @param uuid  ID
+     * @param uuid ID
      * @param token JWT-токен
      * @return пользователь
      * @deprecated так как были реализованы репозиторий, этот метод больше не является актуальным.

@@ -6,6 +6,7 @@ import com.example.backend.services.auth.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -36,16 +37,22 @@ public class SecurityConfiguration {
                 .cors(cors -> cors.configurationSource(request -> {
                     var corsConfiguration = new CorsConfiguration();
                     corsConfiguration.setAllowedOriginPatterns(List.of("*"));
-                    corsConfiguration.setAllowedMethods(List.of("GET", "POST", "DELETE", "OPTIONS"));
+                    corsConfiguration.setAllowedMethods(List.of("GET", "POST", "DELETE", "PUT", "OPTIONS"));
                     corsConfiguration.setAllowedHeaders(List.of("*"));
                     corsConfiguration.setAllowCredentials(true);
                     return corsConfiguration;
                 }))
                 // Настройка доступа к конечным точкам
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("/auth/**", "/test/**").permitAll()
-                        .requestMatchers("/admin/**").hasRole(Role.ADMIN.name())
-                        .anyRequest().authenticated())
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/api/v1/admin/**").hasRole(Role.ADMIN.name())
+                        .requestMatchers(HttpMethod.GET, "/api/v1/apps", "/api/v1/apps/{appId}", "/api/v1/apps/{appId}/reviews", "/api/v1/apps/{appId}/reviews/average").permitAll()
+                        .requestMatchers("/api/v1/apps/**").authenticated()
+                        .requestMatchers("/api/v1/cards/**").authenticated()
+                        .requestMatchers("/api/v1/purchases/**").authenticated()
+                        .requestMatchers("/api/v1/subscriptions/**").authenticated()
+                        .requestMatchers("/api/v1/budget/**").authenticated()
+                        .anyRequest().permitAll())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
