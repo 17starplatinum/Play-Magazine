@@ -3,6 +3,7 @@ package com.example.backend.controllers;
 import com.example.backend.dto.data.ReviewDto;
 import com.example.backend.dto.data.app.AppCreateRequest;
 import com.example.backend.dto.data.app.AppDownloadResponse;
+import com.example.backend.dto.data.app.AppUpdateDto;
 import com.example.backend.dto.util.AppCompatibilityResponse;
 import com.example.backend.exceptions.accepted.AppDownloadException;
 import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
@@ -63,6 +64,13 @@ public class AppController {
         return ResponseEntity.status(HttpStatus.CREATED).body(appService.createApp(appCreateDto, file));
     }
 
+    @PutMapping(path = "/{appId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasRole('DEVELOPER') || hasRole('MODERATOR') || hasRole('ADMIN')")
+    public ResponseEntity<App> updateApp(@PathVariable UUID appId, @Valid @ModelAttribute AppUpdateDto appUpdateDto,
+                                         @RequestParam("file") MultipartFile file) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(appService.bumpApp(appId, appUpdateDto, file));
+    }
+
     @GetMapping("/{appId}/update-info")
     public ResponseEntity<AppDownloadResponse> checkForUpdates(@PathVariable UUID appId) {
         return ResponseEntity.ok(appService.prepareAppDownload(appId));
@@ -93,7 +101,7 @@ public class AppController {
     }
 
     @DeleteMapping("/{appId}")
-    @PreAuthorize("hasRole('DEVELOPER') || hasRole('ADMIN')")
+    @PreAuthorize("hasRole('DEVELOPER') || hasRole('MODERATOR') || hasRole('ADMIN')")
     public ResponseEntity<Void> deleteApp(@PathVariable UUID appId) {
         appService.deleteApp(appId);
         return ResponseEntity.noContent().build();
@@ -102,11 +110,6 @@ public class AppController {
     @GetMapping("/{appId}/reviews")
     public ResponseEntity<List<Review>> getReviews(@PathVariable UUID appId) {
         return ResponseEntity.ok(reviewService.getAppReviews(appId));
-    }
-
-    @PostMapping("/{appId}/reviews/my-review")
-    public ResponseEntity<Review> writeReview(@PathVariable UUID appId, @RequestBody ReviewDto reviewDto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(reviewService.createReview(appId, reviewDto));
     }
 
     @GetMapping("/{appId}/reviews/average")

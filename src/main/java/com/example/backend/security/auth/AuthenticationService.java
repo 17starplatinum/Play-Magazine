@@ -1,13 +1,15 @@
 package com.example.backend.security.auth;
 
 import com.example.backend.dto.auth.*;
-import com.example.backend.model.auth.*;
+import com.example.backend.model.auth.Role;
+import com.example.backend.model.auth.User;
+import com.example.backend.model.auth.UserProfile;
+import com.example.backend.model.auth.UserVerification;
 import com.example.backend.repositories.auth.UserProfileRepository;
 import com.example.backend.repositories.auth.UserRepository;
 import com.example.backend.security.jwt.JwtService;
-import com.example.backend.services.auth.UserVerificationService;
 import com.example.backend.services.auth.UserService;
-
+import com.example.backend.services.auth.UserVerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

@@ -84,4 +84,8 @@ public class App {
     public AppVersion getLatestVersion() {
         return !appVersions.isEmpty() ? appVersions.get(appVersions.size() - 1) : null;
     }
+
+    public AppVersion getPreviousVersion() {
+        return appVersions.get(appVersions.size() - 2);
+    }
 }

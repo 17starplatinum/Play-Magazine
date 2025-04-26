@@ -9,6 +9,8 @@ import com.example.backend.exceptions.accepted.AppUpdateException;
 import com.example.backend.exceptions.notfound.AppNotFoundException;
 import com.example.backend.exceptions.prerequisites.AppUpToDateException;
 import com.example.backend.exceptions.prerequisites.InvalidApplicationConfigException;
+import com.example.backend.mappers.AppMapper;
+import com.example.backend.model.auth.Role;
 import com.example.backend.model.auth.User;
 import com.example.backend.model.data.app.App;
 import com.example.backend.model.data.app.AppFile;
@@ -34,7 +36,6 @@ import oshi.software.os.OperatingSystem;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -52,25 +53,14 @@ public class AppService {
     private final UserService userService;
     private final AppRequirementsRepository appRequirementsRepository;
     private final AppFileRepository appFileRepository;
+    private final AppMapper appMapper;
 
     public AppDownloadResponse prepareAppDownload(UUID appId) {
         App app = getAppById(appId);
-
         User user = userService.getCurrentUser();
-
         Purchase purchase = purchaseService.getPurchaseByUserAndApp(user, app);
-
         boolean updateAvailable = app.isNewerThan(purchase.getApp());
-
-        return AppDownloadResponse.builder()
-                .appId(app.getId())
-                .name(app.getName())
-                .currentVersion(purchase.getApp().getAppVersions().get(app.getAppVersions().size() - 2).toString())
-                .availableVersion(app.getLatestVersion().getVersion())
-                .updateAvailable(updateAvailable)
-                .fileSize(app.getAppFile().getFileSize())
-                .fileHash(app.getAppFile().getFileHash())
-                .build();
+        return appMapper.mapToResponse(app, purchase, updateAvailable);
     }
 
     public AppCompatibilityResponse checkCompatibility(UUID appId) {
@@ -150,34 +140,21 @@ public class AppService {
                 .compatibleOs(appCreateRequest.getRequirements().getCompatibleOs())
                 .build();
 
-        AppFile appFile = AppFile.builder()
-                .filePath(filePath)
-                .fileSize(file.getSize())
-                .lastUpdated(LocalDateTime.now())
-                .build();
+        AppFile appFile = appMapper.mapToAppFile(filePath, file);
 
         AppVersion version = new AppVersion("1.0", "Первый запуск.");
 
-        App app = App.builder()
-                .name(appCreateRequest.getName())
-                .description(appCreateRequest.getDescription())
-                .price(appCreateRequest.getPrice())
-                .releaseDate(LocalDate.now())
-                .author(author)
-                .appFile(appFile)
-                .appVersions(new ArrayList<>(List.of(version)))
-                .build();
+        App app = appMapper.mapToModel(appCreateRequest, appFile, author, version);
 
         version.setApp(app);
         requirements.setApp(app);
         appFile.setApp(app);
 
-
         return appRepository.save(app);
     }
 
     @Transactional
-    public App bumpApp(UUID appId, MultipartFile file, AppUpdateDto appUpdateDto) {
+    public App bumpApp(UUID appId, AppUpdateDto appUpdateDto, MultipartFile file) {
         App app = getAppById(appId);
         User user = userService.getCurrentUser();
         AppFile appFile = app.getAppFile();
@@ -236,8 +213,8 @@ public class AppService {
     public void deleteApp(UUID appId) {
         User currentUser = userService.getCurrentUser();
         App app = getAppById(appId);
-        if(!app.getAuthor().getEmail().equals(currentUser.getUsername())) {
-            throw new InvalidDataAccessApiUsageException("Вы не являетесь автором приложения");
+        if(!app.getAuthor().getEmail().equals(currentUser.getUsername()) && !(currentUser.getRole().equals(Role.MODERATOR) || currentUser.getRole().equals(Role.ADMIN))) {
+            throw new InvalidDataAccessApiUsageException("У вас нет права на удаление приложения");
         }
 
         minioService.deleteFile(app.getAppFile().getFilePath());

@@ -19,7 +19,6 @@ import java.util.UUID;
 import static com.example.backend.model.auth.RequestStatus.*;
 import static com.example.backend.model.auth.Role.ADMIN;
 import static com.example.backend.model.auth.Role.DEVELOPER;
-import static com.example.backend.model.auth.RequestStatus.APPROVED;
 
 @Service
 @RequiredArgsConstructor

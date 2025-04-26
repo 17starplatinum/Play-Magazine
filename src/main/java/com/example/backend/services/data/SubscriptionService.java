@@ -3,10 +3,10 @@ package com.example.backend.services.data;
 import com.example.backend.dto.data.subscription.SubscriptionRequestDto;
 import com.example.backend.dto.data.subscription.SubscriptionResponseDto;
 import com.example.backend.exceptions.notfound.SubscriptionNotFoundException;
+import com.example.backend.mappers.SubscriptionMapper;
 import com.example.backend.model.auth.User;
 import com.example.backend.model.data.app.App;
 import com.example.backend.model.data.finances.Card;
-import com.example.backend.model.data.finances.Invoice;
 import com.example.backend.model.data.subscriptions.Subscription;
 import com.example.backend.model.data.subscriptions.SubscriptionInfo;
 import com.example.backend.repositories.data.subscription.SubscriptionInfoRepository;
@@ -33,6 +33,7 @@ public class SubscriptionService {
     private final UserService userService;
     private final CardService cardService;
     private final AppService appService;
+    private final SubscriptionMapper subscriptionMapper;
 
     public List<SubscriptionResponseDto> getAllSubscriptions() {
         User user = userService.getCurrentUser();
@@ -42,14 +43,7 @@ public class SubscriptionService {
             LocalDate startDate = subscription.getSubscriptionInfo().getStartDate();
             LocalDate endDate = subscription.getSubscriptionInfo().getEndDate();
 
-            SubscriptionResponseDto responseDto = SubscriptionResponseDto.builder()
-                    .id(subscription.getId())
-                    .name(subscription.getName())
-                    .appName(subscription.getSubscriptionInfo().getApp().getName())
-                    .daysRemaining(endDate.getDayOfMonth() - startDate.getDayOfMonth())
-                    .build();
-
-            subscriptionResponseDtos.add(responseDto);
+            subscriptionResponseDtos.add(subscriptionMapper.mapToDtoPartial(subscription, startDate, endDate));
         }
         return subscriptionResponseDtos;
     }
@@ -59,22 +53,7 @@ public class SubscriptionService {
         User user = userService.getCurrentUser();
         Card card = cardService.getCardByIdAndUser(subscriptionRequestDto.getCardId(), user);
         App app = appService.getAppByName(subscriptionRequestDto.getAppName());
-        Subscription subscription = Subscription.builder()
-                .user(user)
-                .card(card)
-                .name(subscriptionRequestDto.getName())
-                .subscriptionInfo(
-                        SubscriptionInfo.builder()
-                                .app(app)
-                                .invoice(Invoice.builder().amount(subscriptionRequestDto.getFee()).build())
-                                .startDate(LocalDate.now())
-                                .endDate(LocalDate.now().plusDays(subscriptionRequestDto.getDays()))
-                                .autoRenewal(subscriptionRequestDto.getAutoRenewal())
-                                .active(true)
-                                .build()
-                )
-                .build();
-
+        Subscription subscription = subscriptionMapper.mapToModel(user, card, app, subscriptionRequestDto);
         return subscriptionRepository.save(subscription);
     }
 
@@ -84,17 +63,7 @@ public class SubscriptionService {
         LocalDate startDate = subscription.getSubscriptionInfo().getStartDate();
         LocalDate endDate = subscription.getSubscriptionInfo().getEndDate();
 
-        return SubscriptionResponseDto.builder()
-                .id(subscription.getId())
-                .name(subscription.getName())
-                .appName(subscription.getSubscriptionInfo().getApp().getName())
-                .fee(subscription.getSubscriptionInfo().getInvoice().getAmount())
-                .startDate(startDate)
-                .endDate(endDate)
-                .daysRemaining(endDate.getDayOfMonth() - startDate.getDayOfMonth())
-                .autoRenewal(subscription.getSubscriptionInfo().getAutoRenewal())
-                .active(subscription.getSubscriptionInfo().getActive())
-                .build();
+        return subscriptionMapper.mapToDtoFull(subscription, startDate, endDate);
     }
 
     @Transactional

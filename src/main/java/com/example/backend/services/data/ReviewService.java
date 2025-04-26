@@ -4,6 +4,7 @@ package com.example.backend.services.data;
 import com.example.backend.dto.data.ReviewDto;
 import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
 import com.example.backend.exceptions.prerequisites.ReviewAlreadyExistsException;
+import com.example.backend.mappers.ReviewMapper;
 import com.example.backend.model.auth.User;
 import com.example.backend.model.data.Review;
 import com.example.backend.model.data.app.App;
@@ -24,6 +25,7 @@ public class ReviewService {
     private final PurchaseService purchaseService;
     private final UserService userService;
     private final AppService appService;
+    private final ReviewMapper reviewMapper;
 
     public Review createReview(UUID appId, ReviewDto reviewDto){
         App app = appService.getAppById(appId);
@@ -38,12 +40,7 @@ public class ReviewService {
             throw new ReviewAlreadyExistsException("Вы уже оставили отзыв на этом приложении");
         }
 
-        Review review = Review.builder()
-                .rating(reviewDto.getStars())
-                .comment(reviewDto.getComment())
-                .app(app)
-                .user(user)
-                .build();
+        Review review = reviewMapper.mapToModel(app, user, reviewDto);
 
         return reviewRepository.save(review);
     }

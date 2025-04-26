@@ -2,11 +2,11 @@ package com.example.backend.services.data;
 
 import com.example.backend.dto.data.budget.BudgetStatusDto;
 import com.example.backend.exceptions.prerequisites.BudgetExceededException;
+import com.example.backend.mappers.BudgetMapper;
 import com.example.backend.model.auth.User;
 import com.example.backend.model.auth.UserBudget;
 import com.example.backend.repositories.auth.UserBudgetRepository;
 import com.example.backend.services.auth.UserService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
@@ -20,6 +20,7 @@ public class BudgetService {
 
     private final UserBudgetRepository userBudgetRepository;
     private final UserService userService;
+    private final BudgetMapper budgetMapper;
 
     @Transactional
     public void setMonthlyLimit(Double limit) {
@@ -35,18 +36,10 @@ public class BudgetService {
         User user = userService.getCurrentUser();
         UserBudget userBudget = userBudgetRepository.findUserBudgetByUser(user);
         if(userBudget == null) {
-            return BudgetStatusDto.builder()
-                    .budget(0D)
-                    .spending(0D)
-                    .remaining(0D)
-                    .build();
+            return budgetMapper.mapToNewDto();
         }
         resetSpendingIfNeeded(userBudget);
-        return BudgetStatusDto.builder()
-                .budget(userBudget.getSpendingLimit())
-                .spending(userBudget.getCurrentSpending())
-                .remaining(calculateRemaining(userBudget))
-                .build();
+        return budgetMapper.mapToDto(userBudget);
     }
 
     @Scheduled(cron = "0 0 0 1 * *")
@@ -79,7 +72,6 @@ public class BudgetService {
             userBudget.setCurrentSpending(0D);
             userBudget.setLastLimitReset(LocalDate.now());
         }
-
     }
 
     private boolean isOverBudget(UserBudget userBudget, double amount) {
@@ -90,7 +82,7 @@ public class BudgetService {
         return projected > userBudget.getSpendingLimit();
     }
 
-    private Double calculateRemaining(UserBudget userBudget) {
+    public Double calculateRemaining(UserBudget userBudget) {
         if (userBudget.getSpendingLimit() == null) {
             return null;
         }

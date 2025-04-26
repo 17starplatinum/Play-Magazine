@@ -7,6 +7,8 @@ import com.example.backend.exceptions.notfound.SubscriptionNotFoundException;
 import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
 import com.example.backend.exceptions.prerequisites.AppAlreadyPurchasedException;
 import com.example.backend.exceptions.prerequisites.InsufficientFundsException;
+import com.example.backend.mappers.PurchaseMapper;
+import com.example.backend.mappers.SubscriptionMapper;
 import com.example.backend.model.auth.User;
 import com.example.backend.model.auth.UserBudget;
 import com.example.backend.model.data.app.App;
@@ -28,7 +30,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -44,6 +45,8 @@ public class PurchaseService {
     private final CardService cardService;
     private final UserBudgetRepository userBudgetRepository;
     private final SubscriptionInfoRepository infoRepository;
+    private final PurchaseMapper purchaseMapper;
+    private final SubscriptionMapper subscriptionMapper;
 
     @Transactional
     public Purchase purchaseApp(PurchaseRequest purchaseRequest) {
@@ -85,38 +88,17 @@ public class PurchaseService {
 
         cardRepository.save(card);
 
-        Invoice invoice = Invoice.builder()
-                .amount(price)
-                .build();
-        MonetaryTransaction transaction = MonetaryTransaction.builder()
-                .card(card)
-                .invoice(invoice)
-                .processedAt(LocalDateTime.now())
-                .build();
-
-        Purchase purchase = Purchase.builder()
-                .app(app)
-                .user(user)
-                .monetaryTransaction(transaction)
-                .build();
+        Invoice invoice = purchaseMapper.mapToInvoice(price);
+        MonetaryTransaction transaction = purchaseMapper.mapToTransaction(card, invoice);
+        Purchase purchase = purchaseMapper.mapToModel(app, transaction, user);
 
         return purchaseRepository.save(purchase);
     }
 
     private Purchase createFreePurchase(User user, App app) {
-        Invoice invoice = Invoice.builder()
-                .amount(0D)
-                .build();
-
-        MonetaryTransaction transaction = MonetaryTransaction.builder()
-                .invoice(invoice)
-                .processedAt(LocalDateTime.now())
-                .build();
-
         return purchaseRepository.save(Purchase.builder()
                 .user(user)
                 .app(app)
-                .monetaryTransaction(transaction)
                 .build());
     }
 
@@ -140,26 +122,12 @@ public class PurchaseService {
 
         subscriptionInfo = infoRepository.save(subscriptionInfo);
 
-        subscriptionRepository.save(
-                Subscription.builder()
-                        .user(user)
-                        .card(card)
-                        .name(subscription.getName())
-                        .subscriptionInfo(subscriptionInfo)
-                        .build());
+        subscriptionRepository.save(subscriptionMapper.mapViaInfo(user, card, subscription.getName(), subscriptionInfo));
+        Invoice invoice = purchaseMapper.mapToInvoice(subscriptionPrice);
 
-        MonetaryTransaction transaction = MonetaryTransaction.builder()
-                .card(card)
-                .invoice(Invoice.builder().amount(subscriptionPrice).build())
-                .processedAt(LocalDateTime.now())
-                .build();
-        return purchaseRepository.save(
-                Purchase.builder()
-                        .user(user)
-                        .app(app)
-                        .monetaryTransaction(transaction)
-                        .build()
-        );
+        MonetaryTransaction transaction = purchaseMapper.mapToTransaction(card, invoice);
+
+        return purchaseRepository.save(purchaseMapper.mapToModel(app, transaction, user));
     }
 
     public List<Purchase> getUserPurchases() {

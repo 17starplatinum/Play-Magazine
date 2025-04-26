@@ -4,11 +4,11 @@ import com.example.backend.dto.data.card.CardDto;
 import com.example.backend.dto.data.card.DepositRequest;
 import com.example.backend.exceptions.notfound.CardNotFoundException;
 import com.example.backend.exceptions.prerequisites.CardAlreadyExistsException;
+import com.example.backend.mappers.CardMapper;
 import com.example.backend.model.auth.User;
 import com.example.backend.model.data.finances.Card;
 import com.example.backend.repositories.data.finances.CardRepository;
 import com.example.backend.services.auth.UserService;
-
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +21,7 @@ import java.util.UUID;
 public class CardService {
     private final CardRepository cardRepository;
     private final UserService userService;
+    private final CardMapper cardMapper;
 
     public Card getCardByIdAndUser(UUID id, User user) {
         return cardRepository.findByIdAndUser(id, user)
@@ -32,12 +33,7 @@ public class CardService {
         if (cardRepository.existsByUserAndNumber(user, cardDto.getNumber())) {
             throw new CardAlreadyExistsException("Карта с таким номером уже существует");
         }
-        Card card = Card.builder()
-                .user(user)
-                .number(cardDto.getNumber())
-                .cvv(cardDto.getCvv())
-                .expiryDate(cardDto.getExpiryDate())
-                .build();
+        Card card = cardMapper.mapToModel(user, cardDto);
         return cardRepository.save(card);
     }
 
