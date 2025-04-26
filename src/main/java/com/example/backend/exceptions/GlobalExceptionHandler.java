@@ -48,7 +48,8 @@ public class GlobalExceptionHandler {
             JwtException.class,
             WeakKeyException.class,
             MalformedJwtException.class,
-            HttpMediaTypeNotSupportedException.class
+            HttpMediaTypeNotSupportedException.class,
+            RuntimeException.class
     })
     public ResponseEntity<Object> handleBadRequestException() {
         ErrorResponseDto responseDto = new ErrorResponseDto(
@@ -171,16 +172,6 @@ public class GlobalExceptionHandler {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.BAD_REQUEST.value(),
                 "HTTP-запрос не может адекватно обрабатываться",
-                System.currentTimeMillis()
-        );
-        return new ResponseEntity<>(responseDto, HttpStatus.BAD_REQUEST);
-    }
-
-    @ExceptionHandler(RuntimeException.class)
-    public ResponseEntity<Object> handleMinioException() {
-        ErrorResponseDto responseDto = new ErrorResponseDto(
-                HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.BAD_REQUEST);
