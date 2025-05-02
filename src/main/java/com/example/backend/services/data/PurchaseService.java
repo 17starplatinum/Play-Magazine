@@ -51,7 +51,7 @@ public class PurchaseService {
     @Transactional
     public Purchase purchaseApp(PurchaseRequest purchaseRequest) {
         App app = appRepository.findById(purchaseRequest.getAppId())
-                .orElseThrow(() -> new AppNotFoundException("Приложение не найдено"));
+                .orElseThrow(() -> new AppNotFoundException("Application not found"));
 
         User user = userService.getCurrentUser();
 
@@ -63,7 +63,7 @@ public class PurchaseService {
 
         if (app.hasSubscriptions()) {
             Subscription subscription = subscriptionRepository.findById(purchaseRequest.getSubscriptionId())
-                    .orElseThrow(() -> new SubscriptionNotFoundException("Подписка не найдена"));
+                    .orElseThrow(() -> new SubscriptionNotFoundException("Cannot find subscription!"));
             return processSubscriptionPurchase(user, app, card, subscription);
         }
         return processOneTimePurchase(user, app, card);
@@ -76,12 +76,12 @@ public class PurchaseService {
 
 
         if (card.getBalance() < app.getPrice()) {
-            throw new InsufficientFundsException("Не хватает средства");
+            throw new InsufficientFundsException("Not enough money!");
         }
 
         boolean alreadyPurchased = hasUserPurchasedApp(user, app);
         if(alreadyPurchased) {
-            throw new AppAlreadyPurchasedException("Приложение уже куплено");
+            throw new AppAlreadyPurchasedException("Application has already bought");
         }
 
         card.setBalance(card.getBalance() - price);
@@ -109,7 +109,7 @@ public class PurchaseService {
         budgetService.recordSpending(userBudget, subscriptionPrice);
 
         if (card.getBalance() < subscriptionPrice) {
-            throw new InsufficientFundsException("Не хватает средства");
+            throw new InsufficientFundsException("Not enough money!");
         }
 
         card.setBalance(card.getBalance() - subscriptionPrice);
@@ -142,12 +142,12 @@ public class PurchaseService {
 
     public Purchase getPurchaseByUserAndApp(User user, App app) {
         return purchaseRepository.findByUserAndApp(user, app)
-                .orElseThrow(() -> new AppNotPurchasedException("Приложение не куплено"));
+                .orElseThrow(() -> new AppNotPurchasedException("You have no this application"));
     }
 
     public void validateUpdateAccess(User user, App app) {
         if (!hasUserPurchasedApp(user, app)) {
-            throw new AppNotPurchasedException("Вам надо покупать приложение");
+            throw new AppNotPurchasedException("You must buy this application");
         }
     }
 }

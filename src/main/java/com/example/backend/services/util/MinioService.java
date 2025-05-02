@@ -40,7 +40,7 @@ public class MinioService {
                             .build());
             return objectName;
         } catch(Exception e) {
-            throw new RuntimeException("Ошибка при выкладывании файла на MinIO", e);
+            throw new RuntimeException("Something went wrong while uploading file from web storage", e);
         }
     }
 
@@ -51,10 +51,10 @@ public class MinioService {
                         .build())){
 
             byte[] fileBytes = stream.readAllBytes();
-            log.info("Файл успешно загружен: {}", objectName);
+            log.info("File successfully downloaded: {}", objectName);
             return fileBytes;
         } catch (Exception e) {
-            throw new RuntimeException("Ошибка при загрузке файла из MinIO", e);
+            throw new RuntimeException("Something went wrong while downloading file from web storage", e);
         }
     }
 
@@ -65,9 +65,9 @@ public class MinioService {
                             .bucket(bucketName)
                             .object(filenameForStoring)
                             .build());
-            log.info("Файл успешно удалён: {}", objectName);
+            log.info("File successfully deleted: {}", objectName);
         } catch (Exception e) {
-            throw new RuntimeException("Ошибка при удалении файла из MinIO", e);
+            throw new RuntimeException("Something went wrong while deleting file from web storage", e);
         }
     }
 
@@ -86,7 +86,7 @@ public class MinioService {
         } catch (ErrorResponseException | InsufficientDataException | InternalException |
                  InvalidKeyException | InvalidResponseException | IOException | NoSuchAlgorithmException |
                  ServerException | XmlParserException e) {
-            throw new RuntimeException("Ошибка при проверке/создании корзине в MinIO: " + e.getMessage(), e);
+            throw new RuntimeException("Something went wrong on web storage: " + e.getMessage(), e);
         }
     }
 }

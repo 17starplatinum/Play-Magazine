@@ -32,7 +32,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             BadCredentialsException.class
     })
-    public ResponseEntity<Object> handleBadCredentialsException(Exception e) {
+    public ResponseEntity<?> handleBadCredentialsException(Exception e) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.UNAUTHORIZED.value(),
                 e.getMessage(),
@@ -41,12 +41,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
     }
 
+    // TODO: ExpiredJwtException вылетает 500
     @ExceptionHandler({
             InvalidRequestException.class,
             JwtException.class,
             WeakKeyException.class
     })
-    public ResponseEntity<Object> handleBadRequestException(Exception e) {
+    public ResponseEntity<?> handleBadRequestException(Exception e) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.BAD_REQUEST.value(),
                 e.getMessage(),
@@ -60,7 +61,7 @@ public class GlobalExceptionHandler {
             CardNotFoundException.class,
             NoResourceFoundException.class
     })
-    public ResponseEntity<Object> handleUserNotFoundException(Exception e) {
+    public ResponseEntity<?> handleUserNotFoundException(Exception e) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.NOT_FOUND.value(),
                 e.getMessage(),
@@ -80,7 +81,7 @@ public class GlobalExceptionHandler {
             ReviewAlreadyExistsException.class,
             HttpRequestMethodNotSupportedException.class
     })
-    public ResponseEntity<Object> handleBadPrerequisiteException(Exception e) {
+    public ResponseEntity<?> handleBadPrerequisiteException(Exception e) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.PRECONDITION_FAILED.value(),
                 e.getMessage(),
@@ -95,7 +96,7 @@ public class GlobalExceptionHandler {
             RequestPendingException.class,
             EmailSendingException.class
     })
-    public ResponseEntity<Object> handleIncompleteProcessingException(Exception e) {
+    public ResponseEntity<?> handleIncompleteProcessingException(Exception e) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
             HttpStatus.ACCEPTED.value(),
                 e.getMessage(),
@@ -105,7 +106,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AppNotPurchasedException.class)
-    public ResponseEntity<Object> handleAppNotPurchasedException(Exception e) {
+    public ResponseEntity<?> handleAppNotPurchasedException(Exception e) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.PAYMENT_REQUIRED.value(),
                 e.getMessage(),
@@ -115,7 +116,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AlreadyInRoleException.class)
-    public ResponseEntity<Object> handleAlreadyInRoleException(Exception e) {
+    public ResponseEntity<?> handleAlreadyInRoleException(Exception e) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.CONFLICT.value(),
                 e.getMessage(),
@@ -125,7 +126,7 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<Object> handleAccessDeniedException(Exception e) {
+    public ResponseEntity<?> handleAccessDeniedException(Exception e) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.FORBIDDEN.value(),
                 e.getMessage(),
@@ -138,10 +139,10 @@ public class GlobalExceptionHandler {
             MethodArgumentNotValidException.class,
             MethodArgumentTypeMismatchException.class
     })
-    public ResponseEntity<Object> handleMethodArgumentNotValidException() {
+    public ResponseEntity<?> handleMethodArgumentNotValidException() {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.BAD_REQUEST.value(),
-                "Объект зароса не прошёл валидацию",
+                "Body of request is not valid!",
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.BAD_REQUEST);
@@ -150,8 +151,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             MissingServletRequestParameterException.class
     })
-    public ResponseEntity<Object> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
-        String message = String.format("Отсутствует следующий параметр в запросе: %s", e.getParameterName());
+    public ResponseEntity<?> handleMissingServletRequestParameterException(MissingServletRequestParameterException e) {
+        String message = String.format("There is a missing parameter in the request: %s", e.getParameterName());
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.BAD_REQUEST.value(),
                 message,
@@ -163,10 +164,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             HttpMessageNotReadableException.class
     })
-    public ResponseEntity<Object> handleMissingServletRequestParameterException() {
+    public ResponseEntity<?> handleMissingServletRequestParameterException() {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.BAD_REQUEST.value(),
-                "HTTP-запрос не может адекватно обрабатываться",
+                "The server was unable to process the HTTP request",
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.BAD_REQUEST);

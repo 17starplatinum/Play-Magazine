@@ -75,8 +75,11 @@ public class AuthController {
     }
 
     @PutMapping("/edit-info")
-    public ResponseEntity<String> updateUserInfo(@RequestBody EditProfileRequest request) {
-        authenticationService.updateUserInfo(request);
+    public ResponseEntity<String> updateUserInfo(
+            @RequestBody EditProfileRequest request,
+            @RequestHeader("Authorization") String jwt
+    ) {
+        authenticationService.updateUserInfo(request, jwt);
         return ResponseEntity.ok("Информация успешно обновлена");
     }
 

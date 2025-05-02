@@ -39,8 +39,4 @@ public class EditProfileRequest {
 
     @Size(max = 64, message = "Длина пароля должна быть не более 64 символов")
     private String newPassword;
-
-    @NotBlank
-    @Pattern(regexp = "^[A-Za-z0-9_-]{2,}(?:\\.[A-Za-z0-9_-]{2,}){2}$")
-    private String token;
 }

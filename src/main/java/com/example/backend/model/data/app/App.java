@@ -60,6 +60,10 @@ public class App {
     private List<Review> reviews = new ArrayList<>();
 
     @JsonIgnore
+    @OneToOne
+    private AppFile appFile;
+
+    @JsonIgnore
     @ManyToMany(mappedBy = "downloadedApps")
     private Set<User> usersWhoDownloaded;
 
@@ -67,11 +71,6 @@ public class App {
     @Builder.Default
     @OneToMany(mappedBy = "app", cascade = CascadeType.ALL, orphanRemoval = true)
     List<AppVersion> appVersions = new ArrayList<>();
-
-    @JsonIgnore
-    @NotNull
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
-    private AppFile appFile;
 
     public boolean hasSubscriptions() {
         return !subscriptions.isEmpty();
@@ -82,10 +81,13 @@ public class App {
     }
 
     public AppVersion getLatestVersion() {
-        return !appVersions.isEmpty() ? appVersions.get(appVersions.size() - 1) : null;
+        return appVersions.get(appVersions.size() - 1);
     }
 
     public AppVersion getPreviousVersion() {
-        return appVersions.get(appVersions.size() - 2);
+        return appVersions.size() == 1 ?
+                null : appVersions.get(appVersions.size() - 2);
     }
+
+
 }

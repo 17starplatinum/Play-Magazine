@@ -2,6 +2,7 @@ package com.example.backend.services.data;
 
 import com.example.backend.dto.data.app.AppCreateRequest;
 import com.example.backend.dto.data.app.AppDownloadResponse;
+import com.example.backend.dto.data.app.AppInfoResponseDto;
 import com.example.backend.dto.data.app.AppUpdateDto;
 import com.example.backend.dto.util.AppCompatibilityResponse;
 import com.example.backend.exceptions.accepted.AppDownloadException;
@@ -10,16 +11,17 @@ import com.example.backend.exceptions.notfound.AppNotFoundException;
 import com.example.backend.exceptions.prerequisites.AppUpToDateException;
 import com.example.backend.exceptions.prerequisites.InvalidApplicationConfigException;
 import com.example.backend.mappers.AppMapper;
-import com.example.backend.model.auth.Role;
 import com.example.backend.model.auth.User;
 import com.example.backend.model.data.app.App;
 import com.example.backend.model.data.app.AppFile;
 import com.example.backend.model.data.app.AppRequirements;
 import com.example.backend.model.data.app.AppVersion;
 import com.example.backend.model.data.finances.Purchase;
+import com.example.backend.repositories.data.ReviewRepository;
 import com.example.backend.repositories.data.app.AppFileRepository;
 import com.example.backend.repositories.data.app.AppRepository;
 import com.example.backend.repositories.data.app.AppRequirementsRepository;
+import com.example.backend.repositories.data.app.AppVersionRepository;
 import com.example.backend.repositories.data.finances.PurchaseRepository;
 import com.example.backend.services.auth.UserService;
 import com.example.backend.services.util.FileUtils;
@@ -53,7 +55,9 @@ public class AppService {
     private final UserService userService;
     private final AppRequirementsRepository appRequirementsRepository;
     private final AppFileRepository appFileRepository;
+    private final ReviewService reviewService;
     private final AppMapper appMapper;
+    private final AppVersionRepository appVersionRepository;
 
     public AppDownloadResponse prepareAppDownload(UUID appId) {
         App app = getAppById(appId);
@@ -61,44 +65,48 @@ public class AppService {
         return appMapper.mapToResponse(app, updateAvailable);
     }
 
-    public AppCompatibilityResponse checkCompatibility(UUID appId) {
+    public AppCompatibilityResponse checkCompatibility(UUID appId, String os) {
         App app = getAppById(appId);
         AppRequirements appRequirements = appRequirementsRepository.findAppRequirementsByApp(app);
         List<String> compatibilityIssues = new ArrayList<>();
 
-        SystemInfo si = new SystemInfo();
-        OperatingSystem os = si.getOperatingSystem();
-        GlobalMemory memory = si.getHardware().getMemory();
+        //SystemInfo si = new SystemInfo();
+
+        // Тут проверка os сервера а не клиента, это не имеет смысла
+        // Клиент - Android, Приложение для Android, Сервер - Windows => скачать не смогу так как Windows != Android
+        // Соответственно все что ниже тоже
+        // OperatingSystem os = si.getOperatingSystem();
+        /*GlobalMemory memory = si.getHardware().getMemory();
         List<HWDiskStore> diskStores = si.getHardware().getDiskStores();
 
-        if(appRequirements.getMinRamMb() > memory.getTotal()){
+        if (appRequirements.getMinRamMb() > memory.getTotal()) {
             compatibilityIssues.add(String.format(
-                    "Не хватает памяти ОЗУ: требуется %dМб, а доступно только %dМб",
+                    "RAM shortage: %dMB required, %dMB available.",
                     appRequirements.getMinRamMb(), memory.getTotal()
             ));
         }
 
         boolean enoughDiskSpace = false;
-        for(HWDiskStore diskStore : diskStores) {
-            if(appRequirements.getMinStorageMb() < diskStore.getSize()){
+        for (HWDiskStore diskStore : diskStores) {
+            if (appRequirements.getMinStorageMb() < diskStore.getSize()) {
                 enoughDiskSpace = true;
                 break;
             }
         }
 
-        if(!enoughDiskSpace){
-            for(HWDiskStore diskStore : diskStores) {
+        if (!enoughDiskSpace) {
+            for (HWDiskStore diskStore : diskStores) {
                 compatibilityIssues.add(String.format(
-                        "Не хватает пространства на диске: требуется %dМб, а доступно только %dМб",
+                        "Disk space shortage: %dMB required, %dMB available.",
                         appRequirements.getMinStorageMb(), diskStore.getSize()
                 ));
             }
-        }
+        }*/
 
-        if(!appRequirements.getCompatibleOs().contains(os.getFamily())) {
+        if (!appRequirements.getCompatibleOs().contains(os)) {
             compatibilityIssues.add(String.format(
-                    "ОС не поддерживается приложением: целевая платформа: %s, но на устройстве %s",
-                    appRequirements.getCompatibleOs(), os.getFamily()
+                    "OS not supported by application: Target platform: %s, Device platform: %s",
+                    appRequirements.getCompatibleOs(), os
             ));
         }
 
@@ -108,13 +116,20 @@ public class AppService {
                 .build();
     }
 
-    public List<App> getAllAvailableApps() {
-        return appRepository.findAll();
+    public List<AppInfoResponseDto> getAllAvailableApps(int limit) {
+        List<AppInfoResponseDto> appsDto = new ArrayList<>();
+        var apps = appRepository.findAppsLimit(limit);
+        for (App app : apps) appsDto.add(appMapper.mapToDto(app, reviewService::getAverageRating));
+        return appsDto;
+    }
+
+    public AppInfoResponseDto getAppInfoById(UUID appId) {
+        return appMapper.mapToDto(getAppById(appId), reviewService::getAverageRating);
     }
 
     public App getAppById(UUID appId) {
         return appRepository.findById(appId)
-                .orElseThrow(() -> new AppNotFoundException("Приложение не найдено"));
+                .orElseThrow(() -> new AppNotFoundException("Application not found!"));
     }
 
     public App getAppByName(String name) {
@@ -122,43 +137,49 @@ public class AppService {
     }
 
     @Transactional
-    public App createApp(AppCreateRequest appCreateRequest, MultipartFile file) {
+    public UUID createApp(AppCreateRequest appCreateRequest) {
+        MultipartFile file = appCreateRequest.getFile();
         User author = userService.getCurrentUser();
 
         if (appCreateRequest.getType() == SUBSCRIPTION &&
                 (appCreateRequest.getSubscriptionPrice() == null || appCreateRequest.getSubscriptionPrice() <= 0)) {
-            throw new InvalidApplicationConfigException("Цена подписки должна быть положительным числом");
+            throw new InvalidApplicationConfigException("Subscription price must be positive!");
         }
 
         String filePath = minioService.uploadFile(file, UUID.randomUUID().toString());
 
-        AppRequirements requirements = AppRequirements.builder()
-                .minRamMb(appCreateRequest.getRequirements().getMinRamMb())
-                .minStorageMb(appCreateRequest.getRequirements().getMinStorageMb())
-                .compatibleOs(appCreateRequest.getRequirements().getCompatibleOs())
-                .build();
-
         AppFile appFile = appMapper.mapToAppFile(filePath, file);
 
-        AppVersion version = new AppVersion("1.0", "Первый запуск.");
+        AppVersion version = new AppVersion("1.0", "Initial release");
+        appFile = appFileRepository.save(appFile);
 
         App app = appMapper.mapToModel(appCreateRequest, appFile, author, version);
 
+        app = appRepository.save(app);
         version.setApp(app);
-        requirements.setApp(app);
-        appFile.setApp(app);
+        appVersionRepository.save(version);
 
-        return appRepository.save(app);
+        AppRequirements requirements = AppRequirements.builder()
+                .minRamMb(appCreateRequest.getMinRamMb())
+                .minStorageMb(appCreateRequest.getMinStorageMb())
+                .compatibleOs(appCreateRequest.getCompatibleOs())
+                .build();
+
+        requirements.setApp(app);
+        appRequirementsRepository.save(requirements);
+
+        return app.getId();
     }
 
     @Transactional
-    public App bumpApp(UUID appId, AppUpdateDto appUpdateDto, MultipartFile file) {
+    public void bumpApp(UUID appId, AppUpdateDto appUpdateDto) {
+        var file = appUpdateDto.getFile();
         App app = getAppById(appId);
         User user = userService.getCurrentUser();
         AppFile appFile = app.getAppFile();
         AppVersion appVersion;
         if (!app.getAuthor().equals(user)) {
-            throw new AccessDeniedException("Вы не являетесь создателем приложения");
+            throw new AccessDeniedException("Suddenly, you aren`t the owner of this application");
         }
 
         try {
@@ -166,7 +187,7 @@ public class AppService {
             String filePath = minioService.uploadFile(file, UUID.randomUUID().toString());
             byte[] fileContent = file.getBytes();
 
-            if(appUpdateDto.getReleaseNotes() == null || appUpdateDto.getReleaseNotes().isBlank()) {
+            if (appUpdateDto.getReleaseNotes() == null || appUpdateDto.getReleaseNotes().isBlank()) {
                 appVersion = new AppVersion(appUpdateDto.getNewVersion());
             } else {
                 appVersion = new AppVersion(appUpdateDto.getNewVersion(), appUpdateDto.getReleaseNotes());
@@ -179,11 +200,11 @@ public class AppService {
             appFile.setLastUpdated(LocalDateTime.now());
 
             appFileRepository.save(appFile);
-            return appRepository.save(app);
+            appRepository.save(app);
         } catch (IOException e) {
-            throw new AppUpdateException("Не удалось читать содержимое файла", e);
+            throw new AppUpdateException("Cannot read application file", e);
         } catch (NoSuchAlgorithmException e) {
-            throw new IllegalStateException("Не удалось вычислить хэш файла", e);
+            throw new IllegalStateException("Cannot generate hash of this application", e);
         }
     }
 
@@ -195,7 +216,7 @@ public class AppService {
         Purchase purchase = purchaseService.getPurchaseByUserAndApp(user, app);
 
         if (!forceUpdate && !app.isNewerThan(purchase.getApp())) {
-            throw new AppUpToDateException("Приложение актуально");
+            throw new AppUpToDateException("This is actual release");
         }
         try {
             minioService.deleteFile(appFile.getFilePath());
@@ -204,18 +225,22 @@ public class AppService {
             purchaseRepository.save(purchase);
             return fileContent;
         } catch (Exception e) {
-            throw new AppDownloadException("Не удалось скачать файл приложения", e);
+            throw new AppDownloadException("Something went wrong while downloading the application", e);
         }
     }
 
+
+    // TODO: допиши удаление зависимых от app сущностей
     public void deleteApp(UUID appId) {
         User currentUser = userService.getCurrentUser();
         App app = getAppById(appId);
-        if(!app.getAuthor().getEmail().equals(currentUser.getUsername()) && !(currentUser.getRole().equals(Role.MODERATOR) || currentUser.getRole().equals(Role.ADMIN))) {
-            throw new AccessDeniedException("У вас нет права на удаление приложения");
+        if (!app.getAuthor().getEmail().equals(currentUser.getUsername())) {
+            // && !(currentUser.getRole().equals(Role.MODERATOR) || currentUser.getRole().equals(Role.ADMIN))) {
+            throw new AccessDeniedException("Suddenly, you aren`t the owner of this application");
         }
 
         minioService.deleteFile(app.getAppFile().getFilePath());
+        reviewService.deleteReviews(reviewService.getAppReviews(app));
         appRepository.delete(app);
     }
 }

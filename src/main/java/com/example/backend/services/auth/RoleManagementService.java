@@ -17,8 +17,7 @@ import org.springframework.stereotype.Service;
 import java.util.UUID;
 
 import static com.example.backend.model.auth.RequestStatus.*;
-import static com.example.backend.model.auth.Role.ADMIN;
-import static com.example.backend.model.auth.Role.DEVELOPER;
+import static com.example.backend.model.auth.Role.*;
 
 @Service
 @RequiredArgsConstructor
@@ -75,7 +74,7 @@ public class RoleManagementService {
         userRepository.save(user);
 
         UserProfile cred = userProfileRepository.findByUser(userService.getCurrentUser());
-        notificationService.notifyUserAboutAuthorRequestApproval(user, cred.getName(), DEVELOPER.getName());
+        notificationService.notifyUserAboutAuthorRequestApproval(user, cred.getName(), DEVELOPER.toString());
     }
 
     @Transactional

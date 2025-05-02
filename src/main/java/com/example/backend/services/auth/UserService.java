@@ -11,19 +11,24 @@ import com.example.backend.security.jwt.JwtService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class UserService {
+public class UserService implements UserDetailsService {
     private static final String USER_NOT_FOUND = "Пользователь не найден";
 
     private final UserRepository userRepository;
@@ -31,6 +36,7 @@ public class UserService {
     private final UserProfileRepository profileRepository;
     private final JwtService jwtService;
     private Map<String, AdminRequestStatusHandler> statusHandlerMap;
+
 
     @Autowired
     public void setStatusHandlerMap(Map<String, AdminRequestStatusHandler> statusHandlerMap) {
@@ -120,11 +126,12 @@ public class UserService {
      * Выдача прав администратора текущему пользователю
      * <p>
      * Нужен для демонстрации
+     *
      * @deprecated так как у нас теперь есть более-менее внятная система ролей, этот метод больше не является актуальным.
      */
     @Deprecated(forRemoval = true)
-        public void getAdmin() {
-            var user = getCurrentUser();
+    public void getAdmin() {
+        var user = getCurrentUser();
         user.setRole(Role.ADMIN);
         save(user);
     }
@@ -144,9 +151,9 @@ public class UserService {
         User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException(USER_NOT_FOUND));
         String userRole = user.getRole().name();
         AdminRequestStatusHandler adminRequestStatusHandler = statusHandlerMap.get(userRole);
-        if (adminRequestStatusHandler == null) {
-            throw new IllegalStateException("Обработчик для статуса '" + user.getRequestStatus().toString() + "' не найден");
-        }
+        if (adminRequestStatusHandler == null)
+            throw new IllegalStateException("Обработчик для статуса '" + user.getEmail() + "' не найден");
+
         return adminRequestStatusHandler.getStatusMessage();
     }
 
@@ -161,7 +168,8 @@ public class UserService {
 
     /**
      * Находит информацию о пользователя через его ID и соответствующего JWT-токена.
-     * @param uuid ID
+     *
+     * @param uuid  ID
      * @param token JWT-токен
      * @return пользователь
      * @deprecated так как были реализованы репозиторий, этот метод больше не является актуальным.
@@ -171,5 +179,14 @@ public class UserService {
         if (checkValidUser(uuid, token))
             return getById(uuid);
         throw new IllegalArgumentException("Something went wrong!");
+    }
+
+    @Override
+    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+        User user = userRepository.findUserByEmail(email).orElseThrow(() -> {
+            throw new UsernameNotFoundException("Пользователь не найден!");
+        });
+
+        return user;
     }
 }

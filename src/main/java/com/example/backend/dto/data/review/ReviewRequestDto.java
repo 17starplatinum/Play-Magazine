@@ -1,4 +1,4 @@
-package com.example.backend.dto.data;
+package com.example.backend.dto.data.review;
 
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.Max;
@@ -10,7 +10,7 @@ import lombok.NoArgsConstructor;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
-public class ReviewDto {
+public class ReviewRequestDto {
 
     @Min(1)
     @Max(5)

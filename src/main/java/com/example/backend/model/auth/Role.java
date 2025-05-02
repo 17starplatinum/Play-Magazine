@@ -1,24 +1,20 @@
 package com.example.backend.model.auth;
 
 import lombok.AllArgsConstructor;
-import lombok.Getter;
 
 @AllArgsConstructor
 public enum Role {
-    ADMIN ("Admin", 4),
-    MODERATOR ("Moderator", 3),
-    DEVELOPER ("Developer", 2),
-    USER ("User", 1),
-    GUEST ("Guest", 0);
-
-    @Getter
-    private final String name;
+    ADMIN(4),
+    MODERATOR(3),
+    DEVELOPER(2),
+    USER(1),
+    GUEST(0);
 
     private final int value;
 
     @Override
     public String toString() {
-        return getName();
+        return name();
     }
 
     public int compare(Role that) {
