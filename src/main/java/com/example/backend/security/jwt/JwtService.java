@@ -2,8 +2,10 @@ package com.example.backend.security.jwt;
 
 import com.example.backend.model.auth.User;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
+import lombok.AllArgsConstructor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -16,6 +18,7 @@ import java.util.Map;
 import java.util.function.Function;
 
 @Service
+@AllArgsConstructor
 public class JwtService {
 
     /**
@@ -24,12 +27,11 @@ public class JwtService {
      * @param token токен
      * @return имя пользователя
      */
-    public String extractUserName(String token) {
+    public String extractUserName(String token) throws ExpiredJwtException {
         return extractClaim(token, Claims::getSubject);
     }
 
-    @Autowired
-    public JwtConfig jwtConfig;
+    public final JwtConfig jwtConfig;
 
     /**
      * Генерация токена
@@ -54,7 +56,7 @@ public class JwtService {
      * @param userDetails данные пользователя
      * @return true, если токен валиден
      */
-    public boolean isTokenValid(String token, UserDetails userDetails) {
+    public boolean isTokenValid(String token, UserDetails userDetails) throws ExpiredJwtException {
         final String userName = extractUserName(token);
         return (userName.equals(userDetails.getUsername())) && !isTokenExpired(token);
     }

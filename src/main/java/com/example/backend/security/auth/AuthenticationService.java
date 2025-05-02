@@ -93,9 +93,8 @@ public class AuthenticationService {
     }
 
     @Transactional
-    public void updateUserInfo(EditProfileRequest request) {
+    public void updateUserInfo(EditProfileRequest request, String token) {
         UUID uuid = request.getId();
-        String token = request.getToken();
         token = token.substring(7);
         String email = jwtService.extractUserName(token);
         if (!userService.getByUsername(email).getId().equals(uuid)) {

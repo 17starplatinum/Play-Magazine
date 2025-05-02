@@ -4,9 +4,9 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class FileUtils {
-    private FileUtils(){
+    /*private FileUtils(){
         throw new IllegalStateException("А нафиг ты здесь?");
-    }
+    }*/
 
     public static String calculateFileHash(byte[] fileContent) throws NoSuchAlgorithmException {
         try {
@@ -14,7 +14,7 @@ public class FileUtils {
             byte[] hash = md.digest(fileContent);
             return bytesToHex(hash);
         } catch (NoSuchAlgorithmException e) {
-            throw new NoSuchAlgorithmException("Не удалось вычислить хэш-значение файла", e);
+            throw new NoSuchAlgorithmException("Something went wrong while calculating hash", e);
         }
     }
 

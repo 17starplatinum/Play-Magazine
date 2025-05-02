@@ -20,6 +20,7 @@
     </annotationProcessing>
     <bytecodeTargetLevel>
       <module name="backend" target="17" />
+      <module name="Play_Magazine" target="17" />
     </bytecodeTargetLevel>
   </component>
   <component name="JavacSettings">

@@ -17,9 +17,9 @@ public interface ReviewRepository extends JpaRepository<Review, UUID> {
     List<Review> findByAppId(UUID appId);
     boolean existsByUserAndApp(User user, App app);
 
-    @Query("SELECT r.rating from Review r WHERE r.id = :appId")
-    Optional<Double> findRatingsByAppId(@Param("appId") UUID appId);
+    @Query("select r.rating from Review r where r.app.id = :appId")
+    List<Double> findRatingsByAppId(@Param("appId") UUID appId);
 
-    @Query("SELECT COUNT(*) FROM Review r WHERE r.id = :appId")
-    int countByAppId(@Param("appId") UUID appId);
+    // @Query(value = "select count(*) from reviews r where r.app_id = :appId", nativeQuery = true)
+    int countReviewByAppId(@Param("appId") UUID appId);
 }

@@ -4,12 +4,11 @@ import com.example.backend.services.auth.UserService;
 import com.example.backend.services.util.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.ExceptionHandler;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import org.springframework.web.servlet.view.RedirectView;
+
+import java.util.UUID;
 
 @RequestMapping("/test")
 @RestController
@@ -18,23 +17,14 @@ public class TestController {
     private final UserService userService;
     private final EmailService emailService;
 
+    @GetMapping("/{userId}")
+    public ResponseEntity<?> me(@PathVariable UUID userId) {
+        return ResponseEntity.ok().body(userService.getById(userId));
+    }
+
     @GetMapping("/test")
     public ResponseEntity<?> test() {
         return ResponseEntity.ok().body("Hope!");
-    }
-
-    @GetMapping("/mail")
-    public ResponseEntity<?> mail() {
-        emailService.sendVerificationEmail("kolomiec_ns_0919@1511.ru", "1234");
-        return ResponseEntity.ok().build();
-    }
-
-    @GetMapping("/redirectWithRedirectView")
-    public RedirectView redirectWithUsingRedirectView(
-            RedirectAttributes attributes) {
-        attributes.addFlashAttribute("flashAttribute", "redirectWithRedirectView");
-        attributes.addAttribute("attribute", "redirectWithRedirectView");
-        return new RedirectView("/test/test");
     }
 
     @ExceptionHandler

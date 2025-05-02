@@ -1,6 +1,7 @@
 package com.example.backend.security.jwt;
 
 import com.example.backend.services.auth.UserService;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -31,7 +32,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             @NonNull HttpServletRequest request,
             @NonNull HttpServletResponse response,
             @NonNull FilterChain filterChain
-    ) throws ServletException, IOException {
+    ) throws ServletException, IOException, ExpiredJwtException {
 
         // Получаем токен из заголовка
         var authHeader = request.getHeader(HEADER_NAME);

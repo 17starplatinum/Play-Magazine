@@ -30,8 +30,4 @@ public class AppFile {
     private Long fileSize;
 
     private String fileHash;
-
-    @OneToOne(optional = false)
-    @JoinColumn(name = "app_id")
-    private App app;
 }
