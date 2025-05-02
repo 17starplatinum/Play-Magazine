@@ -10,16 +10,12 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
 public class CardDto {
-    @NotNull
-    private UUID id;
-
     @NotNull
     @Size(min = 16, max = 19)
     @Pattern(regexp = "\\d+")
@@ -31,5 +27,5 @@ public class CardDto {
 
     @NotNull
     @Future
-    private LocalDate expired;
+    private LocalDate expiryDate;
 }

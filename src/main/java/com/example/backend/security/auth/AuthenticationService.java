@@ -3,16 +3,19 @@ package com.example.backend.security.auth;
 import com.example.backend.dto.auth.*;
 import com.example.backend.model.auth.Role;
 import com.example.backend.model.auth.User;
-import com.example.backend.model.data.UserVerification;
+import com.example.backend.model.auth.UserProfile;
+import com.example.backend.model.auth.UserVerification;
+import com.example.backend.repositories.auth.UserProfileRepository;
+import com.example.backend.repositories.auth.UserRepository;
 import com.example.backend.security.jwt.JwtService;
-import com.example.backend.services.UserVerificationService;
 import com.example.backend.services.auth.UserService;
-import jakarta.transaction.Transactional;
+import com.example.backend.services.auth.UserVerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.util.UUID;
@@ -25,6 +28,8 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
+    private final UserProfileRepository userProfileRepository;
+    private final UserRepository userRepository;
 
     /**
      * Регистрация пользователя
@@ -35,14 +40,12 @@ public class AuthenticationService {
     public JwtAuthenticationResponse signUp(SignUpRequest request) {
 
         var user = User.builder()
-                .name(request.getName())
-                .surname(request.getSurname())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
                 .build();
 
-        userService.create(user);
+        userService.create(user, request);
 
         var jwt = jwtService.generateToken(user);
         return new JwtAuthenticationResponse(jwt);
@@ -85,9 +88,13 @@ public class AuthenticationService {
     }
 
     @Transactional
-    public void updateUserInfo(EditProfileRequest request) {
+    public void change2FAStatus(boolean enabled, String jwt) {
+        userRepository.enableTwoFA(enabled, jwtService.extractUserName(jwt));
+    }
+
+    @Transactional
+    public void updateUserInfo(EditProfileRequest request, String token) {
         UUID uuid = request.getId();
-        String token = request.getToken();
         token = token.substring(7);
         String email = jwtService.extractUserName(token);
         if (!userService.getByUsername(email).getId().equals(uuid)) {
@@ -99,6 +106,7 @@ public class AuthenticationService {
         String newPassword = request.getNewPassword();
         String oldPassword = request.getPassword();
         User user = userService.getById(uuid);
+        UserProfile userProfile = userProfileRepository.findByUser(user);
 
         if (newPassword != null && oldPassword != null) {
             if (!passwordEncoder.matches(oldPassword, user.getPassword()))
@@ -107,23 +115,25 @@ public class AuthenticationService {
             user.setPassword(passwordEncoder.encode(newPassword));
         }
 
-        if (newSurname != null) user.setSurname(newSurname);
-        if (newName != null) user.setName(newName);
-        if (newBirthday != null) user.setBirthday(newBirthday);
+        if (newSurname != null) userProfile.setSurname(newSurname);
+        if (newName != null) userProfile.setName(newName);
+        if (newBirthday != null) userProfile.setBirthday(newBirthday);
 
-        userService.save(user);
+
+        userProfileRepository.save(userProfile);
     }
 
     public UserInfoResponse getUserInfoByJwtToken(String token) {
         String email = jwtService.extractUserName(token);
         User user = userService.getByUsername(email);
+        UserProfile userProfile = userProfileRepository.findByUser(user);
 
         return UserInfoResponse.builder()
                 .id(user.getId())
                 .email(email)
-                .name(user.getName())
-                .surname(user.getSurname())
-                .birthday(user.getBirthday())
+                .name(userProfile.getName())
+                .surname(userProfile.getSurname())
+                .birthday(userProfile.getBirthday())
                 .build();
     }
 }

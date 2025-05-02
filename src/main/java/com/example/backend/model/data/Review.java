@@ -1,6 +1,10 @@
 package com.example.backend.model.data;
 
 
+import com.example.backend.dto.data.review.ReviewInfoDto;
+import com.example.backend.dto.data.review.ReviewResponseDto;
+import com.example.backend.model.auth.User;
+import com.example.backend.model.data.app.App;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Max;
@@ -46,4 +50,13 @@ public class Review {
     @Builder.Default
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt = LocalDateTime.now();
+
+    public static ReviewInfoDto fromReviewToDto(Review review) {
+        return ReviewInfoDto.builder()
+                .rating(review.getRating())
+                .comment(review.getComment())
+                .author(review.getUser().getEmail())
+                .createdAt(review.getCreatedAt())
+                .build();
+    }
 }

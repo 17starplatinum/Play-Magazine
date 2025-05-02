@@ -15,5 +15,4 @@ import java.util.List;
 public class AppCompatibilityResponse {
     private boolean compatible;
     private List<String> issues;
-    private double averageRating;
 }

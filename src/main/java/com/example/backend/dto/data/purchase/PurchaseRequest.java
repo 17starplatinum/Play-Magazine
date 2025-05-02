@@ -14,4 +14,6 @@ public class PurchaseRequest {
 
     @NotNull
     private UUID cardId;
+
+    private UUID subscriptionId;
 }

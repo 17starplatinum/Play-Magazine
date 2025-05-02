@@ -3,9 +3,11 @@ package com.example.backend.configs;
 import com.example.backend.model.auth.Role;
 import com.example.backend.security.jwt.JwtAuthenticationFilter;
 import com.example.backend.services.auth.UserService;
+import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
@@ -36,16 +38,42 @@ public class SecurityConfiguration {
                 .cors(cors -> cors.configurationSource(request -> {
                     var corsConfiguration = new CorsConfiguration();
                     corsConfiguration.setAllowedOriginPatterns(List.of("*"));
-                    corsConfiguration.setAllowedMethods(List.of("GET", "POST", "DELETE", "OPTIONS"));
+                    corsConfiguration.setAllowedMethods(List.of("GET", "POST", "DELETE", "PUT", "OPTIONS"));
                     corsConfiguration.setAllowedHeaders(List.of("*"));
-                    corsConfiguration.setAllowCredentials(true);
+                    corsConfiguration.setAllowCredentials(false);
                     return corsConfiguration;
                 }))
-                // Настройка доступа к конечным точкам
+                .cors(AbstractHttpConfigurer::disable)
                 .authorizeHttpRequests(request -> request
-                        .requestMatchers("/auth/**", "/test/**").permitAll()
-                        .requestMatchers("/admin/**").hasRole(Role.ADMIN.name())
-                        .anyRequest().authenticated())
+                        .requestMatchers("/api/v1/auth/**").permitAll()
+                        .requestMatchers("/test/**").hasAuthority(Role.ADMIN.toString())
+                        .requestMatchers("/api/v1/admin/**").hasAuthority(Role.ADMIN.toString())
+                        .requestMatchers(HttpMethod.GET, "/api/v1/apps/*/download").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/apps/*/reviews").authenticated()
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/v1/apps",
+                                "/api/v1/*/compatibility",
+                                "/api/v1/*/update-info",
+                                "/api/v1/apps/*",
+                                "/api/v1/apps/*/reviews",
+                                "/api/v1/apps/*/reviews/average"
+                        ).permitAll()
+                        .requestMatchers(HttpMethod.PUT, "/api/v1/apps").hasAnyAuthority(
+                                Role.ADMIN.toString(),
+                                Role.DEVELOPER.toString()
+                        ).requestMatchers(HttpMethod.PUT, "/api/v1/apps/*").hasAnyAuthority(
+                                Role.ADMIN.toString(),
+                                Role.DEVELOPER.toString()
+                        ).requestMatchers(HttpMethod.DELETE, "/api/v1/apps/*").hasAnyAuthority(
+                                Role.ADMIN.toString(),
+                                Role.DEVELOPER.toString(),
+                                Role.MODERATOR.toString()
+                        )
+                        .requestMatchers("/api/v1/cards/**").authenticated()
+                        .requestMatchers("/api/v1/purchases/**").authenticated()
+                        .requestMatchers("/api/v1/subscriptions/**").authenticated()
+                        .requestMatchers("/api/v1/budget/**").authenticated()
+                        .anyRequest().permitAll())
                 .sessionManagement(manager -> manager.sessionCreationPolicy(STATELESS))
                 .authenticationProvider(authenticationProvider())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);

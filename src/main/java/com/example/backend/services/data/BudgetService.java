@@ -1,92 +1,92 @@
 package com.example.backend.services.data;
 
-import com.example.backend.dto.data.budget.BudgetDto;
 import com.example.backend.dto.data.budget.BudgetStatusDto;
 import com.example.backend.exceptions.prerequisites.BudgetExceededException;
-import com.example.backend.repositories.PurchaseRepository;
-import com.example.backend.repositories.UserRepository;
-import jakarta.transaction.Transactional;
+import com.example.backend.mappers.BudgetMapper;
+import com.example.backend.model.auth.User;
+import com.example.backend.model.auth.UserBudget;
+import com.example.backend.repositories.auth.UserBudgetRepository;
+import com.example.backend.services.auth.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 
 @Service
 @RequiredArgsConstructor
 public class BudgetService {
-    private final UserRepository userRepository;
-    private final PurchaseRepository purchaseRepository;
+
+    private final UserBudgetRepository userBudgetRepository;
+    private final UserService userService;
+    private final BudgetMapper budgetMapper;
 
     @Transactional
-    public void setMonthlyLimit(BudgetDto budgetDto, UserDetails currentUser) {
-        User user = userRepository.findByEmail(currentUser.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
+    public void setMonthlyLimit(Double limit) {
+        User user = userService.getCurrentUser();
+        UserBudget userBudget = userBudgetRepository.findUserBudgetByUser(user);
 
-        user.setSpendingLimit(budgetDto.getSpendingLimit());
-        resetSpendingIfNeeded(user);
-        userRepository.save(user);
+        userBudget.setSpendingLimit(limit);
+        resetSpendingIfNeeded(userBudget);
+        userBudgetRepository.save(userBudget);
     }
 
-    public BudgetStatusDto getBudgetStatus(UserDetails currentUser) {
-        User user = userRepository.findByEmail(currentUser.getUsername())
-                .orElseThrow(() -> new UsernameNotFoundException("Пользователь не найден"));
-        resetSpendingIfNeeded(user);
-        return BudgetStatusDto.builder()
-                .budget(user.getSpendingLimit())
-                .spending(user.getCurrentSpending())
-                .remaining(calculateRemaining(user))
-                .build();
+    public BudgetStatusDto getBudgetStatus() {
+        User user = userService.getCurrentUser();
+        UserBudget userBudget = userBudgetRepository.findUserBudgetByUser(user);
+        if(userBudget == null) {
+            return budgetMapper.mapToNewDto();
+        }
+        resetSpendingIfNeeded(userBudget);
+        double remainder = calculateRemaining(userBudget);
+        return budgetMapper.mapToDto(userBudget, remainder);
     }
 
     @Scheduled(cron = "0 0 0 1 * *")
     public void resetAllSpending() {
-        userRepository.findAll().forEach(user -> {
-            user.setCurrentSpending(0F);
+        userBudgetRepository.findAll().forEach(user -> {
+            user.setCurrentSpending(0D);
             user.setLastLimitReset(LocalDate.now());
-            userRepository.save(user);
+            userBudgetRepository.save(user);
         });
     }
 
     @Transactional
-    public void recordSpending(User user, float limit) {
-        resetSpendingIfNeeded(user);
-
-        if (isOverBudget(user, limit)) {
+    public void recordSpending(UserBudget userBudget, double limit) {
+        resetSpendingIfNeeded(userBudget);
+        if (isOverBudget(userBudget, limit)) {
             throw new BudgetExceededException(
                     String.format("Месячный бюджет превышен. Бюджет: %.2f, потрачено: %.2f",
-                            user.getSpendingLimit(),
-                            user.getCurrentSpending()
-                    ), new RuntimeException());
+                            userBudget.getSpendingLimit(),
+                            userBudget.getCurrentSpending()
+                    ));
         }
 
-        user.setCurrentSpending(user.getCurrentSpending() + limit);
-        userRepository.save(user);
+        userBudget.setCurrentSpending(userBudget.getCurrentSpending() + limit);
+        userBudgetRepository.save(userBudget);
     }
 
-    private void resetSpendingIfNeeded(User user) {
-        if (user.getLastLimitReset().getMonth() != LocalDate.now().getMonth() ||
-                user.getLastLimitReset().getYear() != LocalDate.now().getYear()) {
-            user.setCurrentSpending(0F);
-            user.setLastLimitReset(LocalDate.now());
+    private void resetSpendingIfNeeded(UserBudget userBudget) {
+        if (userBudget.getLastLimitReset().getMonth() != LocalDate.now().getMonth() ||
+                userBudget.getLastLimitReset().getYear() != LocalDate.now().getYear()) {
+            userBudget.setCurrentSpending(0D);
+            userBudget.setLastLimitReset(LocalDate.now());
         }
-
     }
 
-    private boolean isOverBudget(User user, float amount) {
-        if (user.getSpendingLimit() == null) {
+    private boolean isOverBudget(UserBudget userBudget, double amount) {
+        if (userBudget.getSpendingLimit() == null) {
             return false;
         }
-        float projected = user.getCurrentSpending() + amount;
-        return projected > user.getSpendingLimit();
+        double projected = userBudget.getCurrentSpending() + amount;
+        return projected > userBudget.getSpendingLimit();
     }
 
-    private Float calculateRemaining(User user) {
-        if (user.getSpendingLimit() == null) {
+    public Double calculateRemaining(UserBudget userBudget) {
+        if (userBudget.getSpendingLimit() == null) {
             return null;
         }
-        return user.getSpendingLimit() - user.getCurrentSpending();
+        return userBudget.getSpendingLimit() - userBudget.getCurrentSpending();
     }
 }
