@@ -43,6 +43,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
     }
 
+    // TODO: ExpiredJwtException вылетает 500
     @ExceptionHandler({
             InvalidRequestException.class,
             JwtException.class,
@@ -146,7 +147,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleMethodArgumentNotValidException() {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.BAD_REQUEST.value(),
-                "Объект зароса не прошёл валидацию",
+                "Объект запроса не прошёл валидацию",
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.BAD_REQUEST);
