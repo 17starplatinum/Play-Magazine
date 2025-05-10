@@ -27,7 +27,7 @@ public class CardController {
     @PutMapping("/deposit")
     public ResponseEntity<String> depositCard(@Valid @RequestBody DepositRequest depositRequest) {
         cardService.depositInCard(depositRequest);
-        return ResponseEntity.ok(String.format("Начислено %f рублей", depositRequest.getAmount()));
+        return ResponseEntity.ok(String.format("Your balance is now %f rubles higher", depositRequest.getAmount()));
     }
 
     @GetMapping
@@ -38,7 +38,7 @@ public class CardController {
     @PutMapping("/{cardId}")
     public ResponseEntity<String> setDefaultCard(@PathVariable UUID cardId) {
         cardService.setDefaultCard(cardId);
-        return ResponseEntity.ok("Теперь эта карта применяется по умолчанию");
+        return ResponseEntity.ok("This card selected by default");
     }
 
 

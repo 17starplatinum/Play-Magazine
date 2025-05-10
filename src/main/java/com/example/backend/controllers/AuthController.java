@@ -1,6 +1,7 @@
 package com.example.backend.controllers;
 
 import com.example.backend.dto.auth.*;
+import com.example.backend.dto.data.ResponseDto;
 import com.example.backend.model.auth.User;
 import com.example.backend.model.auth.UserVerification;
 import com.example.backend.security.auth.AuthenticationService;
@@ -12,6 +13,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -25,8 +27,12 @@ public class AuthController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<JwtAuthenticationResponse> signUp(@RequestBody @Valid SignUpRequest request) {
-        return ResponseEntity.ok().body(authenticationService.signUp(request));
+    public ResponseEntity<?> signUp(@RequestBody @Valid SignUpRequest request) {
+        try {
+            return ResponseEntity.ok().body(authenticationService.signUp(request));
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.badRequest().body(new ResponseDto(e.getMessage()));
+        }
     }
 
     @PostMapping("/login")
@@ -54,15 +60,17 @@ public class AuthController {
     }
 
     @PostMapping("/request")
-    @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<String> requestAuthorRole(@RequestParam String requestedRole) {
+    @PreAuthorize("hasAuthority('USER')")
+    public ResponseEntity<ResponseDto> requestAuthorRole(@RequestParam String requestedRole) {
         User currentUser = userService.getCurrentUser();
         String response = roleManagementService.requestRole(currentUser.getId(), requestedRole);
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body("Заявка успешно подана\n" + response);
+        return ResponseEntity
+                .status(HttpStatus.ACCEPTED)
+                .body(new ResponseDto("Request successfully created!\n" + response));
     }
 
     @PostMapping("/2fa")
-    public ResponseEntity<String> check2FA(
+    public ResponseEntity<ResponseDto> check2FA(
             @RequestBody @Valid CodeVerificationRequest request
     ) {
         if (authenticationService.check2FA(request)) {
@@ -71,16 +79,16 @@ public class AuthController {
             return new ResponseEntity<>(headers, HttpStatus.FOUND);
         }
 
-        return ResponseEntity.badRequest().body("Wrong code!");
+        return ResponseEntity.badRequest().body(new ResponseDto("Wrong code!"));
     }
 
     @PutMapping("/edit-info")
-    public ResponseEntity<String> updateUserInfo(
+    public ResponseEntity<ResponseDto> updateUserInfo(
             @RequestBody EditProfileRequest request,
             @RequestHeader("Authorization") String jwt
     ) {
         authenticationService.updateUserInfo(request, jwt);
-        return ResponseEntity.ok("Информация успешно обновлена");
+        return ResponseEntity.ok().body(new ResponseDto("Data has been successfully updated!"));
     }
 
     @GetMapping("/edit-info")

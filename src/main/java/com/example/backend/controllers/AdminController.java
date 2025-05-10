@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -28,32 +29,36 @@ public class AdminController {
     }
 
     @GetMapping("/requests/{requestStatus}")
+    @PreAuthorize("hasAnyAuthority('MODERATOR', 'ADMIN')")
     public ResponseEntity<List<RoleChangeRequestDto>> getUsersByRequestStatus(@PathVariable String requestStatus) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.findByRequestStatus(requestStatus));
     }
 
     @PostMapping("/approve/{id}")
+    @PreAuthorize("hasAnyAuthority('MODERATOR', 'ADMIN')")
     public ResponseEntity<ResponseDto> approveRequest(@PathVariable UUID id) {
         roleManagementService.approveRequest(id);
         return ResponseEntity.ok(new ResponseDto("Request has been successfully approved"));
     }
 
     @PostMapping("/reject/{id}")
+    @PreAuthorize("hasAnyAuthority('MODERATOR', 'ADMIN')")
     public ResponseEntity<String> rejectRequest(
             @PathVariable UUID id,
             @RequestBody RoleChangeRequestDto requestDto
     ) {
         roleManagementService.rejectRequest(id, requestDto.getRole(), requestDto.getReason());
-        return ResponseEntity.ok("Заявка успешно отклонена с причиной: " + requestDto.getReason());
+        return ResponseEntity.ok(" Request rejected with reason: " + requestDto.getReason());
     }
 
     @PostMapping("/change-role")
+    @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<String> changeUserRole(@Valid @RequestBody RoleChangeRequestDto requestDto) {
         roleManagementService.grantRole(requestDto.getUserId(), requestDto.getRole());
         User user = userService.getById(requestDto.getUserId());
         return ResponseEntity.ok(
                 String.format(
-                        "Пользователь %s теперь является %s-ом",
+                        "User %s is now a %s",
                         user.getEmail(),
                         requestDto.getRole()
                 ));
