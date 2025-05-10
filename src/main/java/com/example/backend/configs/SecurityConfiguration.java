@@ -54,7 +54,7 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/apps/*/update-info",
                                 "/api/v1/apps/*/download").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/apps/**/reviews").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/apps/*/reviews").authenticated()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/apps",
                                 "/api/v1/apps/**"
