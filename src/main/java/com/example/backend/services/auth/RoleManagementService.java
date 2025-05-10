@@ -10,14 +10,15 @@ import com.example.backend.model.auth.UserProfile;
 import com.example.backend.repositories.auth.UserProfileRepository;
 import com.example.backend.repositories.auth.UserRepository;
 import com.example.backend.services.util.NotificationService;
-import org.springframework.transaction.annotation.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.UUID;
 
 import static com.example.backend.model.auth.RequestStatus.*;
-import static com.example.backend.model.auth.Role.*;
+import static com.example.backend.model.auth.Role.ADMIN;
+import static com.example.backend.model.auth.Role.DEVELOPER;
 
 @Service
 @RequiredArgsConstructor

@@ -12,6 +12,9 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SubscriptionRequestDto {
+
+    private UUID appId;
+
     @NotNull
     private UUID cardId;
 

@@ -50,9 +50,6 @@ public class User implements UserDetails {
     @Column(name = "request_status", nullable = false, length = 20)
     private RequestStatus requestStatus = RequestStatus.NOT_REQUESTED;
 
-    @NotBlank
-    private String refreshToken;
-
     @ManyToMany
     @JsonIgnoreProperties({"downloadedApps"})
     @JoinTable(
@@ -63,7 +60,8 @@ public class User implements UserDetails {
     private Set<App> downloadedApps;
 
     @JsonIgnore
-    @OneToMany(mappedBy = "subscriptions")
+    @Builder.Default
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserSubscription> userSubscriptions = new HashSet<>();
 
     @Override

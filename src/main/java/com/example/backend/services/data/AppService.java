@@ -14,12 +14,16 @@ import com.example.backend.model.data.app.App;
 import com.example.backend.model.data.app.AppFile;
 import com.example.backend.model.data.app.AppRequirements;
 import com.example.backend.model.data.app.AppVersion;
+import com.example.backend.model.data.finances.Invoice;
 import com.example.backend.model.data.finances.Purchase;
+import com.example.backend.model.data.subscriptions.Subscription;
+import com.example.backend.model.data.subscriptions.UserSubscription;
 import com.example.backend.repositories.data.app.AppFileRepository;
 import com.example.backend.repositories.data.app.AppRepository;
 import com.example.backend.repositories.data.app.AppRequirementsRepository;
 import com.example.backend.repositories.data.app.AppVersionRepository;
 import com.example.backend.repositories.data.finances.PurchaseRepository;
+import com.example.backend.repositories.data.subscription.UserSubscriptionRepository;
 import com.example.backend.services.auth.UserService;
 import com.example.backend.services.util.FileUtils;
 import com.example.backend.services.util.MinioService;
@@ -52,6 +56,7 @@ public class AppService {
     private final ReviewService reviewService;
     private final AppMapper appMapper;
     private final AppVersionRepository appVersionRepository;
+    private final UserSubscriptionRepository userSubscriptionRepository;
 
     public AppDownloadResponse prepareAppDownload(UUID appId) {
         App app = getAppById(appId);
@@ -105,12 +110,24 @@ public class AppService {
     public UUID createApp(AppCreateRequest appCreateRequest) {
         MultipartFile file = appCreateRequest.getFile();
         User author = userService.getCurrentUser();
+        UserSubscription userSubscription = null;
 
-        if (appCreateRequest.getType() == SUBSCRIPTION &&
-                (appCreateRequest.getCreationDto().getSubscriptionPrice() == null ||
-                        appCreateRequest.getCreationDto().getSubscriptionPrice() <= 0)) {
-            throw new InvalidApplicationConfigException("Subscription price must be positive!");
+        if (appCreateRequest.getType() == SUBSCRIPTION && appCreateRequest.getCreationDto() != null) {
+            if (appCreateRequest.getCreationDto().getSubscriptionPrice() == null ||
+                        appCreateRequest.getCreationDto().getSubscriptionPrice() <= 0) {
+                throw new InvalidApplicationConfigException("Subscription price must be positive!");
+            }
+            userSubscription = UserSubscription.builder()
+                    .invoice(
+                            Invoice.builder()
+                                    .amount(appCreateRequest.getCreationDto().getSubscriptionPrice()).build()
+                    )
+                    .days(appCreateRequest.getCreationDto().getSubscriptionDays())
+                    .autoRenewal(appCreateRequest.getCreationDto().getAutoRenewal())
+                    .build();
+            userSubscriptionRepository.save(userSubscription);
         }
+
 
         String filePath = minioService.uploadFile(file, UUID.randomUUID().toString());
 
@@ -132,6 +149,14 @@ public class AppService {
         version.setApp(app);
         appVersionRepository.save(version);
         appRequirementsRepository.save(requirements);
+
+        if(appCreateRequest.getCreationDto() != null && userSubscription != null) {
+            Subscription subscription = Subscription.builder()
+                    .name(appCreateRequest.getCreationDto().getName())
+                    .app(app)
+                    .build();
+            userSubscription.setSubscription(subscription);
+        }
 
         return app.getId();
     }

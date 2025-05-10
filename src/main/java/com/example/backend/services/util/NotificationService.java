@@ -123,7 +123,7 @@ public class NotificationService {
                      <p>С уважением,<br>Команда PlayMagazine</p>
                      </body>
                  </html>
-                """.formatted(user.getUsername(), subscription.getName() , subscription.getSubscriptionInfo().getApp().getName());
+                """.formatted(user.getUsername(), subscription.getName() , subscription.getApp().getName());
         sendEmail(user.getEmail(), subject, content);
     }
 
@@ -137,7 +137,7 @@ public class NotificationService {
                     <p>С уважением,<br>Команда PlayMagazine</p>
                     </body>
                 </html>
-                """.formatted(user.getUsername(), subscription.getName(), subscription.getSubscriptionInfo().getApp().getName());
+                """.formatted(user.getUsername(), subscription.getName(), subscription.getApp().getName());
         sendEmail(user.getEmail(), subject, content);
     }
 }

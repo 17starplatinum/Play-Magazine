@@ -12,10 +12,6 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 public class SubscriptionCreationDto {
-
-    @NotNull
-    private UUID subscriptionId;
-
     @NotNull
     @NotBlank
     private String name;
@@ -28,5 +24,4 @@ public class SubscriptionCreationDto {
     private Integer subscriptionDays;
 
     private Boolean autoRenewal;
-
 }
