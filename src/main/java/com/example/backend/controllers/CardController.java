@@ -8,7 +8,6 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,26 +20,22 @@ public class CardController {
     private final CardService cardService;
 
     @PostMapping
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Card> addCard(@Valid @RequestBody CardDto cardDto) {
         return ResponseEntity.status(HttpStatus.CREATED).body(cardService.addCard(cardDto));
     }
 
     @PutMapping("/deposit")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> depositCard(@Valid @RequestBody DepositRequest depositRequest) {
         cardService.depositInCard(depositRequest);
         return ResponseEntity.ok(String.format("Начислено %f рублей", depositRequest.getAmount()));
     }
 
     @GetMapping
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Card>> getCards() {
         return ResponseEntity.ok(cardService.getUserCards());
     }
 
     @PutMapping("/{cardId}")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<String> setDefaultCard(@PathVariable UUID cardId) {
         cardService.setDefaultCard(cardId);
         return ResponseEntity.ok("Теперь эта карта применяется по умолчанию");
@@ -48,7 +43,6 @@ public class CardController {
 
 
     @DeleteMapping("/{cardId}")
-    @PreAuthorize("isAuthenticated()")
     public ResponseEntity<Void> deleteCard(@PathVariable UUID cardId) {
         cardService.deleteCard(cardId);
         return ResponseEntity.noContent().build();

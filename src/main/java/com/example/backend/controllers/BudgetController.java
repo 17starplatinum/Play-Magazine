@@ -3,11 +3,9 @@ package com.example.backend.controllers;
 import com.example.backend.dto.data.ResponseDto;
 import com.example.backend.dto.data.budget.BudgetStatusDto;
 import com.example.backend.dto.data.budget.MonthlyLimitDto;
-import com.example.backend.services.auth.UserService;
 import com.example.backend.services.data.BudgetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.DecimalFormat;
@@ -25,7 +23,7 @@ public class BudgetController {
     }
 
     @PostMapping("/limit")
-    public ResponseEntity<?> setMonthlyLimit(@RequestBody MonthlyLimitDto monthlyLimitDto) {
+    public ResponseEntity<ResponseDto> setMonthlyLimit(@RequestBody MonthlyLimitDto monthlyLimitDto) {
         double limit = monthlyLimitDto.getLimit();
         budgetService.setMonthlyLimit(limit);
 

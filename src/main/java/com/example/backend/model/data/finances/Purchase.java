@@ -3,6 +3,8 @@ package com.example.backend.model.data.finances;
 import com.example.backend.model.auth.User;
 import com.example.backend.model.data.app.App;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -33,4 +35,8 @@ public class Purchase {
     @ManyToOne
     @JoinColumn(name = "transaction_id")
     private MonetaryTransaction transaction;
+
+    @NotNull
+    @NotBlank
+    private String downloadedVersion;
 }

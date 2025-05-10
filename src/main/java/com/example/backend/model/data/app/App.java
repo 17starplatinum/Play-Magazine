@@ -8,10 +8,7 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PositiveOrZero;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDate;
@@ -60,8 +57,13 @@ public class App {
     private List<Review> reviews = new ArrayList<>();
 
     @JsonIgnore
-    @OneToOne
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     private AppFile appFile;
+
+    @JsonIgnore
+    @ToString.Exclude
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    private AppRequirements appRequirements;
 
     @JsonIgnore
     @ManyToMany(mappedBy = "downloadedApps")
@@ -69,6 +71,7 @@ public class App {
 
     @JsonIgnore
     @Builder.Default
+    @ToString.Exclude
     @OneToMany(mappedBy = "app", cascade = CascadeType.ALL, orphanRemoval = true)
     List<AppVersion> appVersions = new ArrayList<>();
 
@@ -76,16 +79,7 @@ public class App {
         return !subscriptions.isEmpty();
     }
 
-    public boolean isNewerThan(App app) {
-        return app.getId().equals(this.id) && app.appVersions.size() < this.appVersions.size();
-    }
-
     public AppVersion getLatestVersion() {
         return appVersions.get(appVersions.size() - 1);
-    }
-
-    public AppVersion getPreviousVersion() {
-        return appVersions.size() == 1 ?
-                getLatestVersion() : appVersions.get(appVersions.size() - 2);
     }
 }

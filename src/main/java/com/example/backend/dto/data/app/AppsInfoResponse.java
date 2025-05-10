@@ -2,5 +2,5 @@ package com.example.backend.dto.data.app;
 
 import java.util.List;
 
-public record AppsInfoResponse(List<AppInfoResponseDto> apps) {
+public record AppsInfoResponse(List<AppDto> apps) {
 }

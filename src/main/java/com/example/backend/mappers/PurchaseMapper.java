@@ -17,6 +17,7 @@ public class PurchaseMapper {
                 .app(app)
                 .user(user)
                 .transaction(transaction)
+                .downloadedVersion(app.getLatestVersion().getVersion())
                 .build();
     }
 

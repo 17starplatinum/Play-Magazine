@@ -1,15 +1,14 @@
 package com.example.backend.controllers;
 
 import com.example.backend.dto.data.ResponseDto;
-import com.example.backend.dto.data.review.ReviewRequestDto;
 import com.example.backend.dto.data.app.*;
+import com.example.backend.dto.data.purchase.PurchaseRequest;
+import com.example.backend.dto.data.review.ReviewRequestDto;
 import com.example.backend.dto.data.review.ReviewResponseDto;
 import com.example.backend.dto.util.AppCompatibilityResponse;
 import com.example.backend.exceptions.accepted.AppDownloadException;
 import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
 import com.example.backend.exceptions.prerequisites.AppUpToDateException;
-import com.example.backend.model.data.Review;
-import com.example.backend.model.data.app.App;
 import com.example.backend.services.data.AppService;
 import com.example.backend.services.data.ReviewService;
 import jakarta.validation.Valid;
@@ -21,7 +20,6 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 @RestController
@@ -56,13 +54,13 @@ public class AppController {
 
     @GetMapping("/{appId}/reviews")
     public ResponseEntity<ReviewResponseDto> getReviews(@PathVariable UUID appId) {
-        App app = appService.getAppById(appId);
         return ResponseEntity.ok(
                 new ReviewResponseDto(
-                        app.getName(),
+                        appService.getAppNameById(appId),
                         reviewService.getAverageRating(appId),
-                        reviewService.getAppReviews(app)
-                ));
+                        reviewService.getAppReviews(appId)
+                )
+        );
     }
 
     @GetMapping("/{appId}/reviews/average")
@@ -73,10 +71,11 @@ public class AppController {
     @GetMapping("/{appId}/download")
     public ResponseEntity<byte[]> downloadApp(
             @PathVariable UUID appId,
-            @RequestParam("force_update") boolean forceUpdate
+            @Valid @RequestBody(required = false) PurchaseRequest purchaseRequest,
+            @RequestParam(value = "force_update", required = false) Boolean forceUpdate
     ) {
         try {
-            byte[] fileContent = appService.downloadAppFile(appId, forceUpdate);
+            byte[] fileContent = appService.downloadAppFile(appId, purchaseRequest, forceUpdate);
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"app.apk\"")
@@ -90,7 +89,6 @@ public class AppController {
         }
     }
 
-
     @PostMapping("/{appId}/reviews")
     public ResponseEntity<ResponseDto> createReview(
             @PathVariable UUID appId,
@@ -102,13 +100,13 @@ public class AppController {
     }
 
     @PutMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> createApp(@Valid @ModelAttribute AppCreateRequest appCreateDto
+    public ResponseEntity<AppIdDto> createApp(@Valid @ModelAttribute AppCreateRequest appCreateDto
     ) {
         return ResponseEntity.status(HttpStatus.CREATED).body(new AppIdDto(appService.createApp(appCreateDto)));
     }
 
     @PutMapping(path = "/{appId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> updateApp(@PathVariable UUID appId,
+    public ResponseEntity<Void> updateApp(@PathVariable UUID appId,
                                        @Valid @ModelAttribute AppUpdateDto appUpdateDto
     ) {
         appService.bumpApp(appId, appUpdateDto);

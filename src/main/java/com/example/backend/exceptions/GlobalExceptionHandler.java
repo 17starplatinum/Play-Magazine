@@ -6,11 +6,13 @@ import com.example.backend.exceptions.accepted.EmailSendingException;
 import com.example.backend.exceptions.accepted.RequestPendingException;
 import com.example.backend.exceptions.badcredentials.InvalidRequestException;
 import com.example.backend.exceptions.conflict.AlreadyInRoleException;
+import com.example.backend.exceptions.conflict.UnspecifiedCardException;
 import com.example.backend.exceptions.dto.ErrorResponseDto;
 import com.example.backend.exceptions.notfound.AppNotFoundException;
 import com.example.backend.exceptions.notfound.CardNotFoundException;
 import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
 import com.example.backend.exceptions.prerequisites.*;
+import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import io.jsonwebtoken.MalformedJwtException;
 import io.jsonwebtoken.security.WeakKeyException;
@@ -19,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
 import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
@@ -30,6 +33,16 @@ import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 @ControllerAdvice
 public class GlobalExceptionHandler {
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<Object> handleException(Exception ex) {
+        ErrorResponseDto responseDto = new ErrorResponseDto(
+                HttpStatus.I_AM_A_TEAPOT.value(),
+                ex.getMessage(),
+                System.currentTimeMillis()
+        );
+        return new ResponseEntity<>(responseDto, HttpStatus.I_AM_A_TEAPOT);
+    }
 
     @ExceptionHandler({
             BadCredentialsException.class
@@ -43,13 +56,13 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
     }
 
-    // TODO: ExpiredJwtException вылетает 500
     @ExceptionHandler({
             InvalidRequestException.class,
             JwtException.class,
             WeakKeyException.class,
             MalformedJwtException.class,
             HttpMediaTypeNotSupportedException.class,
+            ExpiredJwtException.class,
             RuntimeException.class
     })
     public ResponseEntity<Object> handleBadRequestException() {
@@ -66,10 +79,20 @@ public class GlobalExceptionHandler {
             CardNotFoundException.class,
             NoResourceFoundException.class
     })
-    public ResponseEntity<Object> handleUserNotFoundException() {
+    public ResponseEntity<Object> handleResourceNotFoundException() {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.NOT_FOUND.value(),
                 HttpStatus.NOT_FOUND.getReasonPhrase(),
+                System.currentTimeMillis()
+        );
+        return new ResponseEntity<>(responseDto, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(UsernameNotFoundException.class)
+    public ResponseEntity<Object> handleUsernameNotFoundException(UsernameNotFoundException e) {
+        ErrorResponseDto responseDto = new ErrorResponseDto(
+                HttpStatus.NOT_FOUND.value(),
+                e.getMessage(),
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.NOT_FOUND);
@@ -83,7 +106,6 @@ public class GlobalExceptionHandler {
             InsufficientFundsException.class,
             InvalidApplicationConfigException.class,
             InvalidRoleAssignmentException.class,
-            ReviewAlreadyExistsException.class,
             HttpRequestMethodNotSupportedException.class
     })
     public ResponseEntity<Object> handleBadPrerequisiteException() {
@@ -120,7 +142,10 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(responseDto, HttpStatus.PAYMENT_REQUIRED);
     }
 
-    @ExceptionHandler(AlreadyInRoleException.class)
+    @ExceptionHandler({
+            AlreadyInRoleException.class,
+            UnspecifiedCardException.class
+    })
     public ResponseEntity<Object> handleAlreadyInRoleException() {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.CONFLICT.value(),
