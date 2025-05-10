@@ -3,17 +3,18 @@ package com.example.backend.model.data.subscriptions;
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
 import jakarta.validation.constraints.NotNull;
-import lombok.EqualsAndHashCode;
-import lombok.Getter;
-import lombok.Setter;
+import lombok.*;
 
 import java.io.Serializable;
 import java.util.UUID;
 
 @Embeddable
+@Builder
 @EqualsAndHashCode
 @Getter
 @Setter
+@AllArgsConstructor
+@NoArgsConstructor
 public class UserSubscriptionId implements Serializable {
     @Column(name = "user_id")
     private UUID userId;

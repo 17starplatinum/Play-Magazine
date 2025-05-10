@@ -1,7 +1,6 @@
 package com.example.backend.services.data;
 
 import com.example.backend.dto.data.purchase.PurchaseHistoryDto;
-import com.example.backend.dto.data.purchase.PurchaseRequest;
 import com.example.backend.dto.data.subscription.SubscriptionRequestDto;
 import com.example.backend.exceptions.notfound.AppNotFoundException;
 import com.example.backend.exceptions.notfound.SubscriptionNotFoundException;
@@ -53,7 +52,7 @@ public class PurchaseService {
     private PurchaseService purchaseServiceResource;
 
     @Transactional
-    public Purchase processPurchase(UUID appId, PurchaseRequest purchaseRequest) {
+    public Purchase processPurchase(UUID appId, UUID cardId, UUID subscriptionId) {
         App app = appRepository.findById(appId)
                 .orElseThrow(() -> new AppNotFoundException("Application not found"));
 
@@ -64,15 +63,15 @@ public class PurchaseService {
         }
 
         Card card;
-        if (purchaseRequest != null) {
-            card = cardService.getCardByIdAndUser(purchaseRequest.getCardId(), user);
+        if (cardId != null) {
+            card = cardService.getCardByIdAndUser(cardId, user);
         } else {
             card = cardService.getCardByDefault()
                     .orElseThrow(() -> new UnsupportedOperationException("Не явно, какую карту выбрать"));
         }
 
-        if (app.hasSubscriptions() && purchaseRequest != null) {
-            return purchaseServiceResource.processSubscriptionPurchase(user, appId, purchaseRequest.getCardId(), purchaseRequest.getSubscriptionId());
+        if (app.hasSubscriptions() && subscriptionId != null) {
+            return purchaseServiceResource.processSubscriptionPurchase(user, appId, cardId, subscriptionId);
         }
         return processOneTimePurchase(user, app, card);
     }

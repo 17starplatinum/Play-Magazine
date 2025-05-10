@@ -29,7 +29,14 @@ public class AppCreateRequest implements Serializable {
     @NotNull
     private AppType type;
 
-    private SubscriptionCreationDto creationDto;
+    @NotBlank
+    private String subscriptionName;
+
+    private Double subscriptionPrice;
+
+    private Integer subscriptionDays;
+
+    private Boolean autoRenewal;
 
     private MultipartFile file;
 

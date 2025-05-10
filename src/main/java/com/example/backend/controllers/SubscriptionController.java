@@ -6,7 +6,6 @@ import com.example.backend.dto.data.subscription.SubscriptionRequestDto;
 import com.example.backend.dto.data.subscription.SubscriptionResponseDto;
 import com.example.backend.model.auth.User;
 import com.example.backend.model.data.subscriptions.Subscription;
-import com.example.backend.repositories.data.subscription.UserSubscriptionRepository;
 import com.example.backend.services.auth.UserService;
 import com.example.backend.services.data.PurchaseService;
 import com.example.backend.services.data.SubscriptionService;
@@ -23,7 +22,6 @@ import java.util.UUID;
 @RequestMapping("/api/v1/subscriptions")
 @AllArgsConstructor
 public class SubscriptionController {
-    private final UserSubscriptionRepository userSubscriptionRepository;
     private final UserService userService;
     private SubscriptionService subscriptionService;
     private PurchaseService purchaseService;

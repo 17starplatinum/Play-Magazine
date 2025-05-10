@@ -2,7 +2,6 @@ package com.example.backend.controllers;
 
 import com.example.backend.dto.data.ResponseDto;
 import com.example.backend.dto.data.app.*;
-import com.example.backend.dto.data.purchase.PurchaseRequest;
 import com.example.backend.dto.data.review.ReviewRequestDto;
 import com.example.backend.dto.data.review.ReviewResponseDto;
 import com.example.backend.dto.util.AppCompatibilityResponse;
@@ -71,11 +70,12 @@ public class AppController {
     @GetMapping("/{appId}/download")
     public ResponseEntity<byte[]> downloadApp(
             @PathVariable UUID appId,
-            @Valid @RequestBody(required = false) PurchaseRequest purchaseRequest,
+            @RequestParam(value = "card_id", required = false) UUID cardId,
+            @RequestParam(value = "subscription_id", required = false) UUID subscriptionId,
             @RequestParam(value = "force_update", required = false) Boolean forceUpdate
     ) {
         try {
-            byte[] fileContent = appService.downloadAppFile(appId, purchaseRequest, forceUpdate);
+            byte[] fileContent = appService.downloadAppFile(appId, cardId, subscriptionId, forceUpdate);
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"app.apk\"")

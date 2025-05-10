@@ -31,7 +31,7 @@ public class Subscription {
     private String name;
 
     @ManyToOne
-    @JoinColumn(name = "app_id", nullable = false)
+    @JoinColumn(name = "app_id")
     private App app;
 
     @JsonIgnore
