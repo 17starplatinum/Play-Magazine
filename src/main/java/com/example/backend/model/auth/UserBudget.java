@@ -22,10 +22,6 @@ public class UserBudget {
     @UuidGenerator
     private UUID id;
 
-    @OneToOne(optional = false)
-    @JoinColumn(name = "user_id")
-    private User user;
-
     @DecimalMin("0.00")
     private Double spendingLimit;
 

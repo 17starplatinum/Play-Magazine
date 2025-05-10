@@ -10,6 +10,7 @@ import com.example.backend.exceptions.conflict.UnspecifiedCardException;
 import com.example.backend.exceptions.dto.ErrorResponseDto;
 import com.example.backend.exceptions.notfound.AppNotFoundException;
 import com.example.backend.exceptions.notfound.CardNotFoundException;
+import com.example.backend.exceptions.notfound.UserBudgetNotFoundException;
 import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
 import com.example.backend.exceptions.prerequisites.*;
 import io.jsonwebtoken.ExpiredJwtException;
@@ -77,7 +78,8 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             AppNotFoundException.class,
             CardNotFoundException.class,
-            NoResourceFoundException.class
+            NoResourceFoundException.class,
+            UserBudgetNotFoundException.class
     })
     public ResponseEntity<Object> handleResourceNotFoundException() {
         ErrorResponseDto responseDto = new ErrorResponseDto(

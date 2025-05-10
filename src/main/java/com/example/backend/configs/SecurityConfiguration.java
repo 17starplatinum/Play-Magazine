@@ -50,14 +50,14 @@ public class SecurityConfiguration {
                         .requestMatchers("/api/v1/admin/**").hasAnyAuthority(
                                 Role.ADMIN.toString(),
                                 Role.MODERATOR.toString()
-                        ).requestMatchers("/test/**").hasAuthority(Role.ADMIN.toString())
-                        .requestMatchers("/api/v1/admin/**").hasAuthority(Role.ADMIN.toString())
-                        .requestMatchers(HttpMethod.GET, "/api/v1/apps/*/download").authenticated()
+                        )
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/v1/apps/*/update-info",
+                                "/api/v1/apps/*/download").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/v1/apps/*/reviews").authenticated()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/apps",
                                 "/api/v1/*/compatibility",
-                                "/api/v1/*/update-info",
                                 "/api/v1/apps/*",
                                 "/api/v1/apps/*/reviews",
                                 "/api/v1/apps/*/reviews/average"
