@@ -19,6 +19,7 @@ public class SubscriptionResponseDto {
     private Double fee;
     private LocalDate startDate;
     private LocalDate endDate;
+    private Integer days;
     private Integer daysRemaining;
     private boolean autoRenewal;
     private boolean active;

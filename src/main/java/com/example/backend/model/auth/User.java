@@ -1,9 +1,12 @@
 package com.example.backend.model.auth;
 
 import com.example.backend.model.data.app.App;
+import com.example.backend.model.data.subscriptions.UserSubscription;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -14,10 +17,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
-import java.util.Collection;
-import java.util.List;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 @Entity
 @Table(name = "users")
@@ -58,6 +58,11 @@ public class User implements UserDetails {
             inverseJoinColumns = @JoinColumn(name = "app_id", referencedColumnName = "id")
     )
     private Set<App> downloadedApps;
+
+    @JsonIgnore
+    @Builder.Default
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UserSubscription> userSubscriptions = new HashSet<>();
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

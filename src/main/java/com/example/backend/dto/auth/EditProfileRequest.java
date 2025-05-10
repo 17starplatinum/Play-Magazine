@@ -3,7 +3,6 @@ package com.example.backend.dto.auth;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import jakarta.persistence.Id;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Getter;

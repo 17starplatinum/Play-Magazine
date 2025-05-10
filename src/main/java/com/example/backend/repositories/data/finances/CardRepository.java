@@ -18,6 +18,8 @@ public interface CardRepository extends JpaRepository<Card, UUID> {
 
     Optional<Card> findByIdAndUser(UUID id, User user);
 
+    Optional<Card> findByUserAndIsDefaultTrue(User user);
+
     boolean existsByUserAndNumber(User user, String number);
 
     boolean existsByIdAndUser(UUID cardId, User user);

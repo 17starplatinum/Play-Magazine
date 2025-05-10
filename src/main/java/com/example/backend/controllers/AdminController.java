@@ -1,8 +1,8 @@
 package com.example.backend.controllers;
 
+import com.example.backend.dto.UserIdDto;
 import com.example.backend.dto.auth.RoleChangeRequestDto;
 import com.example.backend.dto.data.ResponseDto;
-import com.example.backend.dto.UserIdDto;
 import com.example.backend.model.auth.User;
 import com.example.backend.services.auth.RoleManagementService;
 import com.example.backend.services.auth.UserService;
@@ -28,20 +28,17 @@ public class AdminController {
     }
 
     @GetMapping("/requests/{requestStatus}")
-    // @PreAuthorize("hasRole('MODERATOR') || hasRole('ADMIN')")
     public ResponseEntity<List<RoleChangeRequestDto>> getUsersByRequestStatus(@PathVariable String requestStatus) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.findByRequestStatus(requestStatus));
     }
 
     @PostMapping("/approve/{id}")
-    // @PreAuthorize("hasRole('MODERATOR') || hasRole('ADMIN')")
     public ResponseEntity<ResponseDto> approveRequest(@PathVariable UUID id) {
         roleManagementService.approveRequest(id);
         return ResponseEntity.ok(new ResponseDto("Request has been successfully approved"));
     }
 
     @PostMapping("/reject/{id}")
-    // @PreAuthorize("hasRole('MODERATOR') || hasRole('ADMIN')")
     public ResponseEntity<String> rejectRequest(
             @PathVariable UUID id,
             @RequestBody RoleChangeRequestDto requestDto
@@ -51,7 +48,6 @@ public class AdminController {
     }
 
     @PostMapping("/change-role")
-    // @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<String> changeUserRole(@Valid @RequestBody RoleChangeRequestDto requestDto) {
         roleManagementService.grantRole(requestDto.getUserId(), requestDto.getRole());
         User user = userService.getById(requestDto.getUserId());

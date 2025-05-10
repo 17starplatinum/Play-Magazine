@@ -47,7 +47,7 @@ public class MinioService {
     public byte[] downloadFile(String objectName) {
         try (InputStream stream = minioClient.getObject(GetObjectArgs.builder()
                         .bucket(bucketName)
-                        .object(objectName)
+                        .object(objectName + ".apk")
                         .build())){
 
             byte[] fileBytes = stream.readAllBytes();

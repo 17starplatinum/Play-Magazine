@@ -1,6 +1,6 @@
 package com.example.backend.dto.data.app;
 
-import jakarta.validation.Valid;
+import com.example.backend.dto.data.subscription.SubscriptionCreationDto;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
@@ -29,8 +29,7 @@ public class AppCreateRequest implements Serializable {
     @NotNull
     private AppType type;
 
-    private Double subscriptionPrice;
-    private Integer subscriptionDays;
+    private SubscriptionCreationDto creationDto;
 
     private MultipartFile file;
 

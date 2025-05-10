@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Service
@@ -53,9 +54,19 @@ public class CardService {
         cardRepository.save(card);
     }
 
+    public Optional<Card> getCardByDefault() {
+        User user = userService.getCurrentUser();
+        return cardRepository.findByUserAndIsDefaultTrue(user);
+    }
+
     @Transactional
     public void setDefaultCard(UUID cardId) {
         User user = userService.getCurrentUser();
+
+        if(cardRepository.findByUser(user).size() == 1) {
+            cardRepository.setDefaultCard(cardId);
+            return;
+        }
 
         Card card = getCardByIdAndUser(cardId, user);
 

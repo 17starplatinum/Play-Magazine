@@ -1,9 +1,7 @@
 package com.example.backend.services.data;
 
-import com.example.backend.dto.data.app.AppCreateRequest;
-import com.example.backend.dto.data.app.AppDownloadResponse;
-import com.example.backend.dto.data.app.AppInfoResponseDto;
-import com.example.backend.dto.data.app.AppUpdateDto;
+import com.example.backend.dto.data.app.*;
+import com.example.backend.dto.data.purchase.PurchaseRequest;
 import com.example.backend.dto.util.AppCompatibilityResponse;
 import com.example.backend.exceptions.accepted.AppDownloadException;
 import com.example.backend.exceptions.accepted.AppUpdateException;
@@ -16,13 +14,16 @@ import com.example.backend.model.data.app.App;
 import com.example.backend.model.data.app.AppFile;
 import com.example.backend.model.data.app.AppRequirements;
 import com.example.backend.model.data.app.AppVersion;
+import com.example.backend.model.data.finances.Invoice;
 import com.example.backend.model.data.finances.Purchase;
-import com.example.backend.repositories.data.ReviewRepository;
+import com.example.backend.model.data.subscriptions.Subscription;
+import com.example.backend.model.data.subscriptions.UserSubscription;
 import com.example.backend.repositories.data.app.AppFileRepository;
 import com.example.backend.repositories.data.app.AppRepository;
 import com.example.backend.repositories.data.app.AppRequirementsRepository;
 import com.example.backend.repositories.data.app.AppVersionRepository;
 import com.example.backend.repositories.data.finances.PurchaseRepository;
+import com.example.backend.repositories.data.subscription.UserSubscriptionRepository;
 import com.example.backend.services.auth.UserService;
 import com.example.backend.services.util.FileUtils;
 import com.example.backend.services.util.MinioService;
@@ -31,16 +32,13 @@ import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
-import oshi.SystemInfo;
-import oshi.hardware.GlobalMemory;
-import oshi.hardware.HWDiskStore;
-import oshi.software.os.OperatingSystem;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 import java.util.UUID;
 
 import static com.example.backend.dto.data.app.AppCreateRequest.AppType.SUBSCRIPTION;
@@ -58,50 +56,18 @@ public class AppService {
     private final ReviewService reviewService;
     private final AppMapper appMapper;
     private final AppVersionRepository appVersionRepository;
+    private final UserSubscriptionRepository userSubscriptionRepository;
 
     public AppDownloadResponse prepareAppDownload(UUID appId) {
         App app = getAppById(appId);
-        boolean updateAvailable = app.isNewerThan(app.getPreviousVersion().getApp());
-        return appMapper.mapToResponse(app, updateAvailable);
+        boolean updateAvailable = isNewerThan(app);
+        return appMapper.mapToResponse(app, updateAvailable, getCurrentVersion(app));
     }
 
     public AppCompatibilityResponse checkCompatibility(UUID appId, String os) {
         App app = getAppById(appId);
-        AppRequirements appRequirements = appRequirementsRepository.findAppRequirementsByApp(app);
+        AppRequirements appRequirements = app.getAppRequirements();
         List<String> compatibilityIssues = new ArrayList<>();
-
-        //SystemInfo si = new SystemInfo();
-
-        // Тут проверка os сервера а не клиента, это не имеет смысла
-        // Клиент - Android, Приложение для Android, Сервер - Windows => скачать не смогу так как Windows != Android
-        // Соответственно все что ниже тоже
-        // OperatingSystem os = si.getOperatingSystem();
-        /*GlobalMemory memory = si.getHardware().getMemory();
-        List<HWDiskStore> diskStores = si.getHardware().getDiskStores();
-
-        if (appRequirements.getMinRamMb() > memory.getTotal()) {
-            compatibilityIssues.add(String.format(
-                    "RAM shortage: %dMB required, %dMB available.",
-                    appRequirements.getMinRamMb(), memory.getTotal()
-            ));
-        }
-
-        boolean enoughDiskSpace = false;
-        for (HWDiskStore diskStore : diskStores) {
-            if (appRequirements.getMinStorageMb() < diskStore.getSize()) {
-                enoughDiskSpace = true;
-                break;
-            }
-        }
-
-        if (!enoughDiskSpace) {
-            for (HWDiskStore diskStore : diskStores) {
-                compatibilityIssues.add(String.format(
-                        "Disk space shortage: %dMB required, %dMB available.",
-                        appRequirements.getMinStorageMb(), diskStore.getSize()
-                ));
-            }
-        }*/
 
         if (!appRequirements.getCompatibleOs().contains(os)) {
             compatibilityIssues.add(String.format(
@@ -116,10 +82,10 @@ public class AppService {
                 .build();
     }
 
-    public List<AppInfoResponseDto> getAllAvailableApps(int limit) {
-        List<AppInfoResponseDto> appsDto = new ArrayList<>();
+    public List<AppDto> getAllAvailableApps(int limit) {
+        List<AppDto> appsDto = new ArrayList<>();
         var apps = appRepository.findAppsLimit(limit);
-        for (App app : apps) appsDto.add(appMapper.mapToDto(app, reviewService::getAverageRating));
+        for (App app : apps) appsDto.add(appMapper.mapToDtoShort(app, reviewService::getAverageRating));
         return appsDto;
     }
 
@@ -136,28 +102,38 @@ public class AppService {
         return appRepository.findByName(name);
     }
 
+    public String getAppNameById(UUID appId) {
+        return getAppById(appId).getName();
+    }
+
     @Transactional
     public UUID createApp(AppCreateRequest appCreateRequest) {
         MultipartFile file = appCreateRequest.getFile();
         User author = userService.getCurrentUser();
+        UserSubscription userSubscription = null;
 
-        if (appCreateRequest.getType() == SUBSCRIPTION &&
-                (appCreateRequest.getSubscriptionPrice() == null || appCreateRequest.getSubscriptionPrice() <= 0)) {
-            throw new InvalidApplicationConfigException("Subscription price must be positive!");
+        if (appCreateRequest.getType() == SUBSCRIPTION && appCreateRequest.getCreationDto() != null) {
+            if (appCreateRequest.getCreationDto().getSubscriptionPrice() == null ||
+                        appCreateRequest.getCreationDto().getSubscriptionPrice() <= 0) {
+                throw new InvalidApplicationConfigException("Subscription price must be positive!");
+            }
+            userSubscription = UserSubscription.builder()
+                    .invoice(
+                            Invoice.builder()
+                                    .amount(appCreateRequest.getCreationDto().getSubscriptionPrice()).build()
+                    )
+                    .days(appCreateRequest.getCreationDto().getSubscriptionDays())
+                    .autoRenewal(appCreateRequest.getCreationDto().getAutoRenewal())
+                    .build();
+            userSubscriptionRepository.save(userSubscription);
         }
+
 
         String filePath = minioService.uploadFile(file, UUID.randomUUID().toString());
 
         AppFile appFile = appMapper.mapToAppFile(filePath, file);
 
         AppVersion version = new AppVersion("1.0", "Initial release");
-        appFile = appFileRepository.save(appFile);
-
-        App app = appMapper.mapToModel(appCreateRequest, appFile, author, version);
-
-        app = appRepository.save(app);
-        version.setApp(app);
-        appVersionRepository.save(version);
 
         AppRequirements requirements = AppRequirements.builder()
                 .minRamMb(appCreateRequest.getMinRamMb())
@@ -165,8 +141,22 @@ public class AppService {
                 .compatibleOs(appCreateRequest.getCompatibleOs())
                 .build();
 
-        requirements.setApp(app);
+        appFile = appFileRepository.save(appFile);
+
+        App app = appMapper.mapToModel(appCreateRequest, appFile, requirements, author, version);
+
+        app = appRepository.save(app);
+        version.setApp(app);
+        appVersionRepository.save(version);
         appRequirementsRepository.save(requirements);
+
+        if(appCreateRequest.getCreationDto() != null && userSubscription != null) {
+            Subscription subscription = Subscription.builder()
+                    .name(appCreateRequest.getCreationDto().getName())
+                    .app(app)
+                    .build();
+            userSubscription.setSubscription(subscription);
+        }
 
         return app.getId();
     }
@@ -192,7 +182,7 @@ public class AppService {
             } else {
                 appVersion = new AppVersion(appUpdateDto.getNewVersion(), appUpdateDto.getReleaseNotes());
             }
-
+            appVersion.setApp(app);
             app.getAppVersions().add(appVersion);
             appFile.setFileHash(filePath);
             appFile.setFileSize(file.getSize());
@@ -208,20 +198,34 @@ public class AppService {
         }
     }
 
-    @Transactional
-    public byte[] downloadAppFile(UUID appId, boolean forceUpdate) {
-        App app = getAppById(appId);
-        User user = userService.getCurrentUser();
-        AppFile appFile = app.getAppFile();
-        Purchase purchase = purchaseService.getPurchaseByUserAndApp(user, app);
 
-        if (!forceUpdate && !app.isNewerThan(purchase.getApp())) {
+    public boolean isNewerThan(App app) {
+        return !Objects.equals(app.getLatestVersion().getVersion(), getCurrentVersion(app));
+    }
+
+    public String getCurrentVersion(App app) {
+        Purchase purchase = purchaseService.getLastUserPurchaseByApp(app);
+        return app.getAppVersions().size() == 1 ?
+                app.getLatestVersion().getVersion() : purchase.getDownloadedVersion();
+    }
+
+    @Transactional
+    public byte[] downloadAppFile(UUID appId, PurchaseRequest purchaseRequest, boolean forceUpdate) {
+        App app = getAppById(appId);
+        AppFile appFile = app.getAppFile();
+        Purchase purchase = purchaseService.processPurchase(appId, purchaseRequest);
+
+        if (app.getUsersWhoDownloaded().contains(purchase.getUser()) &&
+                !forceUpdate && !isNewerThan(purchase.getApp())) {
             throw new AppUpToDateException("This is actual release");
         }
+
         try {
-            minioService.deleteFile(appFile.getFilePath());
+            if(app.getUsersWhoDownloaded().contains(purchase.getUser())) {
+                minioService.deleteFile(appFile.getFilePath());
+                appFile.setLastUpdated(LocalDateTime.now());
+            }
             byte[] fileContent = minioService.downloadFile(appFile.getFilePath());
-            appFile.setLastUpdated(LocalDateTime.now());
             purchaseRepository.save(purchase);
             return fileContent;
         } catch (Exception e) {
@@ -229,18 +233,13 @@ public class AppService {
         }
     }
 
-
-    // TODO: допиши удаление зависимых от app сущностей
     public void deleteApp(UUID appId) {
         User currentUser = userService.getCurrentUser();
         App app = getAppById(appId);
         if (!app.getAuthor().getEmail().equals(currentUser.getUsername())) {
-            // && !(currentUser.getRole().equals(Role.MODERATOR) || currentUser.getRole().equals(Role.ADMIN))) {
             throw new AccessDeniedException("Suddenly, you aren`t the owner of this application");
         }
-
-        minioService.deleteFile(app.getAppFile().getFilePath());
-        reviewService.deleteReviews(reviewService.getAppReviews(app));
         appRepository.delete(app);
+        minioService.deleteFile(app.getAppFile().getFilePath());
     }
 }

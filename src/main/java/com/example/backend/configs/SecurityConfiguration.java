@@ -3,7 +3,6 @@ package com.example.backend.configs;
 import com.example.backend.model.auth.Role;
 import com.example.backend.security.jwt.JwtAuthenticationFilter;
 import com.example.backend.services.auth.UserService;
-import io.jsonwebtoken.ExpiredJwtException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -47,30 +46,39 @@ public class SecurityConfiguration {
                 .authorizeHttpRequests(request -> request
                         .requestMatchers("/api/v1/auth/**").permitAll()
                         .requestMatchers("/test/**").hasAuthority(Role.ADMIN.toString())
-                        .requestMatchers("/api/v1/admin/**").hasAuthority(Role.ADMIN.toString())
-                        .requestMatchers(HttpMethod.GET, "/api/v1/apps/*/download").authenticated()
-                        .requestMatchers(HttpMethod.POST, "/api/v1/apps/*/reviews").authenticated()
+                        .requestMatchers("/api/v1/admin/change-role").hasAuthority(Role.ADMIN.toString())
+                        .requestMatchers("/api/v1/admin/**").hasAnyAuthority(
+                                Role.ADMIN.toString(),
+                                Role.MODERATOR.toString()
+                        )
+                        .requestMatchers(HttpMethod.GET,
+                                "/api/v1/apps/*/update-info",
+                                "/api/v1/apps/*/download").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/v1/apps/**/reviews").authenticated()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/apps",
-                                "/api/v1/*/compatibility",
-                                "/api/v1/*/update-info",
-                                "/api/v1/apps/*",
-                                "/api/v1/apps/*/reviews",
-                                "/api/v1/apps/*/reviews/average"
+                                "/api/v1/apps/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.PUT, "/api/v1/apps").hasAnyAuthority(
                                 Role.ADMIN.toString(),
-                                Role.DEVELOPER.toString()
-                        ).requestMatchers(HttpMethod.PUT, "/api/v1/apps/*").hasAnyAuthority(
+                                Role.DEVELOPER.toString(),
+                                Role.MODERATOR.toString()
+                        ).requestMatchers(HttpMethod.PUT, "/api/v1/apps/**").hasAnyAuthority(
                                 Role.ADMIN.toString(),
-                                Role.DEVELOPER.toString()
-                        ).requestMatchers(HttpMethod.DELETE, "/api/v1/apps/*").hasAnyAuthority(
+                                Role.DEVELOPER.toString(),
+                                Role.MODERATOR.toString()
+                        ).requestMatchers(HttpMethod.DELETE, "/api/v1/apps/**").hasAnyAuthority(
                                 Role.ADMIN.toString(),
                                 Role.DEVELOPER.toString(),
                                 Role.MODERATOR.toString()
                         )
                         .requestMatchers("/api/v1/cards/**").authenticated()
                         .requestMatchers("/api/v1/purchases/**").authenticated()
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/subscriptions/**").hasAnyAuthority(
+                                Role.DEVELOPER.toString(),
+                                Role.MODERATOR.toString(),
+                                Role.ADMIN.toString()
+                        )
                         .requestMatchers("/api/v1/subscriptions/**").authenticated()
                         .requestMatchers("/api/v1/budget/**").authenticated()
                         .anyRequest().permitAll())

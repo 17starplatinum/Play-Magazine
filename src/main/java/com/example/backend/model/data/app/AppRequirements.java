@@ -1,6 +1,9 @@
 package com.example.backend.model.data.app;
 
-import jakarta.persistence.*;
+import jakarta.persistence.ElementCollection;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -23,11 +26,6 @@ public class AppRequirements {
     @Id
     @UuidGenerator
     private UUID id;
-
-    @NotNull
-    @OneToOne(optional = false)
-    @JoinColumn(name = "app_id")
-    private App app;
 
     @Positive
     @NotNull

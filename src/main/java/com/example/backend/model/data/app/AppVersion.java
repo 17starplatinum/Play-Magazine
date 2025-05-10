@@ -25,7 +25,6 @@ public class AppVersion {
     @JoinColumn(name = "app_id")
     private App app;
 
-    // Bro what :skull:
     @NonNull
     @NotBlank
     private String version;

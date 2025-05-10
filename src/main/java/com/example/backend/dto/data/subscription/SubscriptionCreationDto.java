@@ -11,25 +11,17 @@ import java.util.UUID;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-public class SubscriptionRequestDto {
-
-    private UUID appId;
-
+public class SubscriptionCreationDto {
     @NotNull
-    private UUID cardId;
-
-    @NotNull
+    @NotBlank
     private String name;
 
     @NotNull
-    @NotBlank
-    private String appName;
+    private UUID appId;
 
-    @NotNull
-    private Double fee;
+    private Double subscriptionPrice;
 
-    @NotNull
-    private Integer days;
+    private Integer subscriptionDays;
 
     private Boolean autoRenewal;
 }

@@ -1,8 +1,7 @@
 package com.example.backend.services.data;
 
-
+import com.example.backend.dto.data.review.ReviewInfoDto;
 import com.example.backend.dto.data.review.ReviewRequestDto;
-import com.example.backend.dto.data.review.ReviewResponseDto;
 import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
 import com.example.backend.mappers.ReviewMapper;
 import com.example.backend.model.auth.User;
@@ -24,19 +23,13 @@ public class ReviewService {
     private final ReviewRepository reviewRepository;
     private final PurchaseService purchaseService;
     private final UserService userService;
-    // private final AppService appService;
     private final ReviewMapper reviewMapper;
 
     public UUID createReview(App app, ReviewRequestDto reviewRequestDto) {
-        //App app = appService.getAppById(appId);
         User user = userService.getCurrentUser();
 
         if (purchaseService.hasUserPurchasedApp(user, app))
             throw new AppNotPurchasedException("You need to purchase the app before you can leave a review.");
-
-        // Пользователь может оставлять несколько отзывов на одно приложение
-        /*if (reviewRepository.existsByUserAndApp(user, app))
-            throw new ReviewAlreadyExistsException("You've already reviewed this app.");*/
 
         return reviewRepository.save(
                 reviewMapper.mapToModel(app, user, reviewRequestDto)
@@ -47,8 +40,11 @@ public class ReviewService {
         reviewRepository.deleteAll(reviews);
     }
 
-    public List<Review> getAppReviews(App app) {
-        return reviewRepository.findByAppId(app.getId());
+    public List<ReviewInfoDto> getAppReviews(UUID appId) {
+        return reviewRepository.findByAppId(appId)
+                .stream()
+                .map(reviewMapper::mapToDto)
+                .toList();
     }
 
     public Double getAverageRating(UUID appId) {
