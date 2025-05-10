@@ -1,6 +1,6 @@
 package com.example.backend.controllers;
 
-import com.example.backend.model.data.finances.Purchase;
+import com.example.backend.dto.data.purchase.PurchaseHistoryDto;
 import com.example.backend.services.data.PurchaseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,7 +19,7 @@ public class PurchaseController {
 
     @GetMapping("/purchase-history")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<Purchase>> getUserPurchases() {
+    public ResponseEntity<List<PurchaseHistoryDto>> getUserPurchases() {
         return ResponseEntity.ok(purchaseService.getUserPurchases());
     }
 }
