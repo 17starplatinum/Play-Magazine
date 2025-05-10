@@ -56,13 +56,13 @@ public class UserService implements UserDetailsService {
         if (userRepository.existsByEmail(user.getEmail())) {
             throw new BadCredentialsException("Пользователь с таким email уже существует");
         }
-        save(user);
         UserBudget userBudget = UserBudget.builder()
-                .user(user)
-                .spendingLimit(0D)
+                .spendingLimit(null)
                 .currentSpending(0D)
                 .build();
         budgetRepository.save(userBudget);
+        user.setUserBudget(userBudget);
+        save(user);
 
         UserProfile userProfile = UserProfile.builder()
                 .user(user)
@@ -70,7 +70,7 @@ public class UserService implements UserDetailsService {
                 .surname(signUpRequest.getSurname())
                 .build();
         profileRepository.save(userProfile);
-        userBudget.setUser(user);
+
         userProfile.setUser(user);
     }
 

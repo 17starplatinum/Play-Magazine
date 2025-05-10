@@ -36,6 +36,9 @@ public class CardService {
             throw new CardAlreadyExistsException("Карта с таким номером уже существует");
         }
         Card card = cardMapper.mapToModel(user, cardDto);
+        if(getUserCards().isEmpty()) {
+            card.setIsDefault(true);
+        }
         return cardRepository.save(card);
     }
 

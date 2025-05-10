@@ -3,7 +3,6 @@ package com.example.backend.services.data;
 import com.example.backend.dto.data.budget.BudgetStatusDto;
 import com.example.backend.exceptions.prerequisites.BudgetExceededException;
 import com.example.backend.mappers.BudgetMapper;
-import com.example.backend.model.auth.User;
 import com.example.backend.model.auth.UserBudget;
 import com.example.backend.repositories.auth.UserBudgetRepository;
 import com.example.backend.services.auth.UserService;
@@ -22,22 +21,20 @@ public class BudgetService {
     private final UserService userService;
     private final BudgetMapper budgetMapper;
 
+    public UserBudget getUserBudget() {
+        return userService.getCurrentUser().getUserBudget();
+    }
+
     @Transactional
     public void setMonthlyLimit(Double limit) {
-        User user = userService.getCurrentUser();
-        UserBudget userBudget = userBudgetRepository.findUserBudgetByUser(user);
-
+        UserBudget userBudget = getUserBudget();
         userBudget.setSpendingLimit(limit);
         resetSpendingIfNeeded(userBudget);
         userBudgetRepository.save(userBudget);
     }
 
     public BudgetStatusDto getBudgetStatus() {
-        User user = userService.getCurrentUser();
-        UserBudget userBudget = userBudgetRepository.findUserBudgetByUser(user);
-        if(userBudget == null) {
-            return budgetMapper.mapToNewDto();
-        }
+        UserBudget userBudget = getUserBudget();
         resetSpendingIfNeeded(userBudget);
         double remainder = calculateRemaining(userBudget);
         return budgetMapper.mapToDto(userBudget, remainder);
@@ -55,7 +52,7 @@ public class BudgetService {
     @Transactional
     public void recordSpending(UserBudget userBudget, double limit) {
         resetSpendingIfNeeded(userBudget);
-        if (isOverBudget(userBudget, limit)) {
+        if (userBudget.getSpendingLimit() != null && isOverBudget(userBudget, limit)) {
             throw new BudgetExceededException(
                     String.format("Месячный бюджет превышен. Бюджет: %.2f, потрачено: %.2f",
                             userBudget.getSpendingLimit(),

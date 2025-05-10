@@ -79,7 +79,7 @@ public class PurchaseService {
 
     private Purchase processOneTimePurchase(User user, App app, Card card) {
         Double price = app.getPrice();
-        UserBudget userBudget = userBudgetRepository.findUserBudgetByUser(user);
+        UserBudget userBudget = budgetService.getUserBudget();
         budgetService.recordSpending(userBudget, price);
 
 
@@ -116,7 +116,7 @@ public class PurchaseService {
         App app = appRepository.findById(appId).orElseThrow(() -> new AppNotFoundException("Приложение не найдено"));
         Card card = cardService.getCardByIdAndUser(cardId, user);
         Subscription subscription = subscriptionService.getSubscriptionById(subscriptionId);
-        UserBudget userBudget = userBudgetRepository.findUserBudgetByUser(user);
+        UserBudget userBudget = budgetService.getUserBudget();
 
         UserSubscription userSubscription = userSubscriptionRepository
                 .findBySubscriptionAndApp(subscription.getId(), app.getId())

@@ -3,10 +3,8 @@ package com.example.backend.model.auth;
 import com.example.backend.model.data.app.App;
 import com.example.backend.model.data.subscriptions.UserSubscription;
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -50,8 +48,13 @@ public class User implements UserDetails {
     @Column(name = "request_status", nullable = false, length = 20)
     private RequestStatus requestStatus = RequestStatus.NOT_REQUESTED;
 
+    @JsonIgnore
+    @NotNull
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    private UserBudget userBudget;
+
     @ManyToMany
-    @JsonIgnoreProperties({"downloadedApps"})
+    @JsonIgnore
     @JoinTable(
             name = "user_app_downloads",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
