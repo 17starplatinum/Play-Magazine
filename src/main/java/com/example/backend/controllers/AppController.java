@@ -9,6 +9,7 @@ import com.example.backend.dto.util.AppCompatibilityResponse;
 import com.example.backend.exceptions.accepted.AppDownloadException;
 import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
 import com.example.backend.exceptions.prerequisites.AppUpToDateException;
+import com.example.backend.model.data.app.App;
 import com.example.backend.services.data.AppService;
 import com.example.backend.services.data.ReviewService;
 import jakarta.validation.Valid;
@@ -30,7 +31,9 @@ public class AppController {
     private final ReviewService reviewService;
 
     @GetMapping
-    public ResponseEntity<AppsInfoResponse> getApps(@RequestParam(value = "limit", defaultValue = "10") int limit) {
+    public ResponseEntity<AppsInfoResponse> getApps(
+            @RequestParam(value = "limit", defaultValue = "10") int limit
+    ) {
         return ResponseEntity.ok(new AppsInfoResponse(appService.getAllAvailableApps(limit)));
     }
 
@@ -54,13 +57,13 @@ public class AppController {
 
     @GetMapping("/{appId}/reviews")
     public ResponseEntity<ReviewResponseDto> getReviews(@PathVariable UUID appId) {
+        App app = appService.getAppById(appId);
         return ResponseEntity.ok(
                 new ReviewResponseDto(
-                        appService.getAppNameById(appId),
+                        app.getName(),
                         reviewService.getAverageRating(appId),
                         reviewService.getAppReviews(appId)
-                )
-        );
+                ));
     }
 
     @GetMapping("/{appId}/reviews/average")
@@ -89,6 +92,7 @@ public class AppController {
         }
     }
 
+
     @PostMapping("/{appId}/reviews")
     public ResponseEntity<ResponseDto> createReview(
             @PathVariable UUID appId,
@@ -106,8 +110,9 @@ public class AppController {
     }
 
     @PutMapping(path = "/{appId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<Void> updateApp(@PathVariable UUID appId,
-                                       @Valid @ModelAttribute AppUpdateDto appUpdateDto
+    public ResponseEntity<?> updateApp(
+            @PathVariable UUID appId,
+            @Valid @ModelAttribute AppUpdateDto appUpdateDto
     ) {
         appService.bumpApp(appId, appUpdateDto);
         return ResponseEntity.status(HttpStatus.CREATED).build();

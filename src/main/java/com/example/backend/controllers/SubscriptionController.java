@@ -49,31 +49,39 @@ public class SubscriptionController {
     }
 
     @PostMapping("/{id}")
-    public ResponseEntity<SubscriptionMessageDto> buySubscription(@PathVariable UUID id, @RequestBody SubscriptionRequestDto subscriptionRequestDto) {
+    public ResponseEntity<SubscriptionMessageDto> buySubscription(
+            @PathVariable UUID id,
+            @RequestBody SubscriptionRequestDto subscriptionRequestDto
+    ) {
         User user = userService.getCurrentUser();
-        purchaseService.processSubscriptionPurchase(user, subscriptionRequestDto.getAppId(), subscriptionRequestDto.getCardId(), id);
-        SubscriptionMessageDto messageDto = new SubscriptionMessageDto("Подписка успешно приобретена");
+        purchaseService.processSubscriptionPurchase(
+                user,
+                subscriptionRequestDto.getAppId(),
+                subscriptionRequestDto.getCardId(),
+                id
+        );
+        SubscriptionMessageDto messageDto = new SubscriptionMessageDto("Subscription successfully purchased");
         return ResponseEntity.status(HttpStatus.CREATED).body(messageDto);
     }
 
     @PutMapping("/{id}/cancel")
     public ResponseEntity<SubscriptionMessageDto> cancelSubscription(@PathVariable UUID id) {
         subscriptionService.cancelSubscription(id);
-        SubscriptionMessageDto messageDto = new SubscriptionMessageDto("Подписка успешно отменена");
+        SubscriptionMessageDto messageDto = new SubscriptionMessageDto("Subscription successfully canceled");
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(messageDto);
     }
 
     @PutMapping("/{id}/auto-renewal")
     public ResponseEntity<SubscriptionMessageDto> cancelAutoRenewalById(@PathVariable UUID id) {
         subscriptionService.cancelAutoRenewal(id);
-        SubscriptionMessageDto messageDto = new SubscriptionMessageDto("Отключение авто-обновления подписки прошла успешно");
+        SubscriptionMessageDto messageDto = new SubscriptionMessageDto("Subscription auto-renewal successfully disabled");
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(messageDto);
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<SubscriptionMessageDto> deleteSubscription(@PathVariable UUID id) {
         subscriptionService.deleteSubscription(id);
-        SubscriptionMessageDto messageDto = new SubscriptionMessageDto("Подписка успешно удалена");
+        SubscriptionMessageDto messageDto = new SubscriptionMessageDto("Subscription successfully removed");
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(messageDto);
     }
 }

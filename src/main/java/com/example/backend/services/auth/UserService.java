@@ -54,7 +54,7 @@ public class UserService implements UserDetailsService {
      */
     public void create(User user, SignUpRequest signUpRequest) {
         if (userRepository.existsByEmail(user.getEmail())) {
-            throw new BadCredentialsException("Пользователь с таким email уже существует");
+            throw new BadCredentialsException("User with this email already existed!");
         }
         UserBudget userBudget = UserBudget.builder()
                 .spendingLimit(null)

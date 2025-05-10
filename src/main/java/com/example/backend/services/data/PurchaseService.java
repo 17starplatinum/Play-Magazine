@@ -71,9 +71,14 @@ public class PurchaseService {
                     .orElseThrow(() -> new UnsupportedOperationException("Не явно, какую карту выбрать"));
         }
 
-        if (app.hasSubscriptions() && purchaseRequest != null) {
-            return purchaseServiceResource.processSubscriptionPurchase(user, appId, purchaseRequest.getCardId(), purchaseRequest.getSubscriptionId());
-        }
+        if (app.hasSubscriptions() && purchaseRequest != null)
+            return purchaseServiceResource.processSubscriptionPurchase(
+                    user,
+                    appId,
+                    purchaseRequest.getCardId(),
+                    purchaseRequest.getSubscriptionId()
+            );
+
         return processOneTimePurchase(user, app, card);
     }
 
@@ -83,14 +88,13 @@ public class PurchaseService {
         budgetService.recordSpending(userBudget, price);
 
 
-        if (card.getBalance() < app.getPrice()) {
+        if (card.getBalance() < app.getPrice())
             throw new InsufficientFundsException("Not enough money!");
-        }
+
 
         boolean alreadyPurchased = hasUserPurchasedApp(user, app);
-        if(alreadyPurchased) {
+        if (alreadyPurchased)
             throw new AppAlreadyPurchasedException("Application has already bought");
-        }
 
         card.setBalance(card.getBalance() - price);
 
@@ -113,14 +117,15 @@ public class PurchaseService {
 
     @Transactional
     public Purchase processSubscriptionPurchase(User user, UUID appId, UUID cardId, UUID subscriptionId) {
-        App app = appRepository.findById(appId).orElseThrow(() -> new AppNotFoundException("Приложение не найдено"));
+        App app = appRepository.findById(appId).orElseThrow(() -> new AppNotFoundException("Application not found!"));
         Card card = cardService.getCardByIdAndUser(cardId, user);
         Subscription subscription = subscriptionService.getSubscriptionById(subscriptionId);
         UserBudget userBudget = budgetService.getUserBudget();
 
         UserSubscription userSubscription = userSubscriptionRepository
                 .findBySubscriptionAndApp(subscription.getId(), app.getId())
-                .orElseThrow(() -> new SubscriptionNotFoundException("Такой подписки нет в этом приложении, или в приложении нет такой подписки"));
+                .orElseThrow(
+                        () -> new SubscriptionNotFoundException("Cannot find this subscription!"));
 
         SubscriptionRequestDto requestDto = new SubscriptionRequestDto(
                 appId,
@@ -181,7 +186,7 @@ public class PurchaseService {
 
     public void validateDownloadAccess(User user, App app) {
         if (!hasUserPurchasedApp(user, app)) {
-            throw new AppNotPurchasedException("You must buy this application");
+            throw new AppNotPurchasedException("You must buy this application!");
         }
     }
 }
