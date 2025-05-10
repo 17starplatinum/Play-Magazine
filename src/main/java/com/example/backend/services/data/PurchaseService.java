@@ -1,5 +1,6 @@
 package com.example.backend.services.data;
 
+import com.example.backend.dto.data.purchase.PurchaseHistoryDto;
 import com.example.backend.dto.data.purchase.PurchaseRequest;
 import com.example.backend.dto.data.subscription.SubscriptionRequestDto;
 import com.example.backend.exceptions.notfound.AppNotFoundException;
@@ -17,7 +18,6 @@ import com.example.backend.model.data.finances.MonetaryTransaction;
 import com.example.backend.model.data.finances.Purchase;
 import com.example.backend.model.data.subscriptions.Subscription;
 import com.example.backend.model.data.subscriptions.UserSubscription;
-import com.example.backend.repositories.auth.UserBudgetRepository;
 import com.example.backend.repositories.data.app.AppRepository;
 import com.example.backend.repositories.data.finances.CardRepository;
 import com.example.backend.repositories.data.finances.InvoiceRepository;
@@ -30,6 +30,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
@@ -43,7 +44,6 @@ public class PurchaseService {
     private final CardRepository cardRepository;
     private final BudgetService budgetService;
     private final CardService cardService;
-    private final UserBudgetRepository userBudgetRepository;
     private final UserSubscriptionRepository userSubscriptionRepository;
     private final PurchaseMapper purchaseMapper;
     private final InvoiceRepository invoiceRepository;
@@ -150,10 +150,21 @@ public class PurchaseService {
         return purchaseRepository.save(purchaseMapper.mapToModel(app, transaction, user));
     }
 
-    public List<Purchase> getUserPurchases() {
+    public List<PurchaseHistoryDto> getUserPurchases() {
         User user = userService.getCurrentUser();
-
-        return purchaseRepository.findByUser(user);
+        List<Purchase> userPurchases = purchaseRepository.findByUser(user);
+        List<PurchaseHistoryDto> purchaseHistoryDtos = new ArrayList<>();
+        for (Purchase purchase : userPurchases) {
+            String secureNumber = purchase.getTransaction().getCard().getNumber();
+            PurchaseHistoryDto dto = PurchaseHistoryDto.builder()
+                    .appName(purchase.getApp().getName())
+                    .cardNumber("*" + secureNumber.substring(secureNumber.length() - 4))
+                    .purchaseDate(purchase.getTransaction().getProcessedAt().toLocalDate())
+                    .purchasePrice(purchase.getTransaction().getInvoice().getAmount())
+                    .build();
+            purchaseHistoryDtos.add(dto);
+        }
+        return purchaseHistoryDtos;
     }
 
     public Purchase getLastUserPurchaseByApp(App app) {
