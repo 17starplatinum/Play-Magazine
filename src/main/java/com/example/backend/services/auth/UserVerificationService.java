@@ -72,7 +72,7 @@ public class UserVerificationService {
             userVerificationRepository.save(userVerification);
             return userVerification.getFailedAttempts();
         }
-        throw new IllegalArgumentException("Код верификации не опознан.");
+        throw new IllegalArgumentException("Verification code is invalid!");
     }
 
     private void disableVerification(UUID verificationId) {

@@ -32,7 +32,7 @@ public class AdminController {
     public ResponseEntity<List<RoleChangeRequestDto>> getUsersByRequestStatus(@PathVariable String requestStatus) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.findByRequestStatus(requestStatus));
     }
-
+  
     @PutMapping("/approve/{id}")
     @PreAuthorize("hasRole('ADMIN') || hasRole('MODERATOR')")
     public ResponseEntity<ResponseDto> approveRequest(@PathVariable UUID id) {
@@ -57,7 +57,7 @@ public class AdminController {
         return ResponseEntity.ok(
                 new ResponseDto(
                 String.format(
-                        "Пользователь %s теперь является %s-ом",
+                        "User %s is now a %s",
                         user.getEmail(),
                         requestDto.getRole()
                 ))

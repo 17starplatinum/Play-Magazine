@@ -58,7 +58,7 @@ public class SubscriptionController {
     @PutMapping("/cancel/{id}")
     public ResponseEntity<SubscriptionMessageDto> cancelSubscription(@PathVariable UUID id) {
         subscriptionService.cancelSubscription(id);
-        SubscriptionMessageDto messageDto = new SubscriptionMessageDto("Подписка успешно отменена");
+        SubscriptionMessageDto messageDto = new SubscriptionMessageDto("Subscription successfully canceled");
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(messageDto);
     }
 
@@ -72,7 +72,7 @@ public class SubscriptionController {
     @DeleteMapping("/{id}")
     public ResponseEntity<SubscriptionMessageDto> deleteSubscription(@PathVariable UUID id) {
         subscriptionService.deleteSubscription(id);
-        SubscriptionMessageDto messageDto = new SubscriptionMessageDto("Подписка успешно удалена");
+        SubscriptionMessageDto messageDto = new SubscriptionMessageDto("Subscription successfully removed");
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(messageDto);
     }
 }

@@ -34,6 +34,6 @@ public class BudgetController {
 
         String formattedLimit = df.format(limit);
 
-        return ResponseEntity.ok().body(new ResponseDto(String.format("Месячный бюджет %s установлен.", formattedLimit)));
+        return ResponseEntity.ok().body(new ResponseDto(String.format("Monthly budget %s selected", formattedLimit)));
     }
 }

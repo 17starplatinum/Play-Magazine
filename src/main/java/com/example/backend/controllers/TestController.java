@@ -1,5 +1,6 @@
 package com.example.backend.controllers;
 
+import com.example.backend.dto.data.ResponseDto;
 import com.example.backend.services.auth.UserService;
 import com.example.backend.services.util.EmailService;
 import lombok.RequiredArgsConstructor;
@@ -22,7 +23,7 @@ public class TestController {
 
     @GetMapping("/test")
     public ResponseEntity<?> test() {
-        return ResponseEntity.ok().body("Hope!");
+        return ResponseEntity.ok().body(new ResponseDto("Луки, луки, луки! Захар crumble cookie"));
     }
 
     @ExceptionHandler
