@@ -2,7 +2,7 @@ package com.example.backend.dto.auth.rolestatus;
 
 import org.springframework.stereotype.Component;
 
-@Component("approved")
+@Component("APPROVED")
 public class ApprovedStatusHandler implements AdminRequestStatusHandler {
     @Override
     public String getStatusMessage() {

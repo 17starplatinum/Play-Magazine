@@ -5,10 +5,8 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.Positive;
+import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.util.HashSet;
@@ -31,10 +29,19 @@ public class Subscription {
     private String name;
 
     @ManyToOne
-    @JoinColumn(name = "app_id", nullable = false)
+    @JoinColumn(name = "app_id")
     private App app;
 
+    @Positive
+    @NotNull
+    private Integer days;
+
+    @Positive
+    @NotNull
+    private double price;
+
     @JsonIgnore
+    @ToString.Exclude
     @Builder.Default
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserSubscription> subscribedUser = new HashSet<>();

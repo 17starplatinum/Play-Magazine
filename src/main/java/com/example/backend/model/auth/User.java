@@ -2,14 +2,15 @@ package com.example.backend.model.auth;
 
 import com.example.backend.model.data.app.App;
 import com.example.backend.model.data.subscriptions.UserSubscription;
+import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlRootElement;
+import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -23,6 +24,8 @@ import java.util.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@XmlRootElement(name = "user")
+@XmlAccessorType(XmlAccessType.FIELD)
 public class User implements UserDetails {
     @Id
     @UuidGenerator
@@ -53,19 +56,28 @@ public class User implements UserDetails {
     @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
     private UserBudget userBudget;
 
-    @ManyToMany
+    @JsonBackReference
+    @ToString.Exclude
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JsonIgnore
+    @Builder.Default
     @JoinTable(
             name = "user_app_downloads",
             joinColumns = @JoinColumn(name = "user_id", referencedColumnName = "id"),
             inverseJoinColumns = @JoinColumn(name = "app_id", referencedColumnName = "id")
     )
-    private Set<App> downloadedApps;
+    private Set<App> downloadedApps = new HashSet<>();
 
     @JsonIgnore
+    @ToString.Exclude
     @Builder.Default
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserSubscription> userSubscriptions = new HashSet<>();
+
+    public void removeApp(App app) {
+        this.downloadedApps.remove(app);
+        app.getUsersWhoDownloaded().remove(this);
+    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {

@@ -29,9 +29,11 @@ public class AppCreateRequest implements Serializable {
     @NotNull
     private AppType type;
 
-    private SubscriptionCreationDto creationDto;
+    private Boolean autoRenewal;
 
     private MultipartFile file;
+
+    private String releaseNotes;
 
     @Positive
     private Integer minRamMb;
@@ -43,6 +45,6 @@ public class AppCreateRequest implements Serializable {
     private List<String> compatibleOs;
 
     public enum AppType {
-        FREE, PAID, SUBSCRIPTION
+        FREE, PAID
     }
 }

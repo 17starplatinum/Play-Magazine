@@ -7,8 +7,7 @@ public enum Role {
     ADMIN(4),
     MODERATOR(3),
     DEVELOPER(2),
-    USER(1),
-    GUEST(0);
+    USER(1);
 
     private final int value;
 

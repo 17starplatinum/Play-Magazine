@@ -2,7 +2,7 @@ package com.example.backend.dto.auth.rolestatus;
 
 import org.springframework.stereotype.Component;
 
-@Component("none")
+@Component("NONE")
 public class NoneStatusHandler implements AdminRequestStatusHandler {
     @Override
     public String getStatusMessage() {

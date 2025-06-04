@@ -1,12 +1,12 @@
 package com.example.backend.controllers;
 
+import com.example.backend.dto.data.app.AppIdDto;
 import com.example.backend.dto.data.subscription.SubscriptionCreationDto;
 import com.example.backend.dto.data.subscription.SubscriptionMessageDto;
 import com.example.backend.dto.data.subscription.SubscriptionRequestDto;
 import com.example.backend.dto.data.subscription.SubscriptionResponseDto;
 import com.example.backend.model.auth.User;
 import com.example.backend.model.data.subscriptions.Subscription;
-import com.example.backend.repositories.data.subscription.UserSubscriptionRepository;
 import com.example.backend.services.auth.UserService;
 import com.example.backend.services.data.PurchaseService;
 import com.example.backend.services.data.SubscriptionService;
@@ -23,7 +23,6 @@ import java.util.UUID;
 @RequestMapping("/api/v1/subscriptions")
 @AllArgsConstructor
 public class SubscriptionController {
-    private final UserSubscriptionRepository userSubscriptionRepository;
     private final UserService userService;
     private SubscriptionService subscriptionService;
     private PurchaseService purchaseService;
@@ -44,37 +43,29 @@ public class SubscriptionController {
     }
 
     @PostMapping
-    public ResponseEntity<Subscription> createSubscription(@RequestBody SubscriptionCreationDto subscriptionCreationDto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(subscriptionService.createSubscription(subscriptionCreationDto));
+    public ResponseEntity<AppIdDto> createSubscription(@RequestBody SubscriptionCreationDto subscriptionCreationDto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(new AppIdDto(subscriptionService.createSubscription(subscriptionCreationDto).getId()));
     }
 
-    @PostMapping("/{id}")
-    public ResponseEntity<SubscriptionMessageDto> buySubscription(
-            @PathVariable UUID id,
-            @RequestBody SubscriptionRequestDto subscriptionRequestDto
-    ) {
+    @PostMapping("/buy")
+    public ResponseEntity<SubscriptionMessageDto> buySubscription(@RequestBody SubscriptionRequestDto subscriptionRequestDto) {
         User user = userService.getCurrentUser();
-        purchaseService.processSubscriptionPurchase(
-                user,
-                subscriptionRequestDto.getAppId(),
-                subscriptionRequestDto.getCardId(),
-                id
-        );
-        SubscriptionMessageDto messageDto = new SubscriptionMessageDto("Subscription successfully purchased");
+        purchaseService.processSubscriptionPurchase(user, subscriptionRequestDto);
+        SubscriptionMessageDto messageDto = new SubscriptionMessageDto("Подписка успешно приобретена");
         return ResponseEntity.status(HttpStatus.CREATED).body(messageDto);
     }
 
-    @PutMapping("/{id}/cancel")
+    @PutMapping("/cancel/{id}")
     public ResponseEntity<SubscriptionMessageDto> cancelSubscription(@PathVariable UUID id) {
         subscriptionService.cancelSubscription(id);
         SubscriptionMessageDto messageDto = new SubscriptionMessageDto("Subscription successfully canceled");
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(messageDto);
     }
 
-    @PutMapping("/{id}/auto-renewal")
+    @PutMapping("/auto-renewal/{id}")
     public ResponseEntity<SubscriptionMessageDto> cancelAutoRenewalById(@PathVariable UUID id) {
-        subscriptionService.cancelAutoRenewal(id);
-        SubscriptionMessageDto messageDto = new SubscriptionMessageDto("Subscription auto-renewal successfully disabled");
+        subscriptionService.toggleAutoRenewal(id);
+        SubscriptionMessageDto messageDto = new SubscriptionMessageDto("Отключение авто-обновления подписки прошла успешно");
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(messageDto);
     }
 

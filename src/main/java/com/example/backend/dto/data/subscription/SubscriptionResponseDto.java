@@ -1,5 +1,6 @@
 package com.example.backend.dto.data.subscription;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -12,6 +13,7 @@ import java.util.UUID;
 @Setter
 @Builder
 @AllArgsConstructor
+@JsonInclude(JsonInclude.Include.NON_NULL)
 public class SubscriptionResponseDto {
     private UUID id;
     private String name;
@@ -22,5 +24,4 @@ public class SubscriptionResponseDto {
     private Integer days;
     private Integer daysRemaining;
     private boolean autoRenewal;
-    private boolean active;
 }

@@ -60,13 +60,11 @@ public class AuthController {
     }
 
     @PostMapping("/request")
-    @PreAuthorize("hasAuthority('USER')")
-    public ResponseEntity<ResponseDto> requestAuthorRole(@RequestParam String requestedRole) {
+    @PreAuthorize("hasRole('USER')")
+    public ResponseEntity<RoleChangeResponseDto> requestAuthorRole(@RequestParam String requestedRole) {
         User currentUser = userService.getCurrentUser();
         String response = roleManagementService.requestRole(currentUser.getId(), requestedRole);
-        return ResponseEntity
-                .status(HttpStatus.ACCEPTED)
-                .body(new ResponseDto("Request successfully created!\n" + response));
+        return new ResponseEntity<>(new RoleChangeResponseDto("Заявка успешно подана. " + response), HttpStatus.ACCEPTED);
     }
 
     @PostMapping("/2fa")
@@ -88,7 +86,7 @@ public class AuthController {
             @RequestHeader("Authorization") String jwt
     ) {
         authenticationService.updateUserInfo(request, jwt);
-        return ResponseEntity.ok().body(new ResponseDto("Data has been successfully updated!"));
+        return ResponseEntity.ok().body(new ResponseDto("Информация успешно обновлена"));
     }
 
     @GetMapping("/edit-info")
@@ -109,7 +107,7 @@ public class AuthController {
     }
 
     @ExceptionHandler
-    public ResponseEntity<String> handler(Exception e) {
-        return ResponseEntity.badRequest().body(e.getMessage());
+    public ResponseEntity<ResponseDto> handler(Exception e) {
+        return ResponseEntity.badRequest().body(new ResponseDto(e.getMessage()));
     }
 }

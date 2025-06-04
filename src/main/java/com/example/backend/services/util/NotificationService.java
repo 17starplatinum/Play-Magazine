@@ -56,6 +56,10 @@ public class NotificationService {
                 role = "автора";
                 yield "Теперь вы можете публиковать свои приложения в нашем магазине.";
             }
+            case "USER" -> {
+                role = "пользователя";
+                yield "Теперь вы можете скачать приложения и взаимодействовать с ними.";
+            }
             default -> {
                 role = "";
                 yield "";
@@ -127,17 +131,18 @@ public class NotificationService {
         sendEmail(user.getEmail(), subject, content);
     }
 
-    public void notifyUserAboutSubscriptionAutoRenewal(User user, Subscription subscription) {
+    public void notifyUserAboutSubscriptionAutoRenewal(User user, Subscription subscription, boolean state) {
         String subject = "Отмена автопродления подписки";
+        String action = (state) ? "подключили" : "отключили";
         String content = """
                 <html>
                     <body>
                     <h2>Уважаемый %s,</h2>
-                    <p>Вы отключили автоматическое продление подписки %s на приложении %s.</p>
+                    <p>Вы %s автоматическое продление подписки %s на приложении %s.</p>
                     <p>С уважением,<br>Команда PlayMagazine</p>
                     </body>
                 </html>
-                """.formatted(user.getUsername(), subscription.getName(), subscription.getApp().getName());
+                """.formatted(user.getUsername(), action, subscription.getName(), subscription.getApp().getName());
         sendEmail(user.getEmail(), subject, content);
     }
 }

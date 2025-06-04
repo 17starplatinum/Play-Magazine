@@ -1,6 +1,8 @@
 package com.example.backend.model.auth;
 
+import com.example.backend.services.util.LocalDateAdapter;
 import jakarta.persistence.*;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -32,5 +34,6 @@ public class UserProfile {
     @Column(length = 32, nullable = false)
     private String surname;
 
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate birthday;
 }

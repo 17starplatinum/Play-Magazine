@@ -5,6 +5,7 @@ import com.example.backend.model.auth.Role;
 import com.example.backend.model.auth.User;
 import com.example.backend.model.auth.UserProfile;
 import com.example.backend.model.auth.UserVerification;
+import com.example.backend.repositories.auth.UserFileRepositoryImpl;
 import com.example.backend.repositories.auth.UserProfileRepository;
 import com.example.backend.repositories.auth.UserRepository;
 import com.example.backend.security.jwt.JwtService;
@@ -30,6 +31,7 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final UserProfileRepository userProfileRepository;
     private final UserRepository userRepository;
+    private final UserFileRepositoryImpl userFileRepositoryImpl;
 
     /**
      * Регистрация пользователя

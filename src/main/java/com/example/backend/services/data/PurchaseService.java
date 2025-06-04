@@ -1,12 +1,12 @@
 package com.example.backend.services.data;
 
 import com.example.backend.dto.data.purchase.PurchaseHistoryDto;
-import com.example.backend.dto.data.purchase.PurchaseRequest;
 import com.example.backend.dto.data.subscription.SubscriptionRequestDto;
+import com.example.backend.exceptions.conflict.SubscriptionAlreadyPurchasedException;
 import com.example.backend.exceptions.notfound.AppNotFoundException;
 import com.example.backend.exceptions.notfound.SubscriptionNotFoundException;
 import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
-import com.example.backend.exceptions.prerequisites.AppAlreadyPurchasedException;
+import com.example.backend.exceptions.conflict.AppAlreadyPurchasedException;
 import com.example.backend.exceptions.prerequisites.InsufficientFundsException;
 import com.example.backend.mappers.PurchaseMapper;
 import com.example.backend.model.auth.User;
@@ -16,7 +16,6 @@ import com.example.backend.model.data.finances.Card;
 import com.example.backend.model.data.finances.Invoice;
 import com.example.backend.model.data.finances.MonetaryTransaction;
 import com.example.backend.model.data.finances.Purchase;
-import com.example.backend.model.data.subscriptions.Subscription;
 import com.example.backend.model.data.subscriptions.UserSubscription;
 import com.example.backend.repositories.data.app.AppRepository;
 import com.example.backend.repositories.data.finances.CardRepository;
@@ -28,11 +27,18 @@ import com.example.backend.services.auth.UserService;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
+
+import static com.example.backend.model.data.finances.PurchaseType.APP;
+import static com.example.backend.model.data.finances.PurchaseType.SUBSCRIPTION;
 
 @Service
 @RequiredArgsConstructor
@@ -44,16 +50,16 @@ public class PurchaseService {
     private final CardRepository cardRepository;
     private final BudgetService budgetService;
     private final CardService cardService;
-    private final UserSubscriptionRepository userSubscriptionRepository;
     private final PurchaseMapper purchaseMapper;
     private final InvoiceRepository invoiceRepository;
     private final MonetaryRepository monetaryRepository;
-
+    private final UserSubscriptionRepository userSubscriptionRepository;
+    private final PlatformTransactionManager transactionManager;
+    private final DefaultTransactionDefinition definition;
     @Resource
     private PurchaseService purchaseServiceResource;
 
-    @Transactional
-    public Purchase processPurchase(UUID appId, PurchaseRequest purchaseRequest) {
+    public Purchase processPurchase(UUID appId, UUID cardId, Optional<SubscriptionRequestDto> requestDto) {
         App app = appRepository.findById(appId)
                 .orElseThrow(() -> new AppNotFoundException("Application not found"));
 
@@ -64,36 +70,29 @@ public class PurchaseService {
         }
 
         Card card;
-        if (purchaseRequest != null) {
-            card = cardService.getCardByIdAndUser(purchaseRequest.getCardId(), user);
+        if (cardId != null) {
+            card = cardService.getCardByIdAndUser(cardId, user);
         } else {
             card = cardService.getCardByDefault()
                     .orElseThrow(() -> new UnsupportedOperationException("Не явно, какую карту выбрать"));
         }
-
-        if (app.hasSubscriptions() && purchaseRequest != null)
-            return purchaseServiceResource.processSubscriptionPurchase(
-                    user,
-                    appId,
-                    purchaseRequest.getCardId(),
-                    purchaseRequest.getSubscriptionId()
-            );
-
         return processOneTimePurchase(user, app, card);
     }
 
     private Purchase processOneTimePurchase(User user, App app, Card card) {
+        TransactionStatus transaction = transactionManager.getTransaction(definition);
         Double price = app.getPrice();
         UserBudget userBudget = budgetService.getUserBudget();
         budgetService.recordSpending(userBudget, price);
 
-
-        if (card.getBalance() < app.getPrice())
+        if (card.getBalance() < app.getPrice()) {
+            transactionManager.rollback(transaction);
             throw new InsufficientFundsException("Not enough money!");
 
 
         boolean alreadyPurchased = hasUserPurchasedApp(user, app);
-        if (alreadyPurchased)
+        if(alreadyPurchased) {
+            transactionManager.rollback(transaction);
             throw new AppAlreadyPurchasedException("Application has already bought");
 
         card.setBalance(card.getBalance() - price);
@@ -101,58 +100,49 @@ public class PurchaseService {
         cardRepository.save(card);
 
         Invoice invoice = invoiceRepository.save(purchaseMapper.mapToInvoice(price));
-        MonetaryTransaction transaction = monetaryRepository.save(purchaseMapper.mapToTransaction(card, invoice));
-        Purchase purchase = purchaseMapper.mapToModel(app, transaction, user);
+        MonetaryTransaction monetaryTransaction = monetaryRepository.save(purchaseMapper.mapToTransaction(card, invoice));
+        Purchase purchase = purchaseMapper.mapToModel(APP, app, monetaryTransaction, user);
 
+        transactionManager.commit(transaction);
         return purchaseRepository.save(purchase);
     }
 
     private Purchase createFreePurchase(User user, App app) {
         return purchaseRepository.save(Purchase.builder()
                 .user(user)
+                .purchaseType(APP)
                 .app(app)
                 .downloadedVersion(app.getLatestVersion().getVersion())
                 .build());
     }
 
-    @Transactional
-    public Purchase processSubscriptionPurchase(User user, UUID appId, UUID cardId, UUID subscriptionId) {
-        App app = appRepository.findById(appId).orElseThrow(() -> new AppNotFoundException("Application not found!"));
-        Card card = cardService.getCardByIdAndUser(cardId, user);
-        Subscription subscription = subscriptionService.getSubscriptionById(subscriptionId);
+    public Purchase processSubscriptionPurchase(User user, SubscriptionRequestDto requestDto) {
+        TransactionStatus transaction = transactionManager.getTransaction(definition);
+        if(userSubscriptionRepository.findByIdAndUser(requestDto.getId(), user.getId()).isPresent()) {
+            transactionManager.rollback(transaction);
+            throw new SubscriptionAlreadyPurchasedException("You have already purchased this subscription");
+        }
+        App app = appRepository.findById(requestDto.getAppId()).orElseThrow(() -> new AppNotFoundException("Приложение не найдено"));
+        Card card = cardService.getCardByIdAndUser(requestDto.getCardId(), user);
         UserBudget userBudget = budgetService.getUserBudget();
 
-        UserSubscription userSubscription = userSubscriptionRepository
-                .findBySubscriptionAndApp(subscription.getId(), app.getId())
-                .orElseThrow(
-                        () -> new SubscriptionNotFoundException("Cannot find this subscription!"));
-
-        SubscriptionRequestDto requestDto = new SubscriptionRequestDto(
-                appId,
-                cardId,
-                subscription.getName(),
-                subscription.getApp().getName(),
-                userSubscription.getInvoice().getAmount(),
-                userSubscription.getDays(),
-                userSubscription.getAutoRenewal()
-        );
-        double subscriptionPrice = userSubscription.getInvoice().getAmount();
-        subscriptionService.buySubscription(subscription.getId(), requestDto);
+        double subscriptionPrice = requestDto.getFee();
+        UserSubscription userSubscription = subscriptionService.buySubscription(requestDto);
 
         budgetService.recordSpending(userBudget, subscriptionPrice);
 
-        if (card.getBalance() < subscriptionPrice) {
+        if (card.getBalance() < requestDto.getFee()) {
+            transactionManager.rollback(transaction);
             throw new InsufficientFundsException("Not enough money!");
         }
 
-        Invoice invoice = invoiceRepository.save(purchaseMapper.mapToInvoice(subscriptionPrice));
-
-        MonetaryTransaction transaction = monetaryRepository.save(purchaseMapper.mapToTransaction(card, invoice));
+        MonetaryTransaction monetaryTransaction = monetaryRepository.save(purchaseMapper.mapToTransaction(card, userSubscription.getInvoice()));
 
         card.setBalance(card.getBalance() - subscriptionPrice);
         cardRepository.save(card);
 
-        return purchaseRepository.save(purchaseMapper.mapToModel(app, transaction, user));
+        transactionManager.commit(transaction);
+        return purchaseRepository.save(purchaseMapper.mapToModel(SUBSCRIPTION, app, monetaryTransaction, user));
     }
 
     public List<PurchaseHistoryDto> getUserPurchases() {
@@ -160,12 +150,19 @@ public class PurchaseService {
         List<Purchase> userPurchases = purchaseRepository.findByUser(user);
         List<PurchaseHistoryDto> purchaseHistoryDtos = new ArrayList<>();
         for (Purchase purchase : userPurchases) {
-            String secureNumber = purchase.getTransaction().getCard().getNumber();
+            MonetaryTransaction transaction;
+            try {
+                transaction = purchase.getTransaction();
+            } catch (NullPointerException e) {
+                continue;
+            }
+            String secureNumber = transaction.getCard().getNumber();
             PurchaseHistoryDto dto = PurchaseHistoryDto.builder()
                     .appName(purchase.getApp().getName())
+                    .purchaseType(purchase.getPurchaseType())
                     .cardNumber("*" + secureNumber.substring(secureNumber.length() - 4))
-                    .purchaseDate(purchase.getTransaction().getProcessedAt().toLocalDate())
-                    .purchasePrice(purchase.getTransaction().getInvoice().getAmount())
+                    .purchaseDate(transaction.getProcessedAt().toLocalDate())
+                    .purchasePrice(transaction.getInvoice().getAmount())
                     .build();
             purchaseHistoryDtos.add(dto);
         }

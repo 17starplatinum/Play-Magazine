@@ -1,7 +1,11 @@
 package com.example.backend.model.auth;
 
+import com.example.backend.services.util.LocalDateAdapter;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.DecimalMin;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -17,6 +21,7 @@ import java.util.UUID;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@XmlAccessorType(XmlAccessType.FIELD)
 public class UserBudget {
     @Id
     @UuidGenerator
@@ -29,5 +34,6 @@ public class UserBudget {
     private Double currentSpending = 0D;
 
     @Builder.Default
+    @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate lastLimitReset = LocalDate.now();
 }

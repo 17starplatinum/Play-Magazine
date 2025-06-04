@@ -2,7 +2,7 @@ package com.example.backend.dto.auth.rolestatus;
 
 import org.springframework.stereotype.Component;
 
-@Component("pending")
+@Component("PENDING")
 public class PendingStatusHandler implements AdminRequestStatusHandler {
     @Override
     public String getStatusMessage() {

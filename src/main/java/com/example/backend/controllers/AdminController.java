@@ -1,6 +1,5 @@
 package com.example.backend.controllers;
 
-import com.example.backend.dto.UserIdDto;
 import com.example.backend.dto.auth.RoleChangeRequestDto;
 import com.example.backend.dto.data.ResponseDto;
 import com.example.backend.model.auth.User;
@@ -24,43 +23,44 @@ public class AdminController {
     private final UserService userService;
 
     @GetMapping("/admin-requests/status")
-    public ResponseEntity<ResponseDto> getAdminRequestsStatus(@RequestBody UserIdDto userIdDto) {
-        return ResponseEntity.ok().body(new ResponseDto(userService.getAdminRequestStatus(userIdDto.userId())));
+    public ResponseEntity<ResponseDto> getAdminRequestsStatus() {
+        return ResponseEntity.ok().body(new ResponseDto(userService.getAdminRequestStatus()));
     }
 
     @GetMapping("/requests/{requestStatus}")
-    @PreAuthorize("hasAnyAuthority('MODERATOR', 'ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') || hasRole('MODERATOR')")
     public ResponseEntity<List<RoleChangeRequestDto>> getUsersByRequestStatus(@PathVariable String requestStatus) {
         return ResponseEntity.status(HttpStatus.OK).body(userService.findByRequestStatus(requestStatus));
     }
-
-    @PostMapping("/approve/{id}")
-    @PreAuthorize("hasAnyAuthority('MODERATOR', 'ADMIN')")
+  
+    @PutMapping("/approve/{id}")
+    @PreAuthorize("hasRole('ADMIN') || hasRole('MODERATOR')")
     public ResponseEntity<ResponseDto> approveRequest(@PathVariable UUID id) {
         roleManagementService.approveRequest(id);
         return ResponseEntity.ok(new ResponseDto("Request has been successfully approved"));
     }
 
-    @PostMapping("/reject/{id}")
-    @PreAuthorize("hasAnyAuthority('MODERATOR', 'ADMIN')")
-    public ResponseEntity<String> rejectRequest(
+    @PutMapping("/reject/{id}")
+    @PreAuthorize("hasRole('ADMIN') || hasRole('MODERATOR')")
+    public ResponseEntity<ResponseDto> rejectRequest(
             @PathVariable UUID id,
             @RequestBody RoleChangeRequestDto requestDto
     ) {
         roleManagementService.rejectRequest(id, requestDto.getRole(), requestDto.getReason());
-        return ResponseEntity.ok(" Request rejected with reason: " + requestDto.getReason());
+        return ResponseEntity.ok(new ResponseDto("Заявка успешно отклонена с причиной: " + requestDto.getReason()));
     }
 
-    @PostMapping("/change-role")
-    @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<String> changeUserRole(@Valid @RequestBody RoleChangeRequestDto requestDto) {
+    @PutMapping("/change-role")
+    public ResponseEntity<ResponseDto> changeUserRole(@Valid @RequestBody RoleChangeRequestDto requestDto) {
         roleManagementService.grantRole(requestDto.getUserId(), requestDto.getRole());
         User user = userService.getById(requestDto.getUserId());
         return ResponseEntity.ok(
+                new ResponseDto(
                 String.format(
                         "User %s is now a %s",
                         user.getEmail(),
                         requestDto.getRole()
-                ));
+                ))
+        );
     }
 }

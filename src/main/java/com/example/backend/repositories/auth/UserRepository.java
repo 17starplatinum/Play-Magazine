@@ -25,8 +25,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
 
     boolean existsByRole(Role role);
 
-    Optional<User> findUserByEmail(String email);
-
     @Query("SELECT u.email FROM User u WHERE u.role = 'ADMIN'")
     List<String> findAdminEmails();
 
@@ -36,4 +34,8 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     @Modifying
     @Query("UPDATE User u SET u.enableTwoFA = :enabled WHERE u.email = :email")
     void enableTwoFA(@Param("enabled") boolean enabled, @Param("email") String email);
+
+    @Modifying
+    @Query(value = "INSERT INTO user_app_downloads (user_id, app_id) VALUES (:userId, :appId)", nativeQuery = true)
+    void addAppToUser(@Param("userId") UUID userId, @Param("appId") UUID appId);
 }
