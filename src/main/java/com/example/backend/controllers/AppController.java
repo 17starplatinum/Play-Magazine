@@ -2,8 +2,11 @@ package com.example.backend.controllers;
 
 import com.example.backend.dto.data.ResponseDto;
 import com.example.backend.dto.data.app.*;
+import com.example.backend.dto.data.review.ReviewDeleteDto;
 import com.example.backend.dto.data.review.ReviewRequestDto;
 import com.example.backend.dto.data.review.ReviewResponseDto;
+import com.example.backend.dto.data.subscription.SubscriptionRequestDto;
+import com.example.backend.dto.data.subscription.SubscriptionResponseDto;
 import com.example.backend.dto.util.AppCompatibilityResponse;
 import com.example.backend.exceptions.accepted.AppDownloadException;
 import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
@@ -16,9 +19,11 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Optional;
 import java.util.UUID;
 
 @RestController
@@ -62,6 +67,12 @@ public class AppController {
         );
     }
 
+    @DeleteMapping("{appId}/reviews")
+    public ResponseEntity<Void> deleteReview(@PathVariable UUID appId, @RequestParam UUID reviewId) {
+        reviewService.deleteReviewById(reviewId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
     @GetMapping("/{appId}/reviews/average")
     public ResponseEntity<ResponseDto> getAverageRating(@PathVariable UUID appId) {
         return ResponseEntity.ok().body(new ResponseDto(reviewService.getAverageRating(appId).toString()));
@@ -71,11 +82,11 @@ public class AppController {
     public ResponseEntity<byte[]> downloadApp(
             @PathVariable UUID appId,
             @RequestParam(value = "card_id", required = false) UUID cardId,
-            @RequestParam(value = "subscription_id", required = false) UUID subscriptionId,
-            @RequestParam(value = "force_update", required = false) Boolean forceUpdate
-    ) {
+            @RequestParam(value = "force_update", required = false) Boolean forceUpdate,
+            @RequestBody(required = false) SubscriptionRequestDto requestDto
+            ) {
         try {
-            byte[] fileContent = appService.downloadAppFile(appId, cardId, subscriptionId, forceUpdate);
+            byte[] fileContent = appService.downloadAppFile(appId, cardId, Optional.ofNullable(requestDto), forceUpdate);
             return ResponseEntity.ok()
                     .contentType(MediaType.APPLICATION_OCTET_STREAM)
                     .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"app.apk\"")

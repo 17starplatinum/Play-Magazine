@@ -5,18 +5,22 @@ import com.example.backend.dto.auth.SignUpRequest;
 import com.example.backend.dto.auth.rolestatus.AdminRequestStatusHandler;
 import com.example.backend.model.auth.*;
 import com.example.backend.repositories.auth.UserBudgetRepository;
+import com.example.backend.repositories.auth.UserFileRepositoryImpl;
 import com.example.backend.repositories.auth.UserProfileRepository;
 import com.example.backend.repositories.auth.UserRepository;
 import com.example.backend.security.jwt.JwtService;
+import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.util.List;
 import java.util.Map;
@@ -31,20 +35,20 @@ public class UserService implements UserDetailsService {
     private final UserBudgetRepository budgetRepository;
     private final UserProfileRepository profileRepository;
     private final JwtService jwtService;
-    private Map<String, AdminRequestStatusHandler> statusHandlerMap;
-
-
-    @Autowired
-    public void setStatusHandlerMap(Map<String, AdminRequestStatusHandler> statusHandlerMap) {
-        this.statusHandlerMap = statusHandlerMap;
-    }
-
+    private final Map<String, AdminRequestStatusHandler> statusHandlerMap;
+    private final UserFileRepositoryImpl userFileRepositoryImpl;
+    private final PlatformTransactionManager transactionManager;
+    private final DefaultTransactionDefinition definition;
+    @Resource
+    private UserService userServiceResource;
     /**
      * Сохранение пользователя
      *
      * @return сохраненный пользователь
      */
+    @Transactional
     public User save(User user) {
+        userFileRepositoryImpl.saveIntoFile(user);
         return userRepository.save(user);
     }
 
@@ -62,7 +66,7 @@ public class UserService implements UserDetailsService {
                 .build();
         budgetRepository.save(userBudget);
         user.setUserBudget(userBudget);
-        save(user);
+        userServiceResource.save(user);
 
         UserProfile userProfile = UserProfile.builder()
                 .user(user)
@@ -80,13 +84,12 @@ public class UserService implements UserDetailsService {
      * @return пользователь
      */
     public User getByUsername(String email) {
-        return userRepository.findByEmail(email)
-                .orElseThrow(() -> new UsernameNotFoundException(USER_NOT_FOUND));
+        return userRepository.findByEmail(email).orElseThrow();
 
     }
 
     public User getById(UUID uuid) {
-        return userRepository.findById(uuid)
+        return userFileRepositoryImpl.findByIdFromFile(uuid)
                 .orElseThrow(() -> new UsernameNotFoundException(USER_NOT_FOUND));
 
     }
@@ -129,7 +132,7 @@ public class UserService implements UserDetailsService {
     public void getAdmin() {
         var user = getCurrentUser();
         user.setRole(Role.ADMIN);
-        save(user);
+        userServiceResource.save(user);
     }
 
     public boolean checkValidUser(UUID uuid, String token) {
@@ -142,14 +145,16 @@ public class UserService implements UserDetailsService {
         return userRepository.findByRequestStatus(RequestStatus.valueOf(requestStatus)).stream().map(this::convertToRoleRequestDto).toList();
     }
 
-    @Transactional(readOnly = true)
-    public String getAdminRequestStatus(UUID userId) {
-        User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException(USER_NOT_FOUND));
-        String userRole = user.getRole().name();
-        AdminRequestStatusHandler adminRequestStatusHandler = statusHandlerMap.get(userRole);
-        if (adminRequestStatusHandler == null)
-            throw new IllegalStateException("Обработчик для статуса '" + user.getEmail() + "' не найден");
-
+    public String getAdminRequestStatus() {
+        TransactionStatus transaction = transactionManager.getTransaction(definition);
+        User user = getCurrentUser();
+        String userRequestStatus = user.getRequestStatus().name();
+        AdminRequestStatusHandler adminRequestStatusHandler = statusHandlerMap.get(userRequestStatus);
+        if (adminRequestStatusHandler == null) {
+            transactionManager.rollback(transaction);
+            throw new IllegalStateException("Обработчик для статуса '" + user.getRequestStatus().toString() + "' не найден");
+        }
+        transactionManager.commit(transaction);
         return adminRequestStatusHandler.getStatusMessage();
     }
 
@@ -179,7 +184,7 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return userRepository.findUserByEmail(email).orElseThrow(() ->
+        return userFileRepositoryImpl.findByUsernameFromFile(email).orElseThrow(() ->
             new UsernameNotFoundException("Пользователь не найден!")
         );
     }

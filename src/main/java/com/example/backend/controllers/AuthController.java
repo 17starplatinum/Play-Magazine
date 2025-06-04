@@ -1,6 +1,7 @@
 package com.example.backend.controllers;
 
 import com.example.backend.dto.auth.*;
+import com.example.backend.dto.data.ResponseDto;
 import com.example.backend.model.auth.User;
 import com.example.backend.model.auth.UserVerification;
 import com.example.backend.security.auth.AuthenticationService;
@@ -55,14 +56,14 @@ public class AuthController {
 
     @PostMapping("/request")
     @PreAuthorize("hasRole('USER')")
-    public ResponseEntity<String> requestAuthorRole(@RequestParam String requestedRole) {
+    public ResponseEntity<RoleChangeResponseDto> requestAuthorRole(@RequestParam String requestedRole) {
         User currentUser = userService.getCurrentUser();
         String response = roleManagementService.requestRole(currentUser.getId(), requestedRole);
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body("Заявка успешно подана\n" + response);
+        return new ResponseEntity<>(new RoleChangeResponseDto("Заявка успешно подана. " + response), HttpStatus.ACCEPTED);
     }
 
     @PostMapping("/2fa")
-    public ResponseEntity<String> check2FA(
+    public ResponseEntity<ResponseDto> check2FA(
             @RequestBody @Valid CodeVerificationRequest request
     ) {
         if (authenticationService.check2FA(request)) {
@@ -71,16 +72,16 @@ public class AuthController {
             return new ResponseEntity<>(headers, HttpStatus.FOUND);
         }
 
-        return ResponseEntity.badRequest().body("Wrong code!");
+        return ResponseEntity.badRequest().body(new ResponseDto("Wrong code!"));
     }
 
     @PutMapping("/edit-info")
-    public ResponseEntity<String> updateUserInfo(
+    public ResponseEntity<ResponseDto> updateUserInfo(
             @RequestBody EditProfileRequest request,
             @RequestHeader("Authorization") String jwt
     ) {
         authenticationService.updateUserInfo(request, jwt);
-        return ResponseEntity.ok("Информация успешно обновлена");
+        return ResponseEntity.ok().body(new ResponseDto("Информация успешно обновлена"));
     }
 
     @GetMapping("/edit-info")
@@ -101,7 +102,7 @@ public class AuthController {
     }
 
     @ExceptionHandler
-    public ResponseEntity<String> handler(Exception e) {
-        return ResponseEntity.badRequest().body(e.getMessage());
+    public ResponseEntity<ResponseDto> handler(Exception e) {
+        return ResponseEntity.badRequest().body(new ResponseDto(e.getMessage()));
     }
 }

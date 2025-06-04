@@ -4,8 +4,6 @@ import com.example.backend.model.auth.User;
 import com.example.backend.model.data.finances.Card;
 import com.example.backend.model.data.finances.Invoice;
 import jakarta.persistence.*;
-import jakarta.validation.constraints.NotNull;
-import jakarta.validation.constraints.Positive;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -26,8 +24,8 @@ public class UserSubscription {
     @JoinColumn(name = "user_id")
     private User user;
 
-    @NotNull
     @ManyToOne
+    @ToString.Exclude
     @MapsId("subscriptionId")
     @JoinColumn(name = "subscription_id")
     private Subscription subscription;
@@ -36,13 +34,9 @@ public class UserSubscription {
 
     private LocalDate endDate;
 
-    @ManyToOne(optional = false)
+    @ManyToOne(cascade = CascadeType.MERGE)
     @JoinColumn(name = "invoice_id")
     private Invoice invoice;
-
-    @Positive
-    @NotNull
-    private Integer days;
 
     @Column(name = "is_auto_renewable", nullable = false)
     @Builder.Default

@@ -1,25 +1,15 @@
 package com.example.backend.mappers;
 
-import com.example.backend.dto.data.subscription.SubscriptionCreationDto;
 import com.example.backend.dto.data.subscription.SubscriptionResponseDto;
-import com.example.backend.model.data.finances.Invoice;
 import com.example.backend.model.data.subscriptions.Subscription;
 import com.example.backend.model.data.subscriptions.UserSubscription;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;
+import java.time.Period;
 
 @Component
 public class SubscriptionMapper {
-
-    public UserSubscription mapToUserModel(Subscription subscription, Invoice invoice, SubscriptionCreationDto subscriptionCreationDto) {
-        return UserSubscription.builder()
-                .subscription(subscription)
-                .invoice(invoice)
-                .days(subscriptionCreationDto.getSubscriptionDays())
-                .autoRenewal(subscriptionCreationDto.getAutoRenewal())
-                .build();
-    }
 
     public SubscriptionResponseDto mapToDtoFull(UserSubscription userSubscription, LocalDate startDate, LocalDate endDate) {
         Subscription subscription = userSubscription.getSubscription();
@@ -30,9 +20,8 @@ public class SubscriptionMapper {
                 .fee(userSubscription.getInvoice().getAmount())
                 .startDate(startDate)
                 .endDate(endDate)
-                .daysRemaining(endDate.getDayOfMonth() - startDate.getDayOfMonth())
+                .daysRemaining(Period.between(startDate, endDate).getDays())
                 .autoRenewal(userSubscription.getAutoRenewal())
-                .active(userSubscription.getActive())
                 .build();
     }
 
@@ -40,17 +29,18 @@ public class SubscriptionMapper {
         return SubscriptionResponseDto.builder()
                 .id(subscription.getId())
                 .name(subscription.getName())
-                .appName(subscription.getName())
+                .appName(subscription.getApp().getName())
                 .fee(fee)
-                .daysRemaining(endDate.getDayOfMonth() - startDate.getDayOfMonth())
+                .daysRemaining(Period.between(startDate, endDate).getDays())
                 .build();
     }
 
-    public SubscriptionResponseDto mapToDtoShort(Subscription subscription, double fee, int days) {
+    public SubscriptionResponseDto mapToDtoShort(Subscription subscription) {
         return SubscriptionResponseDto.builder()
+                .id(subscription.getId())
                 .name(subscription.getName())
-                .fee(fee)
-                .days(days)
+                .days(subscription.getDays())
+                .fee(subscription.getPrice())
                 .build();
     }
 }

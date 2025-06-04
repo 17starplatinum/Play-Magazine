@@ -4,10 +4,6 @@ import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 
 public class FileUtils {
-    /*private FileUtils(){
-        throw new IllegalStateException("А нафиг ты здесь?");
-    }*/
-
     public static String calculateFileHash(byte[] fileContent) throws NoSuchAlgorithmException {
         try {
             MessageDigest md = MessageDigest.getInstance("SHA-256");

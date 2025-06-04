@@ -2,7 +2,7 @@ package com.example.backend.dto.auth.rolestatus;
 
 import org.springframework.stereotype.Component;
 
-@Component("rejected")
+@Component("REJECTED")
 public class RejectedStatusHandler implements AdminRequestStatusHandler {
     @Override
     public String getStatusMessage() {

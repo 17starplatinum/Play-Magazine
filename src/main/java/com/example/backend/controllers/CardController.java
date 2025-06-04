@@ -1,5 +1,6 @@
 package com.example.backend.controllers;
 
+import com.example.backend.dto.data.ResponseDto;
 import com.example.backend.dto.data.card.CardDto;
 import com.example.backend.dto.data.card.DepositRequest;
 import com.example.backend.model.data.finances.Card;
@@ -25,9 +26,9 @@ public class CardController {
     }
 
     @PutMapping("/deposit")
-    public ResponseEntity<String> depositCard(@Valid @RequestBody DepositRequest depositRequest) {
+    public ResponseEntity<ResponseDto> depositCard(@Valid @RequestBody DepositRequest depositRequest) {
         cardService.depositInCard(depositRequest);
-        return ResponseEntity.ok(String.format("Начислено %f рублей", depositRequest.getAmount()));
+        return ResponseEntity.ok(new ResponseDto(String.format("Начислено %f рублей", depositRequest.getAmount())));
     }
 
     @GetMapping
@@ -36,9 +37,9 @@ public class CardController {
     }
 
     @PutMapping("/{cardId}")
-    public ResponseEntity<String> setDefaultCard(@PathVariable UUID cardId) {
+    public ResponseEntity<ResponseDto> setDefaultCard(@PathVariable UUID cardId) {
         cardService.setDefaultCard(cardId);
-        return ResponseEntity.ok("Теперь эта карта применяется по умолчанию");
+        return ResponseEntity.ok(new ResponseDto("Теперь эта карта применяется по умолчанию"));
     }
 
 

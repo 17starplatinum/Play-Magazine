@@ -1,6 +1,8 @@
 package com.example.backend.services.data;
 
 import com.example.backend.dto.data.app.*;
+import com.example.backend.dto.data.subscription.SubscriptionCreationDto;
+import com.example.backend.dto.data.subscription.SubscriptionRequestDto;
 import com.example.backend.dto.util.AppCompatibilityResponse;
 import com.example.backend.exceptions.accepted.AppDownloadException;
 import com.example.backend.exceptions.accepted.AppUpdateException;
@@ -18,6 +20,7 @@ import com.example.backend.model.data.finances.Purchase;
 import com.example.backend.model.data.subscriptions.Subscription;
 import com.example.backend.model.data.subscriptions.UserSubscription;
 import com.example.backend.model.data.subscriptions.UserSubscriptionId;
+import com.example.backend.repositories.auth.UserRepository;
 import com.example.backend.repositories.data.app.AppFileRepository;
 import com.example.backend.repositories.data.app.AppRepository;
 import com.example.backend.repositories.data.app.AppRequirementsRepository;
@@ -29,20 +32,19 @@ import com.example.backend.services.auth.UserService;
 import com.example.backend.services.util.FileUtils;
 import com.example.backend.services.util.MinioService;
 import lombok.RequiredArgsConstructor;
+import org.apache.catalina.Store;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
-
-import static com.example.backend.dto.data.app.AppCreateRequest.AppType.SUBSCRIPTION;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -54,12 +56,14 @@ public class AppService {
     private final UserService userService;
     private final AppRequirementsRepository appRequirementsRepository;
     private final AppFileRepository appFileRepository;
+    private final UserRepository userRepository;
     private final ReviewService reviewService;
     private final AppMapper appMapper;
     private final AppVersionRepository appVersionRepository;
-    private final UserSubscriptionRepository userSubscriptionRepository;
-    private final SubscriptionRepository subscriptionRepository;
+    private final PlatformTransactionManager transactionManager;
+    private final DefaultTransactionDefinition definition;
 
+    static final String APP_NOT_FOUND_MESSAGE = "Application not found!";
     public AppDownloadResponse prepareAppDownload(UUID appId) {
         App app = getAppById(appId);
         boolean updateAvailable = isNewerThan(app);
@@ -97,11 +101,7 @@ public class AppService {
 
     public App getAppById(UUID appId) {
         return appRepository.findById(appId)
-                .orElseThrow(() -> new AppNotFoundException("Application not found!"));
-    }
-
-    public App getAppByName(String name) {
-        return appRepository.findByName(name);
+                .orElseThrow(() -> new AppNotFoundException(APP_NOT_FOUND_MESSAGE));
     }
 
     public String getAppNameById(UUID appId) {
@@ -110,40 +110,15 @@ public class AppService {
 
     @Transactional
     public UUID createApp(AppCreateRequest appCreateRequest) {
+        TransactionStatus transaction = transactionManager.getTransaction(definition);
         MultipartFile file = appCreateRequest.getFile();
         User author = userService.getCurrentUser();
-        UserSubscription userSubscription = null;
-
-        if (appCreateRequest.getType() == SUBSCRIPTION) {
-            if (appCreateRequest.getSubscriptionPrice() == null ||
-                        appCreateRequest.getSubscriptionPrice() <= 0) {
-                throw new InvalidApplicationConfigException("Subscription price must be positive!");
-            }
-            Subscription subscription = Subscription.builder()
-                    .name(appCreateRequest.getSubscriptionName())
-                    .build();
-            userSubscription = UserSubscription.builder()
-                    .id(UserSubscriptionId.builder()
-                            .userId(null)
-                            .subscriptionId(subscription.getId())
-                            .build())
-                    .invoice(
-                            Invoice.builder()
-                                    .amount(appCreateRequest.getSubscriptionPrice()).build()
-                    )
-                    .days(appCreateRequest.getSubscriptionDays())
-                    .autoRenewal(appCreateRequest.getAutoRenewal())
-                    .subscription(subscription)
-                    .build();
-            userSubscriptionRepository.save(userSubscription);
-        }
-
 
         String filePath = minioService.uploadFile(file, UUID.randomUUID().toString());
 
         AppFile appFile = appMapper.mapToAppFile(filePath, file);
 
-        AppVersion version = new AppVersion("1.0", "Initial release");
+        AppVersion version = new AppVersion("1.0", (appCreateRequest.getReleaseNotes() == null) ? "Initial release" : appCreateRequest.getReleaseNotes());
 
         AppRequirements requirements = AppRequirements.builder()
                 .minRamMb(appCreateRequest.getMinRamMb())
@@ -159,24 +134,19 @@ public class AppService {
         version.setApp(app);
         appVersionRepository.save(version);
         appRequirementsRepository.save(requirements);
-
-        if(appCreateRequest.getType() == SUBSCRIPTION && userSubscription != null) {
-            Subscription subscription = userSubscription.getSubscription();
-            subscription.setApp(app);
-            subscriptionRepository.save(subscription);
-        }
-
+        transactionManager.commit(transaction);
         return app.getId();
     }
 
-    @Transactional
     public void bumpApp(UUID appId, AppUpdateDto appUpdateDto) {
+        TransactionStatus transaction = transactionManager.getTransaction(definition);
         var file = appUpdateDto.getFile();
         App app = getAppById(appId);
         User user = userService.getCurrentUser();
         AppFile appFile = app.getAppFile();
         AppVersion appVersion;
         if (!app.getAuthor().equals(user)) {
+            transactionManager.rollback(transaction);
             throw new AccessDeniedException("Suddenly, you aren`t the owner of this application");
         }
 
@@ -199,9 +169,12 @@ public class AppService {
 
             appFileRepository.save(appFile);
             appRepository.save(app);
+            transactionManager.commit(transaction);
         } catch (IOException e) {
+            transactionManager.rollback(transaction);
             throw new AppUpdateException("Cannot read application file", e);
         } catch (NoSuchAlgorithmException e) {
+            transactionManager.rollback(transaction);
             throw new IllegalStateException("Cannot generate hash of this application", e);
         }
     }
@@ -217,37 +190,50 @@ public class AppService {
                 app.getLatestVersion().getVersion() : purchase.getDownloadedVersion();
     }
 
-    @Transactional
-    public byte[] downloadAppFile(UUID appId, UUID cardId, UUID subscriptionId, boolean forceUpdate) {
+    public byte[] downloadAppFile(UUID appId, UUID cardId, Optional<SubscriptionRequestDto> requestDto, boolean forceUpdate) {
+        TransactionStatus transaction = transactionManager.getTransaction(definition);
         App app = getAppById(appId);
-        AppFile appFile = app.getAppFile();
-        Purchase purchase = purchaseService.processPurchase(appId, cardId, subscriptionId);
-
+        User currentUser = userService.getCurrentUser();
+        Purchase purchase = purchaseService.processPurchase(appId, cardId, requestDto);
         if (app.getUsersWhoDownloaded().contains(purchase.getUser()) &&
                 !forceUpdate && !isNewerThan(purchase.getApp())) {
+            transactionManager.rollback(transaction);
             throw new AppUpToDateException("This is actual release");
         }
-
-        try {
-            if(app.getUsersWhoDownloaded().contains(purchase.getUser())) {
-                minioService.deleteFile(appFile.getFilePath());
-                appFile.setLastUpdated(LocalDateTime.now());
-            }
-            byte[] fileContent = minioService.downloadFile(appFile.getFilePath());
-            purchaseRepository.save(purchase);
-            return fileContent;
-        } catch (Exception e) {
-            throw new AppDownloadException("Something went wrong while downloading the application", e);
+        AppFile appFile = app.getAppFile();
+        if (app.getUsersWhoDownloaded().contains(purchase.getUser())) {
+            minioService.deleteFile(appFile.getFilePath());
+            appFile.setLastUpdated(LocalDateTime.now());
         }
+        byte[] fileContent;
+        try {
+            fileContent = minioService.downloadFile(appFile.getFilePath());
+        } catch (Exception e) {
+            transactionManager.rollback(transaction);
+            throw new AppDownloadException("Failed to download the application", e);
+        }
+
+        userRepository.addAppToUser(currentUser.getId(), appId);
+
+        purchase.setUser(currentUser);
+        purchaseRepository.save(purchase);
+        transactionManager.commit(transaction);
+        return fileContent;
     }
 
     public void deleteApp(UUID appId) {
-        User currentUser = userService.getCurrentUser();
+        TransactionStatus transaction = transactionManager.getTransaction(definition);
+        User user = userService.getCurrentUser();
         App app = getAppById(appId);
-        if (!app.getAuthor().getEmail().equals(currentUser.getUsername())) {
+        if (!app.getAuthor().getEmail().equals(user.getUsername())) {
+            transactionManager.rollback(transaction);
             throw new AccessDeniedException("Suddenly, you aren`t the owner of this application");
         }
+        app.getUsersWhoDownloaded().forEach(u -> u.removeApp(app));
+        user.getDownloadedApps().forEach(a -> a.removeUser(user));
         appRepository.delete(app);
+        userService.save(user);
         minioService.deleteFile(app.getAppFile().getFilePath());
+        transactionManager.commit(transaction);
     }
 }

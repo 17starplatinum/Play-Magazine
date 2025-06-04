@@ -1,6 +1,5 @@
 package com.example.backend.dto.data.subscription;
 
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
@@ -13,6 +12,10 @@ import java.util.UUID;
 @NoArgsConstructor
 public class SubscriptionRequestDto {
 
+    @NotNull
+    private UUID id;
+
+    @NotNull
     private UUID appId;
 
     @NotNull
@@ -20,10 +23,6 @@ public class SubscriptionRequestDto {
 
     @NotNull
     private String name;
-
-    @NotNull
-    @NotBlank
-    private String appName;
 
     @NotNull
     private Double fee;

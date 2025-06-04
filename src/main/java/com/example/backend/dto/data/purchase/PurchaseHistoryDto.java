@@ -1,5 +1,8 @@
 package com.example.backend.dto.data.purchase;
 
+import com.example.backend.model.data.finances.PurchaseType;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -13,6 +16,10 @@ import java.time.LocalDate;
 @AllArgsConstructor
 public class PurchaseHistoryDto {
     private String appName;
+
+    @Enumerated(EnumType.STRING)
+    private PurchaseType purchaseType;
+
     private LocalDate purchaseDate;
     private double purchasePrice;
     private String cardNumber;

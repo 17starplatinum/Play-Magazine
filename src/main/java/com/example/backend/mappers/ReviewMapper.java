@@ -19,6 +19,7 @@ public class ReviewMapper {
     }
     public ReviewInfoDto mapToDto(Review review) {
         return ReviewInfoDto.builder()
+                .id(review.getId())
                 .rating(review.getRating())
                 .comment(review.getComment())
                 .author(review.getUser().getEmail())

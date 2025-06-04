@@ -1,5 +1,6 @@
 package com.example.backend.controllers;
 
+import com.example.backend.dto.data.app.AppIdDto;
 import com.example.backend.dto.data.subscription.SubscriptionCreationDto;
 import com.example.backend.dto.data.subscription.SubscriptionMessageDto;
 import com.example.backend.dto.data.subscription.SubscriptionRequestDto;
@@ -42,28 +43,28 @@ public class SubscriptionController {
     }
 
     @PostMapping
-    public ResponseEntity<Subscription> createSubscription(@RequestBody SubscriptionCreationDto subscriptionCreationDto) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(subscriptionService.createSubscription(subscriptionCreationDto));
+    public ResponseEntity<AppIdDto> createSubscription(@RequestBody SubscriptionCreationDto subscriptionCreationDto) {
+        return ResponseEntity.status(HttpStatus.CREATED).body(new AppIdDto(subscriptionService.createSubscription(subscriptionCreationDto).getId()));
     }
 
-    @PostMapping("/{id}")
-    public ResponseEntity<SubscriptionMessageDto> buySubscription(@PathVariable UUID id, @RequestBody SubscriptionRequestDto subscriptionRequestDto) {
+    @PostMapping("/buy")
+    public ResponseEntity<SubscriptionMessageDto> buySubscription(@RequestBody SubscriptionRequestDto subscriptionRequestDto) {
         User user = userService.getCurrentUser();
-        purchaseService.processSubscriptionPurchase(user, subscriptionRequestDto.getAppId(), subscriptionRequestDto.getCardId(), id);
+        purchaseService.processSubscriptionPurchase(user, subscriptionRequestDto);
         SubscriptionMessageDto messageDto = new SubscriptionMessageDto("Подписка успешно приобретена");
         return ResponseEntity.status(HttpStatus.CREATED).body(messageDto);
     }
 
-    @PutMapping("/{id}/cancel")
+    @PutMapping("/cancel/{id}")
     public ResponseEntity<SubscriptionMessageDto> cancelSubscription(@PathVariable UUID id) {
         subscriptionService.cancelSubscription(id);
         SubscriptionMessageDto messageDto = new SubscriptionMessageDto("Подписка успешно отменена");
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(messageDto);
     }
 
-    @PutMapping("/{id}/auto-renewal")
+    @PutMapping("/auto-renewal/{id}")
     public ResponseEntity<SubscriptionMessageDto> cancelAutoRenewalById(@PathVariable UUID id) {
-        subscriptionService.cancelAutoRenewal(id);
+        subscriptionService.toggleAutoRenewal(id);
         SubscriptionMessageDto messageDto = new SubscriptionMessageDto("Отключение авто-обновления подписки прошла успешно");
         return ResponseEntity.status(HttpStatus.NO_CONTENT).body(messageDto);
     }

@@ -23,6 +23,7 @@ public interface CardRepository extends JpaRepository<Card, UUID> {
     boolean existsByUserAndNumber(User user, String number);
 
     boolean existsByIdAndUser(UUID cardId, User user);
+
     @Modifying
     @Query("UPDATE Card c SET c.isDefault = false WHERE c.user.id = :userId")
     void clearDefaultFlags(@Param("userId") UUID userId);

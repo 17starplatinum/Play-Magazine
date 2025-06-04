@@ -6,6 +6,7 @@ import com.example.backend.exceptions.accepted.EmailSendingException;
 import com.example.backend.exceptions.accepted.RequestPendingException;
 import com.example.backend.exceptions.badcredentials.InvalidRequestException;
 import com.example.backend.exceptions.conflict.AlreadyInRoleException;
+import com.example.backend.exceptions.conflict.AppAlreadyPurchasedException;
 import com.example.backend.exceptions.conflict.UnspecifiedCardException;
 import com.example.backend.exceptions.dto.ErrorResponseDto;
 import com.example.backend.exceptions.notfound.AppNotFoundException;

@@ -25,7 +25,6 @@ public class BudgetService {
         return userService.getCurrentUser().getUserBudget();
     }
 
-    @Transactional
     public void setMonthlyLimit(Double limit) {
         UserBudget userBudget = getUserBudget();
         userBudget.setSpendingLimit(limit);
@@ -49,7 +48,6 @@ public class BudgetService {
         });
     }
 
-    @Transactional
     public void recordSpending(UserBudget userBudget, double limit) {
         resetSpendingIfNeeded(userBudget);
         if (userBudget.getSpendingLimit() != null && isOverBudget(userBudget, limit)) {

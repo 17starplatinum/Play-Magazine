@@ -12,7 +12,10 @@ import com.example.backend.services.auth.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +27,8 @@ public class CardService {
     private final CardRepository cardRepository;
     private final UserService userService;
     private final CardMapper cardMapper;
+    private final PlatformTransactionManager transactionManager;
+    private final DefaultTransactionDefinition definition;
 
     public Card getCardByIdAndUser(UUID id, User user) {
         return cardRepository.findByIdAndUser(id, user)
@@ -48,7 +53,6 @@ public class CardService {
         return cardRepository.findByUser(user);
     }
 
-    @Transactional
     public void depositInCard(DepositRequest depositRequest) {
         User user = userService.getCurrentUser();
         Card card = getCardByIdAndUser(depositRequest.getCardId(), user);
@@ -64,24 +68,29 @@ public class CardService {
 
     @Transactional
     public void setDefaultCard(UUID cardId) {
+        TransactionStatus transaction = transactionManager.getTransaction(definition);
         User user = userService.getCurrentUser();
 
         if(cardRepository.findByUser(user).size() == 1) {
             cardRepository.setDefaultCard(cardId);
+            transactionManager.commit(transaction);
             return;
         }
 
         Card card = getCardByIdAndUser(cardId, user);
 
         if (!card.getUser().getId().equals(user.getId())) {
+            transactionManager.rollback(transaction);
             throw new AccessDeniedException("Карта не принадлежит пользователю");
         }
 
         if (!cardRepository.existsByIdAndUser(cardId, user)) {
+            transactionManager.rollback(transaction);
             throw new CardNotFoundException("Карта не найдена");
         }
         cardRepository.clearDefaultFlags(user.getId());
         cardRepository.setDefaultCard(cardId);
+        transactionManager.commit(transaction);
     }
 
     public void deleteCard(UUID cardId) {
