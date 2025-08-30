@@ -49,10 +49,10 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({
             BadCredentialsException.class
     })
-    public ResponseEntity<Object> handleBadCredentialsException() {
+    public ResponseEntity<Object> handleBadCredentialsException(Exception ex) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.UNAUTHORIZED.value(),
-                HttpStatus.UNAUTHORIZED.getReasonPhrase(),
+                ex.getMessage(),
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.UNAUTHORIZED);
@@ -67,10 +67,10 @@ public class GlobalExceptionHandler {
             ExpiredJwtException.class,
             RuntimeException.class
     })
-    public ResponseEntity<Object> handleBadRequestException() {
+    public ResponseEntity<Object> handleBadRequestException(Exception ex) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.BAD_REQUEST.value(),
-                HttpStatus.BAD_REQUEST.getReasonPhrase(),
+                ex.getMessage(),
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.BAD_REQUEST);
@@ -82,10 +82,10 @@ public class GlobalExceptionHandler {
             NoResourceFoundException.class,
             UserBudgetNotFoundException.class
     })
-    public ResponseEntity<Object> handleResourceNotFoundException() {
+    public ResponseEntity<Object> handleResourceNotFoundException(Exception ex) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.NOT_FOUND.value(),
-                HttpStatus.NOT_FOUND.getReasonPhrase(),
+                ex.getMessage(),
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.NOT_FOUND);
@@ -111,10 +111,10 @@ public class GlobalExceptionHandler {
             InvalidRoleAssignmentException.class,
             HttpRequestMethodNotSupportedException.class
     })
-    public ResponseEntity<Object> handleBadPrerequisiteException() {
+    public ResponseEntity<Object> handleBadPrerequisiteException(Exception ex) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.PRECONDITION_FAILED.value(),
-                HttpStatus.PRECONDITION_FAILED.getReasonPhrase(),
+                ex.getMessage(),
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.PRECONDITION_FAILED);
@@ -126,20 +126,20 @@ public class GlobalExceptionHandler {
             RequestPendingException.class,
             EmailSendingException.class
     })
-    public ResponseEntity<Object> handleIncompleteProcessingException() {
+    public ResponseEntity<Object> handleIncompleteProcessingException(Exception ex) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.ACCEPTED.value(),
-                HttpStatus.ACCEPTED.getReasonPhrase(),
+                ex.getMessage(),
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.ACCEPTED);
     }
 
     @ExceptionHandler(AppNotPurchasedException.class)
-    public ResponseEntity<Object> handleAppNotPurchasedException() {
+    public ResponseEntity<Object> handleAppNotPurchasedException(Exception ex) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.PAYMENT_REQUIRED.value(),
-                HttpStatus.PAYMENT_REQUIRED.getReasonPhrase(),
+                ex.getMessage(),
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.PAYMENT_REQUIRED);
@@ -149,20 +149,20 @@ public class GlobalExceptionHandler {
             AlreadyInRoleException.class,
             UnspecifiedCardException.class
     })
-    public ResponseEntity<Object> handleAlreadyInRoleException() {
+    public ResponseEntity<Object> handleAlreadyInRoleException(Exception ex) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.CONFLICT.value(),
-                HttpStatus.CONFLICT.getReasonPhrase(),
+                ex.getMessage(),
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.CONFLICT);
     }
 
     @ExceptionHandler(AccessDeniedException.class)
-    public ResponseEntity<Object> handleAccessDeniedException() {
+    public ResponseEntity<Object> handleAccessDeniedException(Exception ex) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.FORBIDDEN.value(),
-                HttpStatus.FORBIDDEN.getReasonPhrase(),
+                ex.getMessage(),
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.FORBIDDEN);
@@ -172,7 +172,7 @@ public class GlobalExceptionHandler {
             MethodArgumentNotValidException.class,
             MethodArgumentTypeMismatchException.class
     })
-    public ResponseEntity<Object> handleMethodArgumentNotValidException() {
+    public ResponseEntity<Object> handleMethodArgumentNotValidException(Exception ex) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.BAD_REQUEST.value(),
                 "Объект запроса не прошёл валидацию",

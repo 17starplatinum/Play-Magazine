@@ -11,7 +11,6 @@ import org.hibernate.annotations.UuidGenerator;
 import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
-import java.util.UUID;
 
 @Getter
 @NoArgsConstructor
@@ -20,7 +19,7 @@ import java.util.UUID;
 public class EditProfileRequest {
     @Id
     @UuidGenerator
-    private UUID id;
+    private String email;
 
     @Size(min = 2, max = 32, message = "Имя пользователя должно содержать от 2 до 32 символов")
     @NotBlank(message = "Имя пользователя не может быть пустыми")

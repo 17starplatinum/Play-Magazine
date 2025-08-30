@@ -13,7 +13,6 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/api/v1/admin")
@@ -33,27 +32,27 @@ public class AdminController {
         return ResponseEntity.status(HttpStatus.OK).body(userService.findByRequestStatus(requestStatus));
     }
 
-    @PutMapping("/approve/{id}")
+    @PutMapping("/approve/{username}")
     @PreAuthorize("hasRole('ADMIN') || hasRole('MODERATOR')")
-    public ResponseEntity<ResponseDto> approveRequest(@PathVariable UUID id) {
-        roleManagementService.approveRequest(id);
+    public ResponseEntity<ResponseDto> approveRequest(@PathVariable String username) {
+        roleManagementService.approveRequest(username);
         return ResponseEntity.ok(new ResponseDto("Request has been successfully approved"));
     }
 
-    @PutMapping("/reject/{id}")
+    @PutMapping("/reject/{email}")
     @PreAuthorize("hasRole('ADMIN') || hasRole('MODERATOR')")
     public ResponseEntity<ResponseDto> rejectRequest(
-            @PathVariable UUID id,
+            @PathVariable String email,
             @RequestBody RoleChangeRequestDto requestDto
     ) {
-        roleManagementService.rejectRequest(id, requestDto.getRole(), requestDto.getReason());
+        roleManagementService.rejectRequest(email, requestDto.getRole(), requestDto.getReason());
         return ResponseEntity.ok(new ResponseDto("Заявка успешно отклонена с причиной: " + requestDto.getReason()));
     }
 
     @PutMapping("/change-role")
     public ResponseEntity<ResponseDto> changeUserRole(@Valid @RequestBody RoleChangeRequestDto requestDto) {
-        roleManagementService.grantRole(requestDto.getUserId(), requestDto.getRole());
-        User user = userService.getById(requestDto.getUserId());
+        roleManagementService.grantRole(requestDto.getEmail(), requestDto.getRole());
+        User user = userService.getByUsername(requestDto.getEmail());
         return ResponseEntity.ok(
                 new ResponseDto(
                 String.format(

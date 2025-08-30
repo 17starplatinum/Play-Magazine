@@ -5,11 +5,9 @@ import com.example.backend.model.auth.UserList;
 import com.example.backend.services.util.XMLParser;
 import org.springframework.stereotype.Repository;
 
-
 import java.io.IOException;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Repository
 public class UserFileRepositoryImpl implements UserFileRepository {
@@ -18,21 +16,6 @@ public class UserFileRepositoryImpl implements UserFileRepository {
 
     public UserFileRepositoryImpl(XMLParser xmlParser) {
         this.xmlParser = xmlParser;
-    }
-
-    public Optional<User> findByIdFromFile(UUID id) {
-        UserList users;
-        try {
-            users = (UserList) xmlParser.getEntity(xmlPath);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-        if (users == null) return Optional.empty();
-        List<User> userEntities = users.getUsers();
-        for (User cur: userEntities) {
-            if (cur.getId().equals(id)) return Optional.of(cur);
-        }
-        return Optional.empty();
     }
 
     @Override

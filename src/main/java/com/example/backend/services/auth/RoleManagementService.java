@@ -7,18 +7,15 @@ import com.example.backend.exceptions.prerequisites.InvalidRoleAssignmentExcepti
 import com.example.backend.model.auth.Role;
 import com.example.backend.model.auth.User;
 import com.example.backend.model.auth.UserProfile;
-import org.springframework.transaction.PlatformTransactionManager;
-import org.springframework.transaction.TransactionDefinition;
-import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.support.DefaultTransactionDefinition;
 import com.example.backend.repositories.auth.UserProfileRepository;
 import com.example.backend.repositories.auth.UserRepository;
 import com.example.backend.services.util.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionStatus;
+import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import static com.example.backend.model.auth.RequestStatus.*;
 import static com.example.backend.model.auth.Role.ADMIN;
@@ -34,10 +31,9 @@ public class RoleManagementService {
     private final PlatformTransactionManager transactionManager;
     private final DefaultTransactionDefinition definition;
 
-    public String requestRole(UUID userId, String requestedRole) {
-        definition.setIsolationLevel(TransactionDefinition.ISOLATION_READ_UNCOMMITTED);
+    public String requestRole(String requestedRole) {
+        User user = userService.getCurrentUser();
         TransactionStatus transaction = transactionManager.getTransaction(definition);
-        User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         Role role = Role.valueOf(requestedRole.toUpperCase());
 
@@ -54,14 +50,12 @@ public class RoleManagementService {
         if (!adminExists()) {
             user.setRole(ADMIN);
             user.setRequestStatus(APPROVED);
-            userRepository.save(user);
-            notificationService.notifyAdminsAboutNewAuthorRequest(user);
+            userService.save(user);
             transactionManager.commit(transaction);
             return "У системы нет администратора. Поэтому роль передается вам.";
         } else {
             user.setRequestStatus(PENDING);
-            userRepository.save(user);
-            notificationService.notifyAdminsAboutNewAuthorRequest(user);
+            userService.save(user);
             transactionManager.commit(transaction);
             return "Дождитесь отмашки админа или модератора.";
         }
@@ -71,9 +65,9 @@ public class RoleManagementService {
         return userRepository.existsByRole(ADMIN);
     }
 
-    public void approveRequest(UUID userId) {
+    public void approveRequest(String username) {
         TransactionStatus transaction = transactionManager.getTransaction(definition);
-        User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        User user = userRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         if (user.getRequestStatus() != PENDING) {
             transactionManager.rollback(transaction);
@@ -82,15 +76,15 @@ public class RoleManagementService {
 
         user.setRole(DEVELOPER);
         user.setRequestStatus(APPROVED);
-        userRepository.save(user);
+        user = userService.save(user);
         UserProfile cred = userProfileRepository.findByUser(userService.getCurrentUser());
         notificationService.notifyUserAboutAuthorRequestApproval(user, cred.getName(), DEVELOPER.toString());
         transactionManager.commit(transaction);
     }
 
-    public void rejectRequest(UUID userId, String role, String reason) {
+    public void rejectRequest(String username, String role, String reason) {
         TransactionStatus transaction = transactionManager.getTransaction(definition);
-        User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        User user = userRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         if (user.getRequestStatus() != PENDING) {
             transactionManager.rollback(transaction);
@@ -98,15 +92,15 @@ public class RoleManagementService {
         }
 
         user.setRequestStatus(REJECTED);
-        userRepository.save(user);
+        user = userService.save(user);
         UserProfile cred = userProfileRepository.findByUser(userService.getCurrentUser());
         notificationService.notifyUserAboutAuthorRequestRejection(user, cred.getName(), reason, role);
         transactionManager.commit(transaction);
     }
 
-    public void grantRole(UUID userId, String newRole) {
+    public void grantRole(String username, String newRole) {
         TransactionStatus transaction = transactionManager.getTransaction(definition);
-        User user = userRepository.findById(userId).orElseThrow(() -> new UsernameNotFoundException("User not found"));
+        User user = userRepository.findByEmail(username).orElseThrow(() -> new UsernameNotFoundException("User not found"));
 
         Role roleToBe = Role.valueOf(newRole.toUpperCase());
         if (roleToBe.compare(DEVELOPER) < 0 && user.getRequestStatus() != APPROVED) {
@@ -119,7 +113,7 @@ public class RoleManagementService {
         }
         user.setRole(roleToBe);
         user.setRequestStatus(NOT_REQUESTED);
-        userRepository.save(user);
+        user = userService.save(user);
         UserProfile cred = userProfileRepository.findByUser(userService.getCurrentUser());
         notificationService.notifyUserAboutAuthorRequestApproval(user, cred.getName(), newRole);
         transactionManager.commit(transaction);

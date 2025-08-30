@@ -1,50 +1,42 @@
 package com.example.backend.services.data;
 
 import com.example.backend.dto.data.app.*;
-import com.example.backend.dto.data.subscription.SubscriptionCreationDto;
-import com.example.backend.dto.data.subscription.SubscriptionRequestDto;
 import com.example.backend.dto.util.AppCompatibilityResponse;
 import com.example.backend.exceptions.accepted.AppDownloadException;
 import com.example.backend.exceptions.accepted.AppUpdateException;
 import com.example.backend.exceptions.notfound.AppNotFoundException;
 import com.example.backend.exceptions.prerequisites.AppUpToDateException;
-import com.example.backend.exceptions.prerequisites.InvalidApplicationConfigException;
 import com.example.backend.mappers.AppMapper;
 import com.example.backend.model.auth.User;
 import com.example.backend.model.data.app.App;
 import com.example.backend.model.data.app.AppFile;
 import com.example.backend.model.data.app.AppRequirements;
 import com.example.backend.model.data.app.AppVersion;
-import com.example.backend.model.data.finances.Invoice;
 import com.example.backend.model.data.finances.Purchase;
-import com.example.backend.model.data.subscriptions.Subscription;
-import com.example.backend.model.data.subscriptions.UserSubscription;
-import com.example.backend.model.data.subscriptions.UserSubscriptionId;
 import com.example.backend.repositories.auth.UserRepository;
 import com.example.backend.repositories.data.app.AppFileRepository;
 import com.example.backend.repositories.data.app.AppRepository;
 import com.example.backend.repositories.data.app.AppRequirementsRepository;
 import com.example.backend.repositories.data.app.AppVersionRepository;
 import com.example.backend.repositories.data.finances.PurchaseRepository;
-import com.example.backend.repositories.data.subscription.SubscriptionRepository;
-import com.example.backend.repositories.data.subscription.UserSubscriptionRepository;
 import com.example.backend.services.auth.UserService;
 import com.example.backend.services.util.FileUtils;
 import com.example.backend.services.util.MinioService;
 import lombok.RequiredArgsConstructor;
-import org.apache.catalina.Store;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -108,7 +100,6 @@ public class AppService {
         return getAppById(appId).getName();
     }
 
-    @Transactional
     public UUID createApp(AppCreateRequest appCreateRequest) {
         TransactionStatus transaction = transactionManager.getTransaction(definition);
         MultipartFile file = appCreateRequest.getFile();
@@ -190,11 +181,11 @@ public class AppService {
                 app.getLatestVersion().getVersion() : purchase.getDownloadedVersion();
     }
 
-    public byte[] downloadAppFile(UUID appId, UUID cardId, Optional<SubscriptionRequestDto> requestDto, boolean forceUpdate) {
+    public byte[] downloadAppFile(UUID appId, UUID cardId, boolean forceUpdate) {
         TransactionStatus transaction = transactionManager.getTransaction(definition);
         App app = getAppById(appId);
         User currentUser = userService.getCurrentUser();
-        Purchase purchase = purchaseService.processPurchase(appId, cardId, requestDto);
+        Purchase purchase = purchaseService.processPurchase(appId, cardId);
         if (app.getUsersWhoDownloaded().contains(purchase.getUser()) &&
                 !forceUpdate && !isNewerThan(purchase.getApp())) {
             transactionManager.rollback(transaction);

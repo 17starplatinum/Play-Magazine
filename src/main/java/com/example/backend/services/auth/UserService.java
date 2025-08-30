@@ -19,7 +19,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.util.List;
@@ -46,9 +45,8 @@ public class UserService implements UserDetailsService {
      *
      * @return сохраненный пользователь
      */
-    @Transactional
     public User save(User user) {
-        userFileRepositoryImpl.saveIntoFile(user);
+//        userFileRepositoryImpl.saveIntoFile(user);
         return userRepository.save(user);
     }
 
@@ -76,6 +74,7 @@ public class UserService implements UserDetailsService {
         profileRepository.save(userProfile);
 
         userProfile.setUser(user);
+        userFileRepositoryImpl.saveIntoFile(user);
     }
 
     /**
@@ -89,9 +88,8 @@ public class UserService implements UserDetailsService {
     }
 
     public User getById(UUID uuid) {
-        return userFileRepositoryImpl.findByIdFromFile(uuid)
+        return userRepository.findById(uuid)
                 .orElseThrow(() -> new UsernameNotFoundException(USER_NOT_FOUND));
-
     }
 
     /**

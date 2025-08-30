@@ -1,6 +1,5 @@
 package com.example.backend.model.data.finances;
 
-import com.example.backend.dto.data.purchase.PurchaseHistoryDto;
 import com.example.backend.model.auth.User;
 import com.example.backend.model.data.app.App;
 import jakarta.persistence.*;
