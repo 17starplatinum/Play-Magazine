@@ -12,6 +12,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.web.bind.annotation.*;
 
 import java.net.URI;
@@ -25,8 +26,12 @@ public class AuthController {
     private final UserService userService;
 
     @PostMapping("/register")
-    public ResponseEntity<JwtAuthenticationResponse> signUp(@RequestBody @Valid SignUpRequest request) {
-        return ResponseEntity.ok().body(authenticationService.signUp(request));
+    public ResponseEntity<?> signUp(@RequestBody @Valid SignUpRequest request) {
+        try {
+            return ResponseEntity.ok().body(authenticationService.signUp(request));
+        } catch (BadCredentialsException e) {
+            return ResponseEntity.badRequest().body(new ResponseDto(e.getMessage()));
+        }
     }
 
     @PostMapping("/login")

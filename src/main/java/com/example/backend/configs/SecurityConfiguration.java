@@ -59,17 +59,18 @@ public class SecurityConfiguration {
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/apps/*/reviews").authenticated()
                         .requestMatchers(HttpMethod.GET,
                                 "/api/v1/apps",
-                                "/api/v1/apps/**"
+                                "/api/v1/*/compatibility",
+                                "/api/v1/apps/*",
+                                "/api/v1/apps/*/reviews",
+                                "/api/v1/apps/*/reviews/average"
                         ).permitAll()
                         .requestMatchers(HttpMethod.PUT, "/api/v1/apps").hasAnyAuthority(
                                 Role.ADMIN.toString(),
-                                Role.DEVELOPER.toString(),
-                                Role.MODERATOR.toString()
-                        ).requestMatchers(HttpMethod.PUT, "/api/v1/apps/**").hasAnyAuthority(
+                                Role.DEVELOPER.toString()
+                        ).requestMatchers(HttpMethod.PUT, "/api/v1/apps/*").hasAnyAuthority(
                                 Role.ADMIN.toString(),
-                                Role.DEVELOPER.toString(),
-                                Role.MODERATOR.toString()
-                        ).requestMatchers(HttpMethod.DELETE, "/api/v1/apps/**").hasAnyAuthority(
+                                Role.DEVELOPER.toString()
+                        ).requestMatchers(HttpMethod.DELETE, "/api/v1/apps/*").hasAnyAuthority(
                                 Role.ADMIN.toString(),
                                 Role.DEVELOPER.toString(),
                                 Role.MODERATOR.toString()

@@ -1,5 +1,7 @@
 package com.example.backend.model.data;
 
+
+import com.example.backend.dto.data.review.ReviewInfoDto;
 import com.example.backend.model.auth.User;
 import com.example.backend.model.data.app.App;
 import com.fasterxml.jackson.annotation.JsonIgnore;

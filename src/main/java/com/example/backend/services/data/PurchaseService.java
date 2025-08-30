@@ -82,13 +82,12 @@ public class PurchaseService {
         if (card.getBalance() < app.getPrice()) {
             transactionManager.rollback(transaction);
             throw new InsufficientFundsException("Not enough money!");
-        }
+
 
         boolean alreadyPurchased = hasUserPurchasedApp(user, app);
         if(alreadyPurchased) {
             transactionManager.rollback(transaction);
             throw new AppAlreadyPurchasedException("Application has already bought");
-        }
 
         card.setBalance(card.getBalance() - price);
 
@@ -178,7 +177,7 @@ public class PurchaseService {
 
     public void validateDownloadAccess(User user, App app) {
         if (!hasUserPurchasedApp(user, app)) {
-            throw new AppNotPurchasedException("You must buy this application");
+            throw new AppNotPurchasedException("You must buy this application!");
         }
     }
 }
