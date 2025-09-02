@@ -49,10 +49,6 @@ public class SubscriptionService {
     private final PlatformTransactionManager transactionManager;
     private final DefaultTransactionDefinition definition;
 
-    public Subscription getSubscriptionById(UUID id) {
-        return subscriptionRepository.findById(id).orElseThrow(() -> new SubscriptionNotFoundException(SUBSCRIPTION_NOT_FOUND));
-    }
-
     public List<SubscriptionResponseDto> getSubscriptions(UUID appId) {
         User user = userService.getCurrentUser();
         List<Subscription> subscriptions = (appId == null)
@@ -73,6 +69,11 @@ public class SubscriptionService {
                     );
                 })
                 .toList();
+    }
+
+    public Subscription getSubscriptionById(UUID subId) {
+        return subscriptionRepository.findById(subId)
+                .orElseThrow(() -> new SubscriptionNotFoundException(SUBSCRIPTION_NOT_FOUND));
     }
 
     public List<SubscriptionResponseDto> getAppSubscriptions(UUID appId) {
@@ -109,18 +110,16 @@ public class SubscriptionService {
     public UserSubscription buySubscription(SubscriptionRequestDto subscriptionRequestDto) {
         User user = userService.getCurrentUser();
         Card card = cardService.getCardByIdAndUser(subscriptionRequestDto.getCardId(), user);
+        Subscription subscription = getSubscriptionById(subscriptionRequestDto.getId());
+        Invoice invoice = invoiceRepository.save(Invoice.builder().amount(subscription.getPrice()).build());
 
-        Invoice invoice = invoiceRepository.save(Invoice.builder().amount(subscriptionRequestDto.getFee()).build());
-
-        Subscription subscription = subscriptionRepository.findById(subscriptionRequestDto.getId())
-                .orElseThrow(() -> new SubscriptionNotFoundException(SUBSCRIPTION_NOT_FOUND));
         UserSubscription userSubscription = UserSubscription.builder()
                 .id(new UserSubscriptionId(user.getId(), subscriptionRequestDto.getId()))
                 .user(user)
                 .card(card)
                 .startDate(LocalDate.now())
                 .invoice(invoice)
-                .endDate(LocalDate.now().plusDays(subscriptionRequestDto.getDays()))
+                .endDate(LocalDate.now().plusDays(subscription.getDays()))
                 .active(true)
                 .subscription(subscription)
                 .build();

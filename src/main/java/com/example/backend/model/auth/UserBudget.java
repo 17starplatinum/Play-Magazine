@@ -8,10 +8,7 @@ import jakarta.validation.constraints.DecimalMin;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.io.Serial;
@@ -21,7 +18,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "user_budgets")
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor

@@ -12,7 +12,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "purchases")
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor

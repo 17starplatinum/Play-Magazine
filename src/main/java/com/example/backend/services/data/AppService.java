@@ -22,10 +22,16 @@ import com.example.backend.repositories.data.finances.PurchaseRepository;
 import com.example.backend.services.auth.UserService;
 import com.example.backend.services.util.FileUtils;
 import com.example.backend.services.util.MinioService;
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.TransactionDefinition;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 import org.springframework.web.multipart.MultipartFile;
@@ -33,10 +39,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Objects;
-import java.util.UUID;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -54,8 +57,10 @@ public class AppService {
     private final AppVersionRepository appVersionRepository;
     private final PlatformTransactionManager transactionManager;
     private final DefaultTransactionDefinition definition;
-
+    @PersistenceContext
+    private final EntityManager em;
     static final String APP_NOT_FOUND_MESSAGE = "Application not found!";
+    private final Logger logger = LogManager.getLogger();
     public AppDownloadResponse prepareAppDownload(UUID appId) {
         App app = getAppById(appId);
         boolean updateAvailable = isNewerThan(app);
@@ -94,10 +99,6 @@ public class AppService {
     public App getAppById(UUID appId) {
         return appRepository.findById(appId)
                 .orElseThrow(() -> new AppNotFoundException(APP_NOT_FOUND_MESSAGE));
-    }
-
-    public String getAppNameById(UUID appId) {
-        return getAppById(appId).getName();
     }
 
     public UUID createApp(AppCreateRequest appCreateRequest) {
@@ -213,18 +214,78 @@ public class AppService {
     }
 
     public void deleteApp(UUID appId) {
-        TransactionStatus transaction = transactionManager.getTransaction(definition);
-        User user = userService.getCurrentUser();
-        App app = getAppById(appId);
-        if (!app.getAuthor().getEmail().equals(user.getUsername())) {
-            transactionManager.rollback(transaction);
-            throw new AccessDeniedException("Suddenly, you aren`t the owner of this application");
+        DefaultTransactionDefinition def = new DefaultTransactionDefinition();
+        def.setPropagationBehavior(TransactionDefinition.PROPAGATION_REQUIRED);
+        def.setReadOnly(false);
+
+        TransactionStatus tx = transactionManager.getTransaction(def);
+        String filePath = null;
+        try {
+            User current = userService.getCurrentUser();
+
+            if (current == null) {
+                throw new AccessDeniedException("No current user");
+            }
+            User managedCurrent = em.find(User.class, current.getId());
+            if (managedCurrent == null) {
+                throw new EntityNotFoundException("Current user not found in DB");
+            }
+
+            App app = em.createQuery(
+                                "SELECT a FROM App a LEFT JOIN FETCH a.usersWhoDownloaded WHERE a.id = :id", App.class)
+                        .setParameter("id", appId)
+                        .getResultStream().findFirst().orElseThrow(() -> new EntityNotFoundException("App not found: " + appId));
+
+            if (!app.getAuthor().getEmail().equals(managedCurrent.getUsername())) {
+                throw new AccessDeniedException("Not owner");
+            }
+
+            if (app.getAppFile() != null) {
+                filePath = app.getAppFile().getFilePath();
+            }
+
+            Iterator<User> it = app.getUsersWhoDownloaded().iterator();
+
+            while (it.hasNext()) {
+                User u = it.next();
+                it.remove();
+                User mu = em.contains(u) ? u : em.find(User.class, u.getId());
+                if (mu == null) {
+                    logger.warn("User not found for id={}", u == null ? "null" : u.getId());
+                } else {
+                    boolean removed = mu.getDownloadedApps().removeIf(a -> a.getId().equals(appId));
+                    logger.debug("Removed from owning side for user {} ? {}", mu.getId(), removed);
+                }
+            }
+            em.flush();
+
+            if (!em.contains(app)) {
+                app = em.merge(app);
+            }
+            em.remove(app);
+            em.flush();
+            transactionManager.commit(tx);
+
+            if (filePath != null) {
+                try {
+                    minioService.deleteFile(filePath);
+                    logger.info("Minio file deleted {}", filePath);
+                } catch (Exception e) {
+                    logger.error("Failed to delete file in MinIO (post-commit) {}", filePath, e);
+                }
+            }
+        } catch (Exception ex) {
+            logger.error("deleteApp FAILED for appId={}. About to rollback. Exception: ", appId, ex);
+            try {
+                if (!tx.isCompleted()) {
+                    transactionManager.rollback(tx);
+                    logger.info("Transaction rolled back");
+                } else {
+                    logger.warn("Transaction already completed when catch encountered");
+                }
+            } catch (Exception rbEx) {
+                logger.error("Rollback failed", rbEx);
+            }
         }
-        app.getUsersWhoDownloaded().forEach(u -> u.removeApp(app));
-        user.getDownloadedApps().forEach(a -> a.removeUser(user));
-        appRepository.delete(app);
-        userService.save(user);
-        minioService.deleteFile(app.getAppFile().getFilePath());
-        transactionManager.commit(transaction);
     }
 }

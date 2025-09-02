@@ -13,7 +13,8 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class UserVerificationService {
+public class
+UserVerificationService {
 
     private final UserVerificationRepository userVerificationRepository;
     private final EmailService emailService;

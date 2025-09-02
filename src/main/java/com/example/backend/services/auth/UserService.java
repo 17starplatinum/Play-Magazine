@@ -2,6 +2,7 @@ package com.example.backend.services.auth;
 
 import com.example.backend.dto.auth.RoleChangeRequestDto;
 import com.example.backend.dto.auth.SignUpRequest;
+import com.example.backend.dto.auth.StatusResponse;
 import com.example.backend.dto.auth.rolestatus.AdminRequestStatusHandler;
 import com.example.backend.model.auth.*;
 import com.example.backend.repositories.auth.UserBudgetRepository;
@@ -143,7 +144,7 @@ public class UserService implements UserDetailsService {
         return userRepository.findByRequestStatus(RequestStatus.valueOf(requestStatus)).stream().map(this::convertToRoleRequestDto).toList();
     }
 
-    public String getAdminRequestStatus() {
+    public StatusResponse getAdminRequestStatus() {
         TransactionStatus transaction = transactionManager.getTransaction(definition);
         User user = getCurrentUser();
         String userRequestStatus = user.getRequestStatus().name();
@@ -153,12 +154,14 @@ public class UserService implements UserDetailsService {
             throw new IllegalStateException("Обработчик для статуса '" + user.getRequestStatus().toString() + "' не найден");
         }
         transactionManager.commit(transaction);
-        return adminRequestStatusHandler.getStatusMessage();
+        return StatusResponse.builder()
+                .requestStatus(userRequestStatus)
+                .role(String.valueOf(user.getRole()))
+                .build();
     }
 
     private RoleChangeRequestDto convertToRoleRequestDto(User user) {
         return RoleChangeRequestDto.builder()
-                .userId(user.getId())
                 .email(user.getUsername())
                 .role(user.getRole().toString())
                 .requestStatus(user.getRequestStatus().toString())

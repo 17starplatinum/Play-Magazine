@@ -54,28 +54,6 @@ public class AppController {
         return ResponseEntity.ok(appService.prepareAppDownload(appId));
     }
 
-    @GetMapping("/{appId}/reviews")
-    public ResponseEntity<ReviewResponseDto> getReviews(@PathVariable UUID appId) {
-        App app = appService.getAppById(appId);
-        return ResponseEntity.ok(
-                new ReviewResponseDto(
-                        app.getName(),
-                        reviewService.getAverageRating(appId),
-                        reviewService.getAppReviews(appId)
-                ));
-    }
-
-    @DeleteMapping("{appId}/reviews")
-    public ResponseEntity<Void> deleteReview(@PathVariable UUID appId, @RequestParam UUID reviewId) {
-        reviewService.deleteReviewById(reviewId);
-        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
-    }
-
-    @GetMapping("/{appId}/reviews/average")
-    public ResponseEntity<ResponseDto> getAverageRating(@PathVariable UUID appId) {
-        return ResponseEntity.ok().body(new ResponseDto(reviewService.getAverageRating(appId).toString()));
-    }
-
     @GetMapping("/{appId}/download")
     public ResponseEntity<byte[]> downloadApp(
             @PathVariable UUID appId,
@@ -97,6 +75,27 @@ public class AppController {
         }
     }
 
+    @GetMapping("/{appId}/reviews")
+    public ResponseEntity<ReviewResponseDto> getReviews(@PathVariable UUID appId) {
+        App app = appService.getAppById(appId);
+        return ResponseEntity.ok(
+                new ReviewResponseDto(
+                        app.getName(),
+                        reviewService.getAverageRating(appId),
+                        reviewService.getAppReviews(appId)
+                ));
+    }
+
+    @DeleteMapping("/{appId}/reviews")
+    public ResponseEntity<Void> deleteReview(@PathVariable UUID appId, @RequestParam UUID reviewId) {
+        reviewService.deleteReviewById(reviewId);
+        return ResponseEntity.status(HttpStatus.NO_CONTENT).build();
+    }
+
+    @GetMapping("/{appId}/reviews/average")
+    public ResponseEntity<ResponseDto> getAverageRating(@PathVariable UUID appId) {
+        return ResponseEntity.ok().body(new ResponseDto(reviewService.getAverageRating(appId).toString()));
+    }
 
     @PostMapping("/{appId}/reviews")
     public ResponseEntity<ResponseDto> createReview(
@@ -115,7 +114,7 @@ public class AppController {
     }
 
     @PutMapping(path = "/{appId}", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    public ResponseEntity<?> updateApp(
+    public ResponseEntity<Void> updateApp(
             @PathVariable UUID appId,
             @Valid @ModelAttribute AppUpdateDto appUpdateDto
     ) {

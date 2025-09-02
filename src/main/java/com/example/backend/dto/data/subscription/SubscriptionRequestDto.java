@@ -20,15 +20,4 @@ public class SubscriptionRequestDto {
 
     @NotNull
     private UUID cardId;
-
-    @NotNull
-    private String name;
-
-    @NotNull
-    private Double fee;
-
-    @NotNull
-    private Integer days;
-
-    private Boolean autoRenewal;
 }

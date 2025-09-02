@@ -1,6 +1,7 @@
 package com.example.backend.controllers;
 
 import com.example.backend.dto.auth.RoleChangeRequestDto;
+import com.example.backend.dto.auth.StatusResponse;
 import com.example.backend.dto.data.ResponseDto;
 import com.example.backend.model.auth.User;
 import com.example.backend.services.auth.RoleManagementService;
@@ -22,8 +23,8 @@ public class AdminController {
     private final UserService userService;
 
     @GetMapping("/admin-requests/status")
-    public ResponseEntity<ResponseDto> getAdminRequestsStatus() {
-        return ResponseEntity.ok().body(new ResponseDto(userService.getAdminRequestStatus()));
+    public ResponseEntity<StatusResponse> getAdminRequestsStatus() {
+        return ResponseEntity.ok().body(userService.getAdminRequestStatus());
     }
 
     @GetMapping("/requests/{requestStatus}")

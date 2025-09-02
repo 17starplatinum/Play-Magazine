@@ -16,7 +16,8 @@ import java.util.UUID;
 @Builder
 @Entity
 @Table(name = "subscriptions")
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 public class Subscription {
@@ -41,8 +42,9 @@ public class Subscription {
     private double price;
 
     @JsonIgnore
+    @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @Builder.Default
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    private Set<UserSubscription> subscribedUser = new HashSet<>();
+    @OneToMany(mappedBy = "subscription", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UserSubscription> userSubscriptions = new HashSet<>();
 }

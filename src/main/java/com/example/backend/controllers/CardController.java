@@ -42,7 +42,6 @@ public class CardController {
         return ResponseEntity.ok(new ResponseDto("Теперь эта карта применяется по умолчанию"));
     }
 
-
     @DeleteMapping("/{cardId}")
     public ResponseEntity<Void> deleteCard(@PathVariable UUID cardId) {
         cardService.deleteCard(cardId);

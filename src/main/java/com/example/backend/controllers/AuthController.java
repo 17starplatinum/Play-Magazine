@@ -5,7 +5,6 @@ import com.example.backend.dto.data.ResponseDto;
 import com.example.backend.model.auth.UserVerification;
 import com.example.backend.security.auth.AuthenticationService;
 import com.example.backend.services.auth.RoleManagementService;
-import com.example.backend.services.auth.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -23,7 +22,6 @@ import java.net.URI;
 public class AuthController {
     private final AuthenticationService authenticationService;
     private final RoleManagementService roleManagementService;
-    private final UserService userService;
 
     @PostMapping("/register")
     public ResponseEntity<?> signUp(@RequestBody @Valid SignUpRequest request) {

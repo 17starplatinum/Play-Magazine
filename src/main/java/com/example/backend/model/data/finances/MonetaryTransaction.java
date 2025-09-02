@@ -2,10 +2,7 @@ package com.example.backend.model.data.finances;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
@@ -14,7 +11,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "monetary_transactions")
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
