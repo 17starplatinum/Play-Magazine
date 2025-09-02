@@ -18,15 +18,15 @@ services:
       MINIO_UPDATE: off
     entrypoint: >
       /bin/sh -c '
-        isAlive() { curl -sf http://127.0.0.1:9000/minio/health/live; }    # check if Minio is alive
-        minio $0 "$@" --quiet & echo $! > /tmp/minio.pid                   # start Minio in the background
-        while ! isAlive; do sleep 0.1; done                                # wait until Minio is alive
-        mc alias set minio http://127.0.0.1:9000 minioadmin minioadmin     # setup Minio client
-        mc mb minio/apk-files || true                                      # create a test bucket
-        mc anonymous set public minio/apk-files                            # make the test bucket public
-        kill -s INT $(cat /tmp/minio.pid) && rm /tmp/minio.pid             # stop Minio
-        while isAlive; do sleep 0.1; done                                  # wait until Minio is stopped
-        exec minio $0 "$@"                                                 # start Minio in the foreground
+        isAlive() { curl -sf http://127.0.0.1:9000/minio/health/live; }
+        minio $0 "$@" --quiet & echo $! > /tmp/minio.pid
+        while ! isAlive; do sleep 0.1; done
+        mc alias set minio http://127.0.0.1:9000 minioadmin minioadmin
+        mc mb minio/apk-files || true
+        mc anonymous set public minio/apk-files
+        kill -s INT $(cat /tmp/minio.pid) && rm /tmp/minio.pid
+        while isAlive; do sleep 0.1; done
+        exec minio $0 "$@"
       '
     command: server /data --json --console-address ':9090'
     ports: [ '9000:9000/tcp', '9090:9090/tcp' ] # open http://127.0.0.1:9090 (9000 is the API port)

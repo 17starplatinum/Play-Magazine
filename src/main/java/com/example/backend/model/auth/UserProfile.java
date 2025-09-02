@@ -3,10 +3,7 @@ package com.example.backend.model.auth;
 import com.example.backend.services.util.LocalDateAdapter;
 import jakarta.persistence.*;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDate;
@@ -14,7 +11,8 @@ import java.util.UUID;
 
 @Entity
 @Table(name = "user_profiles")
-@Data
+@Getter
+@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor

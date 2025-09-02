@@ -2,6 +2,7 @@ package com.example.backend.services.auth;
 
 import com.example.backend.dto.auth.RoleChangeRequestDto;
 import com.example.backend.dto.auth.SignUpRequest;
+import com.example.backend.dto.auth.StatusResponse;
 import com.example.backend.dto.auth.rolestatus.AdminRequestStatusHandler;
 import com.example.backend.model.auth.*;
 import com.example.backend.repositories.auth.UserBudgetRepository;
@@ -19,7 +20,6 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
 import java.util.List;
@@ -46,9 +46,8 @@ public class UserService implements UserDetailsService {
      *
      * @return сохраненный пользователь
      */
-    @Transactional
     public User save(User user) {
-        userFileRepositoryImpl.saveIntoFile(user);
+//        userFileRepositoryImpl.saveIntoFile(user);
         return userRepository.save(user);
     }
 
@@ -76,6 +75,7 @@ public class UserService implements UserDetailsService {
         profileRepository.save(userProfile);
 
         userProfile.setUser(user);
+        userFileRepositoryImpl.saveIntoFile(user);
     }
 
     /**
@@ -89,9 +89,8 @@ public class UserService implements UserDetailsService {
     }
 
     public User getById(UUID uuid) {
-        return userFileRepositoryImpl.findByIdFromFile(uuid)
+        return userRepository.findById(uuid)
                 .orElseThrow(() -> new UsernameNotFoundException(USER_NOT_FOUND));
-
     }
 
     /**
@@ -145,7 +144,7 @@ public class UserService implements UserDetailsService {
         return userRepository.findByRequestStatus(RequestStatus.valueOf(requestStatus)).stream().map(this::convertToRoleRequestDto).toList();
     }
 
-    public String getAdminRequestStatus() {
+    public StatusResponse getAdminRequestStatus() {
         TransactionStatus transaction = transactionManager.getTransaction(definition);
         User user = getCurrentUser();
         String userRequestStatus = user.getRequestStatus().name();
@@ -155,12 +154,14 @@ public class UserService implements UserDetailsService {
             throw new IllegalStateException("Обработчик для статуса '" + user.getRequestStatus().toString() + "' не найден");
         }
         transactionManager.commit(transaction);
-        return adminRequestStatusHandler.getStatusMessage();
+        return StatusResponse.builder()
+                .requestStatus(userRequestStatus)
+                .role(String.valueOf(user.getRole()))
+                .build();
     }
 
     private RoleChangeRequestDto convertToRoleRequestDto(User user) {
         return RoleChangeRequestDto.builder()
-                .userId(user.getId())
                 .email(user.getUsername())
                 .role(user.getRole().toString())
                 .requestStatus(user.getRequestStatus().toString())

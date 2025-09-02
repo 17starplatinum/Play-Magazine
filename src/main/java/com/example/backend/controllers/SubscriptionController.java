@@ -6,7 +6,6 @@ import com.example.backend.dto.data.subscription.SubscriptionMessageDto;
 import com.example.backend.dto.data.subscription.SubscriptionRequestDto;
 import com.example.backend.dto.data.subscription.SubscriptionResponseDto;
 import com.example.backend.model.auth.User;
-import com.example.backend.model.data.subscriptions.Subscription;
 import com.example.backend.services.auth.UserService;
 import com.example.backend.services.data.PurchaseService;
 import com.example.backend.services.data.SubscriptionService;

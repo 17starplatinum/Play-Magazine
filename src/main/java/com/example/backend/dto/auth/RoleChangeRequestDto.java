@@ -6,13 +6,10 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
 
-import java.util.UUID;
-
 @Data
 @Builder
 public class RoleChangeRequestDto {
-    private UUID userId;
-
+    @NotNull
     private String email;
 
     @NotNull

@@ -2,11 +2,9 @@ package com.example.backend.controllers;
 
 import com.example.backend.dto.auth.*;
 import com.example.backend.dto.data.ResponseDto;
-import com.example.backend.model.auth.User;
 import com.example.backend.model.auth.UserVerification;
 import com.example.backend.security.auth.AuthenticationService;
 import com.example.backend.services.auth.RoleManagementService;
-import com.example.backend.services.auth.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;
@@ -24,7 +22,6 @@ import java.net.URI;
 public class AuthController {
     private final AuthenticationService authenticationService;
     private final RoleManagementService roleManagementService;
-    private final UserService userService;
 
     @PostMapping("/register")
     public ResponseEntity<?> signUp(@RequestBody @Valid SignUpRequest request) {
@@ -62,8 +59,8 @@ public class AuthController {
     @PostMapping("/request")
     @PreAuthorize("hasRole('USER')")
     public ResponseEntity<RoleChangeResponseDto> requestAuthorRole(@RequestParam String requestedRole) {
-        User currentUser = userService.getCurrentUser();
-        String response = roleManagementService.requestRole(currentUser.getId(), requestedRole);
+
+        String response = roleManagementService.requestRole(requestedRole);
         return new ResponseEntity<>(new RoleChangeResponseDto("Заявка успешно подана. " + response), HttpStatus.ACCEPTED);
     }
 

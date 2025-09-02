@@ -22,7 +22,9 @@ import java.util.*;
 
 @Entity
 @Table(name = "apps")
-@Data
+@Getter
+@Setter
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -58,6 +60,7 @@ public class App {
 
     @Builder.Default
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @OneToMany(mappedBy = "app", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Subscription> subscriptions = new ArrayList<>();
 
@@ -88,16 +91,7 @@ public class App {
     @OneToMany(mappedBy = "app", cascade = CascadeType.ALL, orphanRemoval = true)
     List<AppVersion> appVersions = new ArrayList<>();
 
-    public boolean hasSubscriptions() {
-        return !subscriptions.isEmpty();
-    }
-
     public AppVersion getLatestVersion() {
         return appVersions.get(appVersions.size() - 1);
-    }
-
-    public void removeUser(User user) {
-        this.usersWhoDownloaded.remove(user);
-        user.getDownloadedApps().remove(this);
     }
 }

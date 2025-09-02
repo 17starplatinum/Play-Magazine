@@ -42,6 +42,7 @@ public class AuthenticationService {
     public JwtAuthenticationResponse signUp(SignUpRequest request) {
 
         var user = User.builder()
+                .id(UUID.randomUUID())
                 .email(request.getEmail())
                 .password(passwordEncoder.encode(request.getPassword()))
                 .role(Role.USER)
@@ -96,10 +97,10 @@ public class AuthenticationService {
 
     @Transactional
     public void updateUserInfo(EditProfileRequest request, String token) {
-        UUID uuid = request.getId();
+        String username = request.getEmail();
         token = token.substring(7);
         String email = jwtService.extractUserName(token);
-        if (!userService.getByUsername(email).getId().equals(uuid)) {
+        if (!userService.getByUsername(email).getEmail().equals(username)) {
             throw new IllegalArgumentException("Something went wrong!");
         }
         String newName = request.getName();
@@ -107,7 +108,7 @@ public class AuthenticationService {
         String newSurname = request.getSurname();
         String newPassword = request.getNewPassword();
         String oldPassword = request.getPassword();
-        User user = userService.getById(uuid);
+        User user = userService.getByUsername(username);
         UserProfile userProfile = userProfileRepository.findByUser(user);
 
         if (newPassword != null && oldPassword != null) {

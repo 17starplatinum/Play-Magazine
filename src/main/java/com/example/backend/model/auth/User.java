@@ -9,9 +9,9 @@ import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 import jakarta.xml.bind.annotation.XmlRootElement;
 import lombok.*;
-import org.hibernate.annotations.UuidGenerator;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -19,17 +19,23 @@ import org.springframework.security.core.userdetails.UserDetails;
 import java.util.*;
 
 @Entity
+@Getter
+@Setter
 @Table(name = "users")
-@Data
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @XmlRootElement(name = "user")
 @XmlAccessorType(XmlAccessType.FIELD)
 public class User implements UserDetails {
     @Id
-    @UuidGenerator
+    @EqualsAndHashCode.Include
+    @XmlElement(name = "id")
     private UUID id;
+
+    @Version
+    private int version;
 
     @Column(length = 64, nullable = false)
     private String password;
@@ -58,6 +64,7 @@ public class User implements UserDetails {
 
     @JsonBackReference
     @ToString.Exclude
+    @EqualsAndHashCode.Exclude
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JsonIgnore
     @Builder.Default
@@ -68,16 +75,13 @@ public class User implements UserDetails {
     )
     private Set<App> downloadedApps = new HashSet<>();
 
+    @JsonBackReference
     @JsonIgnore
+    @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @Builder.Default
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<UserSubscription> userSubscriptions = new HashSet<>();
-
-    public void removeApp(App app) {
-        this.downloadedApps.remove(app);
-        app.getUsersWhoDownloaded().remove(this);
-    }
 
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
