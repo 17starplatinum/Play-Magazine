@@ -38,5 +38,28 @@ services:
       start_period: 10s
     security_opt: [ no-new-privileges:true ]
 
+  rabbitmq:
+    image: rabbitmq:3-management
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+      - "1883:1883"
+    environment:
+      RABBITMQ_PLUGINS: "rabbitmq_mqtt rabbitmq_jms_topic_exchange"
+    volumes:
+      - rabbitmq-data:/var/lib/rabbitmq
+
+  artemis:
+    image: vromero/activemq-artemis:2.16.0
+    ports:
+      - "61616:61616"
+      - "8161:8161"
+    environment:
+      ARTEMIS_USER: admin
+      ARTEMIS_PASSWORD: admin
+    volumes:
+      - artemis-data:/var/lib/artemis/data
 volumes:
-  minio-data: { }
+  minio-data:
+  rabbitmq-data:
+  artemis-data:
