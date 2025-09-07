@@ -36,7 +36,7 @@ public class UserService implements UserDetailsService {
     private final UserProfileRepository profileRepository;
     private final JwtService jwtService;
     private final Map<String, AdminRequestStatusHandler> statusHandlerMap;
-    private final UserFileRepositoryImpl userFileRepositoryImpl;
+    // private final UserFileRepositoryImpl userFileRepositoryImpl;
     private final PlatformTransactionManager transactionManager;
     private final DefaultTransactionDefinition definition;
     @Resource
@@ -75,7 +75,8 @@ public class UserService implements UserDetailsService {
         profileRepository.save(userProfile);
 
         userProfile.setUser(user);
-        userFileRepositoryImpl.saveIntoFile(user);
+        userRepository.save(user);
+        // userFileRepositoryImpl.saveIntoFile(user);
     }
 
     /**
@@ -185,7 +186,7 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return userFileRepositoryImpl.findByUsernameFromFile(email).orElseThrow(() ->
+        return userRepository.findByEmail(email).orElseThrow(() ->
             new UsernameNotFoundException("Пользователь не найден!")
         );
     }

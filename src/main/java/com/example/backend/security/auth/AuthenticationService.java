@@ -31,7 +31,7 @@ public class AuthenticationService {
     private final AuthenticationManager authenticationManager;
     private final UserProfileRepository userProfileRepository;
     private final UserRepository userRepository;
-    private final UserFileRepositoryImpl userFileRepositoryImpl;
+    // private final UserFileRepositoryImpl userFileRepositoryImpl;
 
     /**
      * Регистрация пользователя
