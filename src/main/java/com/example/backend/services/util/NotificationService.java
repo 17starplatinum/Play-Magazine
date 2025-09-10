@@ -1,46 +1,31 @@
 package com.example.backend.services.util;
 
+import com.example.backend.dto.EmailMessageDto;
 import com.example.backend.exceptions.accepted.EmailSendingException;
 import com.example.backend.model.auth.User;
 import com.example.backend.model.data.subscriptions.Subscription;
 import com.example.backend.repositories.auth.UserRepository;
-import jakarta.mail.MessagingException;
-import jakarta.mail.internet.MimeMessage;
+import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.core.env.Environment;
-import org.springframework.mail.javamail.JavaMailSender;
-import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.amqp.rabbit.connection.CachingConnectionFactory;
+import org.springframework.amqp.rabbit.connection.ConnectionFactory;
+import org.springframework.amqp.rabbit.core.RabbitTemplate;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import java.util.Objects;
 
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class NotificationService {
-    private final JavaMailSender mailSender;
+
+    private final RabbitTemplate rabbitTemplate;
     private final UserRepository userRepository;
-    private final Environment env;
 
-    private void sendEmail(String to, String subject, String text) {
-        try {
-            MimeMessage message = mailSender.createMimeMessage();
-            MimeMessageHelper messageHelper = new MimeMessageHelper(message, true, "UTF-8");
+    @Value("${spring.jms.template.default-destination}")
+    private String emailQueue;
 
-            messageHelper.setFrom(Objects.requireNonNull(env.getProperty("spring.mail.username")));
-            messageHelper.setTo(to);
-            messageHelper.setSubject(subject);
-            messageHelper.setText(text, true);
-
-            mailSender.send(message);
-            log.info("Письмо отправлено {}-у", to);
-
-        } catch (MessagingException e) {
-            log.error("Ошибка при отправке письма {}-у: {}", to, e.getMessage());
-            throw new EmailSendingException("Ошибка при отправке письма:", e);
-        }
-    }
 
     public void notifyUserAboutAuthorRequestApproval(User user, String approvedBy, String role) {
         String message = switch (role) {
@@ -78,7 +63,7 @@ public class NotificationService {
                 </html>
                 """.formatted(user.getUsername(), approvedBy, message);
 
-        sendEmail(user.getEmail(), subject, content);
+        sendEmailAsync(user.getEmail(), subject, content);
     }
 
     public void notifyUserAboutAuthorRequestRejection(User user, String rejectedBy, String reason, String role) {
@@ -95,7 +80,7 @@ public class NotificationService {
                 </html>
                 """.formatted(user.getUsername(), role, rejectedBy, reason);
 
-        sendEmail(user.getEmail(), subject, content);
+        sendEmailAsync(user.getEmail(), subject, content);
     }
 
     public void notifyAdminsAboutNewAuthorRequest(User user) {
@@ -109,12 +94,9 @@ public class NotificationService {
                         <p>Пользователь %s (%s) подал заявку на получение статуса автора.</p>
                     </body>
                 </html>
-                """.formatted(
-                user.getUsername(),
-                user.getEmail()
-        );
+                """.formatted(user.getUsername(), user.getEmail());
 
-        sendEmail(adminEmails, subject, content);
+        sendEmailAsync(adminEmails, subject, content);
     }
 
     public void notifyUserAboutSubscriptionCancellation(User user, Subscription subscription) {
@@ -127,12 +109,13 @@ public class NotificationService {
                      <p>С уважением,<br>Команда PlayMagazine</p>
                      </body>
                  </html>
-                """.formatted(user.getUsername(), subscription.getName() , subscription.getApp().getName());
-        sendEmail(user.getEmail(), subject, content);
+                """.formatted(user.getUsername(), subscription.getName(), subscription.getApp().getName());
+
+        sendEmailAsync(user.getEmail(), subject, content);
     }
 
     public void notifyUserAboutSubscriptionAutoRenewal(User user, Subscription subscription, boolean state) {
-        String subject = "Отмена автопродления подписки";
+        String subject = "Изменение автопродления подписки";
         String action = (state) ? "подключили" : "отключили";
         String content = """
                 <html>
@@ -143,6 +126,34 @@ public class NotificationService {
                     </body>
                 </html>
                 """.formatted(user.getUsername(), action, subscription.getName(), subscription.getApp().getName());
-        sendEmail(user.getEmail(), subject, content);
+
+        sendEmailAsync(user.getEmail(), subject, content);
+    }
+
+    @PostConstruct
+    public void init() {
+        ConnectionFactory connectionFactory = rabbitTemplate.getConnectionFactory();
+        if (connectionFactory instanceof CachingConnectionFactory) {
+            CachingConnectionFactory ccf = (CachingConnectionFactory) connectionFactory;
+            System.out.println("🔗 RabbitMQ Host: " + ccf.getHost());
+            System.out.println("🔗 RabbitMQ Port: " + ccf.getPort());
+            System.out.println("🔗 RabbitMQ Username: " + ccf.getUsername());
+        }
+    }
+
+    private void sendEmailAsync(String to, String subject, String text) {
+        try {
+            EmailMessageDto message = new EmailMessageDto();
+            message.setTo(to);
+            message.setSubject(subject);
+            message.setText(text);
+
+            rabbitTemplate.convertAndSend(emailQueue, message);
+
+            log.info("📩 Сообщение поставлено в очередь для отправки на {}", to);
+        } catch (Exception e) {
+            log.error("Ошибка при постановке сообщения в очередь для {}: {}", to, e.getMessage());
+            throw new EmailSendingException("Не удалось поставить email в очередь", e);
+        }
     }
 }
