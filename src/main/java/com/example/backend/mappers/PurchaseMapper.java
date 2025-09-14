@@ -1,18 +1,18 @@
 package com.example.backend.mappers;
 
-import com.example.backend.model.auth.User;
 import com.example.backend.model.data.app.App;
 import com.example.backend.model.data.finances.*;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Component
 public class PurchaseMapper {
-    public Purchase mapToModel(PurchaseType purchaseType, App app, MonetaryTransaction transaction, User user) {
+    public Purchase mapToModel(PurchaseType purchaseType, App app, MonetaryTransaction transaction, UUID userId) {
         return Purchase.builder()
                 .app(app)
-                .user(user)
+                .userId(userId)
                 .purchaseType(purchaseType)
                 .transaction(transaction)
                 .downloadedVersion(app.getLatestVersion().getVersion())

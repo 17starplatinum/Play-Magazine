@@ -5,10 +5,9 @@ import com.example.backend.dto.auth.SignUpRequest;
 import com.example.backend.dto.auth.StatusResponse;
 import com.example.backend.dto.auth.rolestatus.AdminRequestStatusHandler;
 import com.example.backend.model.auth.*;
-import com.example.backend.repositories.auth.UserBudgetRepository;
-import com.example.backend.repositories.auth.UserFileRepositoryImpl;
-import com.example.backend.repositories.auth.UserProfileRepository;
-import com.example.backend.repositories.auth.UserRepository;
+import com.example.backend.repositories.auth.file.FileBasedUserBudgetRepository;
+import com.example.backend.repositories.auth.file.FileBasedUserProfileRepository;
+import com.example.backend.repositories.auth.file.FileBasedUserRepository;
 import com.example.backend.security.jwt.JwtService;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
@@ -31,23 +30,22 @@ import java.util.UUID;
 public class UserService implements UserDetailsService {
     private static final String USER_NOT_FOUND = "Пользователь не найден";
 
-    private final UserRepository userRepository;
-    private final UserBudgetRepository budgetRepository;
-    private final UserProfileRepository profileRepository;
+    private final FileBasedUserBudgetRepository budgetRepository;
+    private final FileBasedUserProfileRepository profileRepository;
     private final JwtService jwtService;
     private final Map<String, AdminRequestStatusHandler> statusHandlerMap;
-    private final UserFileRepositoryImpl userFileRepositoryImpl;
+    private final FileBasedUserRepository userRepository;
     private final PlatformTransactionManager transactionManager;
     private final DefaultTransactionDefinition definition;
     @Resource
     private UserService userServiceResource;
+
     /**
      * Сохранение пользователя
      *
      * @return сохраненный пользователь
      */
     public User save(User user) {
-//        userFileRepositoryImpl.saveIntoFile(user);
         return userRepository.save(user);
     }
 
@@ -56,26 +54,29 @@ public class UserService implements UserDetailsService {
      * Создание пользователя
      */
     public void create(User user, SignUpRequest signUpRequest) {
+        TransactionStatus transaction = transactionManager.getTransaction(definition);
         if (userRepository.existsByEmail(user.getEmail())) {
+            transactionManager.rollback(transaction);
             throw new BadCredentialsException("User with this email already existed!");
         }
         UserBudget userBudget = UserBudget.builder()
+                .id(UUID.randomUUID())
                 .spendingLimit(null)
                 .currentSpending(0D)
                 .build();
-        budgetRepository.save(userBudget);
-        user.setUserBudget(userBudget);
-        userServiceResource.save(user);
+        userBudget = budgetRepository.save(userBudget);
+        user.setUserBudgetId(userBudget.getId());
 
         UserProfile userProfile = UserProfile.builder()
-                .user(user)
+                .id(UUID.randomUUID())
                 .name(signUpRequest.getName())
                 .surname(signUpRequest.getSurname())
                 .build();
-        profileRepository.save(userProfile);
+        userProfile = profileRepository.save(userProfile);
+        user.setUserProfileId(userProfile.getId());
+        userServiceResource.save(user);
 
-        userProfile.setUser(user);
-        userFileRepositoryImpl.saveIntoFile(user);
+        transactionManager.commit(transaction);
     }
 
     /**
@@ -185,8 +186,8 @@ public class UserService implements UserDetailsService {
 
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
-        return userFileRepositoryImpl.findByUsernameFromFile(email).orElseThrow(() ->
-            new UsernameNotFoundException("Пользователь не найден!")
+        return userRepository.findByEmail(email).orElseThrow(() ->
+                new UsernameNotFoundException("Пользователь не найден!")
         );
     }
 }

@@ -3,7 +3,7 @@ package com.example.backend.services.util;
 import com.example.backend.exceptions.accepted.EmailSendingException;
 import com.example.backend.model.auth.User;
 import com.example.backend.model.data.subscriptions.Subscription;
-import com.example.backend.repositories.auth.UserRepository;
+import com.example.backend.repositories.auth.file.FileBasedUserRepository;
 import jakarta.mail.MessagingException;
 import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
@@ -20,7 +20,7 @@ import java.util.Objects;
 @RequiredArgsConstructor
 public class NotificationService {
     private final JavaMailSender mailSender;
-    private final UserRepository userRepository;
+    private final FileBasedUserRepository userRepository;
     private final Environment env;
 
     private void sendEmail(String to, String subject, String text) {

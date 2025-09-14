@@ -2,7 +2,7 @@ package com.example.backend.mappers;
 
 import com.example.backend.dto.data.subscription.SubscriptionResponseDto;
 import com.example.backend.model.data.subscriptions.Subscription;
-import com.example.backend.model.data.subscriptions.UserSubscription;
+import com.example.pmweb.model.data.subscriptions.UserSubscription;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDate;

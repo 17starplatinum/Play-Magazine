@@ -1,11 +1,9 @@
 package com.example.backend.model.data.app;
 
-import com.example.backend.model.auth.User;
 import com.example.backend.model.data.Review;
 import com.example.backend.model.data.finances.Purchase;
 import com.example.backend.model.data.subscriptions.Subscription;
 import com.example.backend.services.util.LocalDateAdapter;
-import com.fasterxml.jackson.annotation.JsonBackReference;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -24,7 +22,6 @@ import java.util.*;
 @Table(name = "apps")
 @Getter
 @Setter
-@EqualsAndHashCode(onlyExplicitlyIncluded = true)
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
@@ -50,10 +47,8 @@ public class App {
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
     private LocalDate releaseDate;
 
-    @ManyToOne
-    @ToString.Exclude
-    @JoinColumn(name = "author_id", nullable = false)
-    private User author;
+    @Column(name = "author_id", nullable = false)
+    private UUID authorId;
 
     @OneToMany(mappedBy = "app", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Purchase> purchases;
@@ -79,11 +74,11 @@ public class App {
     private AppRequirements appRequirements;
 
     @JsonIgnore
+    @EqualsAndHashCode.Exclude
     @ToString.Exclude
     @Builder.Default
-    @JsonBackReference
-    @ManyToMany(mappedBy = "downloadedApps")
-    private Set<User> usersWhoDownloaded = new HashSet<>();
+    @OneToMany(mappedBy = "app", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<UserAppDownload> userAppDownloads = new HashSet<>();
 
     @JsonIgnore
     @Builder.Default

@@ -5,9 +5,8 @@ import com.example.backend.model.auth.Role;
 import com.example.backend.model.auth.User;
 import com.example.backend.model.auth.UserProfile;
 import com.example.backend.model.auth.UserVerification;
-import com.example.backend.repositories.auth.UserFileRepositoryImpl;
-import com.example.backend.repositories.auth.UserProfileRepository;
-import com.example.backend.repositories.auth.UserRepository;
+import com.example.backend.repositories.auth.file.FileBasedUserProfileRepository;
+import com.example.backend.repositories.auth.file.FileBasedUserRepository;
 import com.example.backend.security.jwt.JwtService;
 import com.example.backend.services.auth.UserService;
 import com.example.backend.services.auth.UserVerificationService;
@@ -29,9 +28,8 @@ public class AuthenticationService {
     private final JwtService jwtService;
     private final PasswordEncoder passwordEncoder;
     private final AuthenticationManager authenticationManager;
-    private final UserProfileRepository userProfileRepository;
-    private final UserRepository userRepository;
-    private final UserFileRepositoryImpl userFileRepositoryImpl;
+    private final FileBasedUserProfileRepository userProfileRepository;
+    private final FileBasedUserRepository userRepository;
 
     /**
      * Регистрация пользователя
@@ -109,7 +107,7 @@ public class AuthenticationService {
         String newPassword = request.getNewPassword();
         String oldPassword = request.getPassword();
         User user = userService.getByUsername(username);
-        UserProfile userProfile = userProfileRepository.findByUser(user);
+        UserProfile userProfile = userProfileRepository.findById(user.getUserProfileId());
 
         if (newPassword != null && oldPassword != null) {
             if (!passwordEncoder.matches(oldPassword, user.getPassword()))
@@ -122,14 +120,13 @@ public class AuthenticationService {
         if (newName != null) userProfile.setName(newName);
         if (newBirthday != null) userProfile.setBirthday(newBirthday);
 
-
         userProfileRepository.save(userProfile);
     }
 
     public UserInfoResponse getUserInfoByJwtToken(String token) {
         String email = jwtService.extractUserName(token);
         User user = userService.getByUsername(email);
-        UserProfile userProfile = userProfileRepository.findByUser(user);
+        UserProfile userProfile = userProfileRepository.findById(user.getUserProfileId());
 
         return UserInfoResponse.builder()
                 .id(user.getId())

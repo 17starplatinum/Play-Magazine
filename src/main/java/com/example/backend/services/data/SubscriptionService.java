@@ -52,15 +52,15 @@ public class SubscriptionService {
     public List<SubscriptionResponseDto> getSubscriptions(UUID appId) {
         User user = userService.getCurrentUser();
         List<Subscription> subscriptions = (appId == null)
-                ? userSubscriptionRepository.findByUserId(user.getId())
+                ? userSubscriptionRepository.findSubscriptionsByUserId(user.getId())
                 : appRepository.findById(appId)
-                .map(app -> userSubscriptionRepository.findByUserAndApp(user.getId(), app.getId()))
+                .map(app -> userSubscriptionRepository.findSubscriptionsByUserAndApp(user.getId(), app.getId()))
                 .orElseThrow(() -> new AppNotFoundException(APP_NOT_FOUND_MESSAGE));
 
         return subscriptions.stream()
                 .map(subscription -> {
                     UserSubscription userSubscription = userSubscriptionRepository
-                            .findBySubscriptionId(subscription.getId());
+                            .findUserSubscriptionBySubscriptionId(subscription.getId());
                     return subscriptionMapper.mapToDtoPartial(
                             subscription,
                             userSubscription.getStartDate(),
@@ -99,7 +99,7 @@ public class SubscriptionService {
     public SubscriptionResponseDto getSubscriptionInfo(UUID id) {
         Subscription subscription = subscriptionRepository
                 .findById(id).orElseThrow(() -> new SubscriptionNotFoundException(SUBSCRIPTION_NOT_FOUND));
-        UserSubscription userSubscription = userSubscriptionRepository.findBySubscriptionId(subscription.getId());
+        UserSubscription userSubscription = userSubscriptionRepository.findUserSubscriptionBySubscriptionId(subscription.getId());
 
         LocalDate startDate = userSubscription.getStartDate();
         LocalDate endDate = userSubscription.getEndDate();
@@ -108,14 +108,13 @@ public class SubscriptionService {
     }
 
     public UserSubscription buySubscription(SubscriptionRequestDto subscriptionRequestDto) {
-        User user = userService.getCurrentUser();
-        Card card = cardService.getCardByIdAndUser(subscriptionRequestDto.getCardId(), user);
+        UUID userId = userService.getCurrentUserId();
+        Card card = cardService.getCardByIdAndUser(subscriptionRequestDto.getCardId(), userId);
         Subscription subscription = getSubscriptionById(subscriptionRequestDto.getId());
         Invoice invoice = invoiceRepository.save(Invoice.builder().amount(subscription.getPrice()).build());
 
         UserSubscription userSubscription = UserSubscription.builder()
-                .id(new UserSubscriptionId(user.getId(), subscriptionRequestDto.getId()))
-                .user(user)
+                .id(new UserSubscriptionId(userId, subscriptionRequestDto.getId()))
                 .card(card)
                 .startDate(LocalDate.now())
                 .invoice(invoice)
@@ -131,10 +130,10 @@ public class SubscriptionService {
         User user = userService.getCurrentUser();
 
         Subscription subscription = userSubscriptionRepository
-                .findByIdAndUser(subscriptionId, user.getId())
+                .findSubscriptionByIdAndUser(subscriptionId, user.getId())
                 .orElseThrow(() -> new SubscriptionNotFoundException("You haven't gotten this subscription yet"));
 
-        UserSubscription userSubscription = userSubscriptionRepository.findBySubscriptionId(subscriptionId);
+        UserSubscription userSubscription = userSubscriptionRepository.findUserSubscriptionBySubscriptionId(subscriptionId);
 
         userSubscription.setActive(false);
         userSubscription.setAutoRenewal(false);
@@ -147,10 +146,10 @@ public class SubscriptionService {
         User user = userService.getCurrentUser();
 
         Subscription subscription = userSubscriptionRepository
-                .findByIdAndUser(subscriptionId, user.getId())
+                .findSubscriptionByIdAndUser(subscriptionId, user.getId())
                 .orElseThrow(() -> new SubscriptionNotFoundException("You haven't gotten this subscription yet"));
 
-        UserSubscription userSubscription = userSubscriptionRepository.findBySubscriptionId(subscriptionId);
+        UserSubscription userSubscription = userSubscriptionRepository.findUserSubscriptionBySubscriptionId(subscriptionId);
         boolean inverseAutoRenewal = !userSubscription.getAutoRenewal();
         userSubscription.setAutoRenewal(inverseAutoRenewal);
         userSubscriptionRepository.save(userSubscription);
@@ -162,7 +161,7 @@ public class SubscriptionService {
         User user = userService.getCurrentUser();
         Subscription subscription = subscriptionRepository.findById(subscriptionId)
                 .orElseThrow(() -> new SubscriptionNotFoundException(SUBSCRIPTION_NOT_FOUND));
-        if(user.getRole() == Role.DEVELOPER && subscription.getApp().getAuthor() != user) {
+        if(user.getRole() == Role.DEVELOPER && subscription.getApp().getAuthorId() != user.getId()) {
             transactionManager.rollback(transaction);
             throw new AccessDeniedException("You don't have access to this app");
         }

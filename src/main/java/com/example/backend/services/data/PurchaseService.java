@@ -58,23 +58,23 @@ public class PurchaseService {
         App app = appRepository.findById(appId)
                 .orElseThrow(() -> new AppNotFoundException("Application not found"));
 
-        User user = userService.getCurrentUser();
+        UUID userId = userService.getCurrentUserId();
 
         if (app.getPrice() == 0D) {
-            return createFreePurchase(user, app);
+            return createFreePurchase(userId, app);
         }
 
         Card card;
         if (cardId != null) {
-            card = cardService.getCardByIdAndUser(cardId, user);
+            card = cardService.getCardByIdAndUser(cardId, userId);
         } else {
             card = cardService.getCardByDefault()
                     .orElseThrow(() -> new UnsupportedOperationException("Не явно, какую карту выбрать"));
         }
-        return processOneTimePurchase(user, app, card);
+        return processOneTimePurchase(userId, app, card);
     }
 
-    private Purchase processOneTimePurchase(User user, App app, Card card) {
+    private Purchase processOneTimePurchase(UUID userId, App app, Card card) {
         TransactionStatus transaction = transactionManager.getTransaction(definition);
         Double price = app.getPrice();
         UserBudget userBudget = budgetService.getUserBudget();
@@ -85,7 +85,7 @@ public class PurchaseService {
             throw new InsufficientFundsException("Not enough money!");
         }
 
-        boolean alreadyPurchased = hasUserPurchasedApp(user, app);
+        boolean alreadyPurchased = hasUserPurchasedApp(userId, app);
         if (alreadyPurchased) {
             transactionManager.rollback(transaction);
             throw new AppAlreadyPurchasedException("Application has already bought");
@@ -96,15 +96,15 @@ public class PurchaseService {
 
         Invoice invoice = invoiceRepository.save(purchaseMapper.mapToInvoice(price));
         MonetaryTransaction monetaryTransaction = monetaryRepository.save(purchaseMapper.mapToTransaction(card, invoice));
-        Purchase purchase = purchaseMapper.mapToModel(APP, app, monetaryTransaction, user);
+        Purchase purchase = purchaseMapper.mapToModel(APP, app, monetaryTransaction, userId);
 
         transactionManager.commit(transaction);
         return purchaseRepository.save(purchase);
     }
 
-    private Purchase createFreePurchase(User user, App app) {
+    private Purchase createFreePurchase(UUID userId, App app) {
         return purchaseRepository.save(Purchase.builder()
-                .user(user)
+                .userId(userId)
                 .purchaseType(APP)
                 .app(app)
                 .downloadedVersion(app.getLatestVersion().getVersion())
@@ -113,12 +113,12 @@ public class PurchaseService {
 
     public void processSubscriptionPurchase(User user, SubscriptionRequestDto requestDto) {
         TransactionStatus transaction = transactionManager.getTransaction(definition);
-        if (userSubscriptionRepository.findByIdAndUser(requestDto.getId(), user.getId()).isPresent()) {
+        if (userSubscriptionRepository.findSubscriptionByIdAndUser(requestDto.getId(), user.getId()).isPresent()) {
             transactionManager.rollback(transaction);
             throw new SubscriptionAlreadyPurchasedException("You have already purchased this subscription");
         }
         App app = appRepository.findById(requestDto.getAppId()).orElseThrow(() -> new AppNotFoundException("Приложение не найдено"));
-        Card card = cardService.getCardByIdAndUser(requestDto.getCardId(), user);
+        Card card = cardService.getCardByIdAndUser(requestDto.getCardId(), user.getId());
         Subscription subscription = subscriptionService.getSubscriptionById(requestDto.getId());
         UserBudget userBudget = budgetService.getUserBudget();
 
@@ -138,12 +138,12 @@ public class PurchaseService {
         cardRepository.save(card);
 
         transactionManager.commit(transaction);
-        purchaseRepository.save(purchaseMapper.mapToModel(SUBSCRIPTION, app, monetaryTransaction, user));
+        purchaseRepository.save(purchaseMapper.mapToModel(SUBSCRIPTION, app, monetaryTransaction, user.getId()));
     }
 
     public List<PurchaseHistoryDto> getUserPurchases() {
         User user = userService.getCurrentUser();
-        List<Purchase> userPurchases = purchaseRepository.findByUser(user);
+        List<Purchase> userPurchases = purchaseRepository.findByUserId(user.getId());
         List<PurchaseHistoryDto> purchaseHistoryDtos = new ArrayList<>();
         for (Purchase purchase : userPurchases) {
             MonetaryTransaction transaction;
@@ -166,19 +166,19 @@ public class PurchaseService {
     }
 
     public Purchase getLastUserPurchaseByApp(App app) {
-        User user = userService.getCurrentUser();
-        validateDownloadAccess(user, app);
-        List<Purchase> userPurchases = purchaseRepository.findAllByUserAndApp(user, app);
+        UUID userId = userService.getCurrentUserId();
+        validateDownloadAccess(userId, app);
+        List<Purchase> userPurchases = purchaseRepository.findAllByUserIdAndApp(userId, app);
 
         return userPurchases.get(userPurchases.size() - 1);
     }
 
-    public boolean hasUserPurchasedApp(User user, App app) {
-        return purchaseRepository.existsByUserAndApp(user, app);
+    public boolean hasUserPurchasedApp(UUID userId, App app) {
+        return purchaseRepository.existsByUserIdAndApp(userId, app);
     }
 
-    public void validateDownloadAccess(User user, App app) {
-        if (!hasUserPurchasedApp(user, app)) {
+    public void validateDownloadAccess(UUID userId, App app) {
+        if (!hasUserPurchasedApp(userId, app)) {
             throw new AppNotPurchasedException("You must buy this application!");
         }
     }

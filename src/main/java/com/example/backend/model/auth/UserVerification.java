@@ -2,27 +2,24 @@ package com.example.backend.model.auth;
 
 import com.example.backend.services.util.VerificationCodeGenerator;
 import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
 import jakarta.validation.constraints.Email;
+import jakarta.xml.bind.annotation.XmlAccessType;
+import jakarta.xml.bind.annotation.XmlAccessorType;
+import jakarta.xml.bind.annotation.XmlElement;
 import lombok.*;
-import org.hibernate.annotations.UuidGenerator;
 
 import java.util.UUID;
 
-@Entity
-@Table(name = "user_verification")
 @Getter
 @Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@XmlAccessorType(XmlAccessType.FIELD)
 public class UserVerification {
 
-    @Id
-    @UuidGenerator
     @Column(name = "id", nullable = false)
+    @XmlElement(name = "id")
     private UUID id;
 
     @Email(message = "Email адрес должен быть в формате user@example.com")

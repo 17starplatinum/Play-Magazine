@@ -1,6 +1,5 @@
 package com.example.backend.model.data;
 
-import com.example.backend.model.auth.User;
 import com.example.backend.model.data.app.App;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -38,9 +37,8 @@ public class Review {
     @JoinColumn(name = "app_id", nullable = false)
     private App app;
 
-    @ManyToOne
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
 
     @Builder.Default
     @Column(name = "created_at", nullable = false)

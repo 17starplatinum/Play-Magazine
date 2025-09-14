@@ -2,27 +2,29 @@ package com.example.backend.mappers;
 
 import com.example.backend.dto.data.review.ReviewInfoDto;
 import com.example.backend.dto.data.review.ReviewRequestDto;
-import com.example.backend.model.auth.User;
-import com.example.backend.model.data.Review;
-import com.example.backend.model.data.app.App;
+import com.example.pmweb.model.auth.User;
+import com.example.pmweb.model.data.Review;
+import com.example.pmweb.model.data.app.App;
 import org.springframework.stereotype.Component;
+
+import java.util.UUID;
 
 @Component
 public class ReviewMapper {
-    public Review mapToModel(App app, User user, ReviewRequestDto reviewRequestDto) {
+    public Review mapToModel(App app, UUID userId, ReviewRequestDto reviewRequestDto) {
         return Review.builder()
                 .rating(reviewRequestDto.getStars())
                 .comment(reviewRequestDto.getComment())
                 .app(app)
-                .user(user)
+                .userId(userId)
                 .build();
     }
-    public ReviewInfoDto mapToDto(Review review) {
+    public ReviewInfoDto mapToDto(Review review, User author) {
         return ReviewInfoDto.builder()
                 .id(review.getId())
                 .rating(review.getRating())
                 .comment(review.getComment())
-                .author(review.getUser().getEmail())
+                .author(author.getEmail())
                 .createdAt(review.getCreatedAt().toLocalDate())
                 .build();
     }

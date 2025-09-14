@@ -1,8 +1,9 @@
 package com.example.backend.model.data.finances;
 
-import com.example.backend.model.auth.User;
-import com.fasterxml.jackson.annotation.JsonIgnore;
-import jakarta.persistence.*;
+import jakarta.persistence.Column;
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+import jakarta.persistence.Table;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
@@ -24,10 +25,8 @@ public class Card {
     @UuidGenerator
     private UUID id;
 
-    @ManyToOne(optional = false)
-    @JoinColumn(name = "user_id", nullable = false)
-    @JsonIgnore
-    private User user;
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
 
     @NotNull
     @Size(min = 16, max = 19)

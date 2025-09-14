@@ -9,6 +9,8 @@ import java.util.UUID;
 @Getter
 public class PurchaseRequest {
 
+    private UUID appID;
+
     private UUID cardId;
 
     private UUID subscriptionId;

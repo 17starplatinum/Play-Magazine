@@ -4,7 +4,7 @@ import com.example.backend.dto.data.budget.BudgetStatusDto;
 import com.example.backend.exceptions.prerequisites.BudgetExceededException;
 import com.example.backend.mappers.BudgetMapper;
 import com.example.backend.model.auth.UserBudget;
-import com.example.backend.repositories.auth.UserBudgetRepository;
+import com.example.backend.repositories.auth.file.FileBasedUserBudgetRepository;
 import com.example.backend.services.auth.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -16,12 +16,12 @@ import java.time.LocalDate;
 @RequiredArgsConstructor
 public class BudgetService {
 
-    private final UserBudgetRepository userBudgetRepository;
+    private final FileBasedUserBudgetRepository userBudgetRepository;
     private final UserService userService;
     private final BudgetMapper budgetMapper;
 
     public UserBudget getUserBudget() {
-        return userService.getCurrentUser().getUserBudget();
+        return userBudgetRepository.findById(userService.getCurrentUser().getUserBudgetId()).orElse(null);
     }
 
     public void setMonthlyLimit(Double limit) {
@@ -79,7 +79,7 @@ public class BudgetService {
 
     public Double calculateRemaining(UserBudget userBudget) {
         if (userBudget.getSpendingLimit() == null) {
-            return null;
+            return 0.0;
         }
         return userBudget.getSpendingLimit() - userBudget.getCurrentSpending();
     }

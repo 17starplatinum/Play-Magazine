@@ -7,8 +7,8 @@ import com.example.backend.exceptions.prerequisites.InvalidRoleAssignmentExcepti
 import com.example.backend.model.auth.Role;
 import com.example.backend.model.auth.User;
 import com.example.backend.model.auth.UserProfile;
-import com.example.backend.repositories.auth.UserProfileRepository;
-import com.example.backend.repositories.auth.UserRepository;
+import com.example.backend.repositories.auth.file.FileBasedUserProfileRepository;
+import com.example.backend.repositories.auth.file.FileBasedUserRepository;
 import com.example.backend.services.util.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -24,10 +24,10 @@ import static com.example.backend.model.auth.Role.DEVELOPER;
 @Service
 @RequiredArgsConstructor
 public class RoleManagementService {
-    private final UserRepository userRepository;
+    private final FileBasedUserRepository userRepository;
     private final NotificationService notificationService;
     private final UserService userService;
-    private final UserProfileRepository userProfileRepository;
+    private final FileBasedUserProfileRepository userProfileRepository;
     private final PlatformTransactionManager transactionManager;
     private final DefaultTransactionDefinition definition;
 
@@ -77,7 +77,7 @@ public class RoleManagementService {
         user.setRole(DEVELOPER);
         user.setRequestStatus(APPROVED);
         user = userService.save(user);
-        UserProfile cred = userProfileRepository.findByUser(userService.getCurrentUser());
+        UserProfile cred = userProfileRepository.findById(user.getUserProfileId());
         notificationService.notifyUserAboutAuthorRequestApproval(user, cred.getName(), DEVELOPER.toString());
         transactionManager.commit(transaction);
     }
@@ -93,7 +93,7 @@ public class RoleManagementService {
 
         user.setRequestStatus(REJECTED);
         user = userService.save(user);
-        UserProfile cred = userProfileRepository.findByUser(userService.getCurrentUser());
+        UserProfile cred = userProfileRepository.findById(user.getUserProfileId());
         notificationService.notifyUserAboutAuthorRequestRejection(user, cred.getName(), reason, role);
         transactionManager.commit(transaction);
     }
@@ -114,7 +114,7 @@ public class RoleManagementService {
         user.setRole(roleToBe);
         user.setRequestStatus(NOT_REQUESTED);
         user = userService.save(user);
-        UserProfile cred = userProfileRepository.findByUser(userService.getCurrentUser());
+        UserProfile cred = userProfileRepository.findById(user.getUserProfileId());
         notificationService.notifyUserAboutAuthorRequestApproval(user, cred.getName(), newRole);
         transactionManager.commit(transaction);
     }

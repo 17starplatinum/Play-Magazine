@@ -8,16 +8,9 @@ import com.example.backend.exceptions.notfound.AppNotFoundException;
 import com.example.backend.exceptions.prerequisites.AppUpToDateException;
 import com.example.backend.mappers.AppMapper;
 import com.example.backend.model.auth.User;
-import com.example.backend.model.data.app.App;
-import com.example.backend.model.data.app.AppFile;
-import com.example.backend.model.data.app.AppRequirements;
-import com.example.backend.model.data.app.AppVersion;
+import com.example.backend.model.data.app.*;
 import com.example.backend.model.data.finances.Purchase;
-import com.example.backend.repositories.auth.UserRepository;
-import com.example.backend.repositories.data.app.AppFileRepository;
-import com.example.backend.repositories.data.app.AppRepository;
-import com.example.backend.repositories.data.app.AppRequirementsRepository;
-import com.example.backend.repositories.data.app.AppVersionRepository;
+import com.example.backend.repositories.data.app.*;
 import com.example.backend.repositories.data.finances.PurchaseRepository;
 import com.example.backend.services.auth.UserService;
 import com.example.backend.services.util.FileUtils;
@@ -25,9 +18,8 @@ import com.example.backend.services.util.MinioService;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.persistence.PersistenceContext;
+import jakarta.persistence.RollbackException;
 import lombok.RequiredArgsConstructor;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.PlatformTransactionManager;
@@ -39,7 +31,10 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -51,7 +46,6 @@ public class AppService {
     private final UserService userService;
     private final AppRequirementsRepository appRequirementsRepository;
     private final AppFileRepository appFileRepository;
-    private final UserRepository userRepository;
     private final ReviewService reviewService;
     private final AppMapper appMapper;
     private final AppVersionRepository appVersionRepository;
@@ -60,7 +54,8 @@ public class AppService {
     @PersistenceContext
     private final EntityManager em;
     static final String APP_NOT_FOUND_MESSAGE = "Application not found!";
-    private final Logger logger = LogManager.getLogger();
+    private final UserAppDownloadRepository userAppDownloadRepository;
+
     public AppDownloadResponse prepareAppDownload(UUID appId) {
         App app = getAppById(appId);
         boolean updateAvailable = isNewerThan(app);
@@ -93,7 +88,9 @@ public class AppService {
     }
 
     public AppInfoResponseDto getAppInfoById(UUID appId) {
-        return appMapper.mapToDto(getAppById(appId), reviewService::getAverageRating);
+        App app = getAppById(appId);
+        User author = userService.getById(app.getAuthorId());
+        return appMapper.mapToDto(app, author, reviewService::getAverageRating);
     }
 
     public App getAppById(UUID appId) {
@@ -137,7 +134,7 @@ public class AppService {
         User user = userService.getCurrentUser();
         AppFile appFile = app.getAppFile();
         AppVersion appVersion;
-        if (!app.getAuthor().equals(user)) {
+        if (!app.getAuthorId().equals(user.getId())) {
             transactionManager.rollback(transaction);
             throw new AccessDeniedException("Suddenly, you aren`t the owner of this application");
         }
@@ -186,14 +183,14 @@ public class AppService {
         TransactionStatus transaction = transactionManager.getTransaction(definition);
         App app = getAppById(appId);
         User currentUser = userService.getCurrentUser();
+        boolean userHasDownloaded = userAppDownloadRepository.existsByIdUserIdAndIdAppId(currentUser.getId(), appId);
         Purchase purchase = purchaseService.processPurchase(appId, cardId);
-        if (app.getUsersWhoDownloaded().contains(purchase.getUser()) &&
-                !forceUpdate && !isNewerThan(purchase.getApp())) {
+        if (userHasDownloaded && !forceUpdate && !isNewerThan(purchase.getApp())) {
             transactionManager.rollback(transaction);
             throw new AppUpToDateException("This is actual release");
         }
         AppFile appFile = app.getAppFile();
-        if (app.getUsersWhoDownloaded().contains(purchase.getUser())) {
+        if (userHasDownloaded) {
             minioService.deleteFile(appFile.getFilePath());
             appFile.setLastUpdated(LocalDateTime.now());
         }
@@ -205,9 +202,9 @@ public class AppService {
             throw new AppDownloadException("Failed to download the application", e);
         }
 
-        userRepository.addAppToUser(currentUser.getId(), appId);
-
-        purchase.setUser(currentUser);
+//        userRepository.addAppToUser(currentUser.getId(), appId);
+        userAppDownloadRepository.save(new UserAppDownload(new UserAppDownloadId(currentUser.getId(), appId), app));
+        purchase.setUserId(currentUser.getId());
         purchaseRepository.save(purchase);
         transactionManager.commit(transaction);
         return fileContent;
@@ -226,17 +223,14 @@ public class AppService {
             if (current == null) {
                 throw new AccessDeniedException("No current user");
             }
+            App app = appRepository.findById(appId)
+                    .orElseThrow(() -> new EntityNotFoundException("App not found: " + appId));
             User managedCurrent = em.find(User.class, current.getId());
             if (managedCurrent == null) {
                 throw new EntityNotFoundException("Current user not found in DB");
             }
 
-            App app = em.createQuery(
-                                "SELECT a FROM App a LEFT JOIN FETCH a.usersWhoDownloaded WHERE a.id = :id", App.class)
-                        .setParameter("id", appId)
-                        .getResultStream().findFirst().orElseThrow(() -> new EntityNotFoundException("App not found: " + appId));
-
-            if (!app.getAuthor().getEmail().equals(managedCurrent.getUsername())) {
+            if (!app.getAuthorId().equals(current.getId())) {
                 throw new AccessDeniedException("Not owner");
             }
 
@@ -244,47 +238,20 @@ public class AppService {
                 filePath = app.getAppFile().getFilePath();
             }
 
-            Iterator<User> it = app.getUsersWhoDownloaded().iterator();
+            appRepository.delete(app);
 
-            while (it.hasNext()) {
-                User u = it.next();
-                it.remove();
-                User mu = em.contains(u) ? u : em.find(User.class, u.getId());
-                if (mu == null) {
-                    logger.warn("User not found for id={}", u == null ? "null" : u.getId());
-                } else {
-                    boolean removed = mu.getDownloadedApps().removeIf(a -> a.getId().equals(appId));
-                    logger.debug("Removed from owning side for user {} ? {}", mu.getId(), removed);
-                }
-            }
-            em.flush();
-
-            if (!em.contains(app)) {
-                app = em.merge(app);
-            }
-            em.remove(app);
-            em.flush();
             transactionManager.commit(tx);
 
             if (filePath != null) {
-                try {
-                    minioService.deleteFile(filePath);
-                    logger.info("Minio file deleted {}", filePath);
-                } catch (Exception e) {
-                    logger.error("Failed to delete file in MinIO (post-commit) {}", filePath, e);
-                }
+                minioService.deleteFile(filePath);
             }
         } catch (Exception ex) {
-            logger.error("deleteApp FAILED for appId={}. About to rollback. Exception: ", appId, ex);
             try {
                 if (!tx.isCompleted()) {
                     transactionManager.rollback(tx);
-                    logger.info("Transaction rolled back");
-                } else {
-                    logger.warn("Transaction already completed when catch encountered");
                 }
             } catch (Exception rbEx) {
-                logger.error("Rollback failed", rbEx);
+                throw new RollbackException("Rollback failed", rbEx);
             }
         }
     }
