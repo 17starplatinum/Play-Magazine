@@ -1,6 +1,5 @@
 package com.example.backend.repositories.data.finances;
 
-import com.example.backend.model.auth.User;
 import com.example.backend.model.data.finances.Card;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -14,18 +13,18 @@ import java.util.UUID;
 
 @Repository
 public interface CardRepository extends JpaRepository<Card, UUID> {
-    List<Card> findByUser(User user);
+    List<Card> findByUserId(UUID userId);
 
-    Optional<Card> findByIdAndUser(UUID id, User user);
+    Optional<Card> findByIdAndUserId(UUID id, UUID userId);
 
-    Optional<Card> findByUserAndIsDefaultTrue(User user);
+    Optional<Card> findByUserIdAndIsDefaultTrue(UUID userId);
 
-    boolean existsByUserAndNumber(User user, String number);
+    boolean existsByUserIdAndNumber(UUID userId, String number);
 
-    boolean existsByIdAndUser(UUID cardId, User user);
+    boolean existsByIdAndUserId(UUID cardId, UUID userId);
 
     @Modifying
-    @Query("UPDATE Card c SET c.isDefault = false WHERE c.user.id = :userId")
+    @Query("UPDATE Card c SET c.isDefault = false WHERE c.userId = :userId")
     void clearDefaultFlags(@Param("userId") UUID userId);
 
     @Modifying

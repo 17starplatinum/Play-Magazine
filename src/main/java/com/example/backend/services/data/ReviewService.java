@@ -29,10 +29,10 @@ public class ReviewService {
     private final ReviewMapper reviewMapper;
 
     public UUID createReview(App app, ReviewRequestDto reviewRequestDto) {
-        User user = userService.getCurrentUser();
+        UUID userId = userService.getCurrentUserId();
 
         return reviewRepository.save(
-                reviewMapper.mapToModel(app, user, reviewRequestDto)
+                reviewMapper.mapToModel(app, userId, reviewRequestDto)
         ).getId();
     }
 
@@ -40,7 +40,7 @@ public class ReviewService {
         Review review = reviewRepository.findById(id).orElseThrow(() -> new ReviewNotFoundException("Review not found"));
         User user = userService.getCurrentUser();
 
-        if(user.getRole().compare(DEVELOPER) >= 0 || (user.getRole() == USER && review.getUser().equals(user))) {
+        if(user.getRole().compare(DEVELOPER) >= 0 || (user.getRole() == USER && review.getUserId().equals(user.getId()))) {
             reviewRepository.deleteById(id);
             return;
         }
@@ -50,7 +50,7 @@ public class ReviewService {
     public List<ReviewInfoDto> getAppReviews(UUID appId) {
         return reviewRepository.findByAppId(appId)
                 .stream()
-                .map(reviewMapper::mapToDto)
+                .map(review -> reviewMapper.mapToDto(review, userService.getById(review.getUserId())))
                 .toList();
     }
 

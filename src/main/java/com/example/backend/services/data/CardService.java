@@ -30,14 +30,14 @@ public class CardService {
     private final PlatformTransactionManager transactionManager;
     private final DefaultTransactionDefinition definition;
 
-    public Card getCardByIdAndUser(UUID id, User user) {
-        return cardRepository.findByIdAndUser(id, user)
+    public Card getCardByIdAndUser(UUID id, UUID userId) {
+        return cardRepository.findByIdAndUserId(id, userId)
                 .orElseThrow(() -> new CardNotFoundException("Карта не найдена"));
     }
 
     public Card addCard(CardDto cardDto) {
         User user = userService.getCurrentUser();
-        if (cardRepository.existsByUserAndNumber(user, cardDto.getNumber())) {
+        if (cardRepository.existsByUserIdAndNumber(user.getId(), cardDto.getNumber())) {
             throw new CardAlreadyExistsException("Карта с таким номером уже существует");
         }
         Card card = cardMapper.mapToModel(user, cardDto);
@@ -48,56 +48,53 @@ public class CardService {
     }
 
     public List<Card> getUserCards() {
-        User user = userService.getCurrentUser();
-
-        return cardRepository.findByUser(user);
+        UUID userId = userService.getCurrentUserId();
+        return cardRepository.findByUserId(userId);
     }
 
     public void depositInCard(DepositRequest depositRequest) {
-        User user = userService.getCurrentUser();
-        Card card = getCardByIdAndUser(depositRequest.getCardId(), user);
+        UUID userId = userService.getCurrentUserId();
+        Card card = getCardByIdAndUser(depositRequest.getCardId(), userId);
 
         card.setBalance(card.getBalance() + depositRequest.getAmount());
         cardRepository.save(card);
     }
 
     public Optional<Card> getCardByDefault() {
-        User user = userService.getCurrentUser();
-        return cardRepository.findByUserAndIsDefaultTrue(user);
+        UUID userId = userService.getCurrentUserId();
+        return cardRepository.findByUserIdAndIsDefaultTrue(userId);
     }
 
     @Transactional
     public void setDefaultCard(UUID cardId) {
         TransactionStatus transaction = transactionManager.getTransaction(definition);
-        User user = userService.getCurrentUser();
+        UUID userId = userService.getCurrentUserId();
 
-        if(cardRepository.findByUser(user).size() == 1) {
+        if(cardRepository.findByUserId(userId).size() == 1) {
             cardRepository.setDefaultCard(cardId);
             transactionManager.commit(transaction);
             return;
         }
 
-        Card card = getCardByIdAndUser(cardId, user);
+        Card card = getCardByIdAndUser(cardId, userId);
 
-        if (!card.getUser().getId().equals(user.getId())) {
+        if (!card.getUserId().equals(userId)) {
             transactionManager.rollback(transaction);
             throw new AccessDeniedException("Карта не принадлежит пользователю");
         }
 
-        if (!cardRepository.existsByIdAndUser(cardId, user)) {
+        if (!cardRepository.existsByIdAndUserId(cardId, userId)) {
             transactionManager.rollback(transaction);
             throw new CardNotFoundException("Карта не найдена");
         }
-        cardRepository.clearDefaultFlags(user.getId());
+        cardRepository.clearDefaultFlags(userId);
         cardRepository.setDefaultCard(cardId);
         transactionManager.commit(transaction);
     }
 
     public void deleteCard(UUID cardId) {
-        User user = userService.getCurrentUser();
-
-        Card card = getCardByIdAndUser(cardId, user);
-
+        UUID userId = userService.getCurrentUserId();
+        Card card = getCardByIdAndUser(cardId, userId);
         cardRepository.delete(card);
     }
 }

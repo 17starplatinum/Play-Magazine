@@ -9,7 +9,7 @@ import org.springframework.stereotype.Component;
 public class CardMapper {
     public Card mapToModel(User user, CardDto cardDto) {
         return Card.builder()
-                .user(user)
+                .userId(user.getId())
                 .number(cardDto.getNumber())
                 .cvv(cardDto.getCvv())
                 .expiryDate(cardDto.getExpiryDate())

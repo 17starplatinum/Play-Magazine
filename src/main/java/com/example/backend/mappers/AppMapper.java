@@ -22,7 +22,7 @@ import java.util.function.Function;
 @Component
 public class AppMapper {
 
-    public <T> AppInfoResponseDto mapToDto(App app, Function<UUID, T> getAverageRating) {
+    public <T> AppInfoResponseDto mapToDto(App app, User author, Function<UUID, T> getAverageRating) {
         return AppInfoResponseDto.builder()
                 .name(app.getName())
                 .description(app.getDescription())
@@ -31,7 +31,7 @@ public class AppMapper {
                 .releaseDate(app.getReleaseDate())
                 .latestVersion(app.getLatestVersion().getVersion())
                 .releaseNotes(app.getLatestVersion().getReleaseNotes())
-                .ownerEmail(app.getAuthor().getEmail())
+                .ownerEmail(author.getEmail())
                 .build();
     }
 
@@ -61,7 +61,7 @@ public class AppMapper {
                 .description(appCreateRequest.getDescription())
                 .price(appCreateRequest.getPrice())
                 .releaseDate(LocalDate.now())
-                .author(author)
+                .authorId(author.getId())
                 .appFile(appFile)
                 .appRequirements(appRequirements)
                 .appVersions(new ArrayList<>(List.of(version)))

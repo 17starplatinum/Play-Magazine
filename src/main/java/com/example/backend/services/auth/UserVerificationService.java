@@ -1,7 +1,7 @@
 package com.example.backend.services.auth;
 
 import com.example.backend.model.auth.UserVerification;
-import com.example.backend.repositories.auth.UserVerificationRepository;
+import com.example.backend.repositories.auth.file.FileBasedUserVerificationRepository;
 import com.example.backend.services.util.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -13,10 +13,9 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
-public class
-UserVerificationService {
+public class UserVerificationService {
 
-    private final UserVerificationRepository userVerificationRepository;
+    private final FileBasedUserVerificationRepository userVerificationRepository;
     private final EmailService emailService;
 
     private static final int MAX_ATTEMPTS = 3;

@@ -1,12 +1,13 @@
 package com.example.backend.model.data.subscriptions;
 
-import com.example.backend.model.auth.User;
 import com.example.backend.model.data.finances.Card;
 import com.example.backend.model.data.finances.Invoice;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Entity
 @Table(name = "user_subscriptions")
@@ -20,14 +21,9 @@ public class UserSubscription {
     private UserSubscriptionId id;
 
     @ManyToOne
-    @MapsId("userId")
-    @JoinColumn(name = "user_id")
-    private User user;
-
-    @ManyToOne
     @ToString.Exclude
     @MapsId("subscriptionId")
-    @JoinColumn(name = "subscription_id")
+    @JoinColumn(name = "subscription_id", nullable = false)
     private Subscription subscription;
 
     private LocalDate startDate;
@@ -49,4 +45,9 @@ public class UserSubscription {
     @ManyToOne
     @JoinColumn(name = "card_id")
     private Card card;
+
+    @JsonIgnore
+    public UUID getUserId() {
+        return id != null ? id.getUserId() : null;
+    }
 }

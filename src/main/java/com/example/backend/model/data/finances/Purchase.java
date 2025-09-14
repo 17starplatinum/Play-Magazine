@@ -1,6 +1,5 @@
 package com.example.backend.model.data.finances;
 
-import com.example.backend.model.auth.User;
 import com.example.backend.model.data.app.App;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
@@ -23,10 +22,8 @@ public class Purchase {
     @UuidGenerator
     private UUID id;
 
-    @ManyToOne
-    @ToString.Exclude
-    @JoinColumn(name = "user_id", nullable = false)
-    private User user;
+    @Column(name = "user_id", nullable = false)
+    private UUID userId;
 
     @ManyToOne
     @ToString.Exclude

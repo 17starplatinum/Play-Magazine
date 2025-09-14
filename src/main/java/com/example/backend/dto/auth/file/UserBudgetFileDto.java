@@ -1,35 +1,34 @@
-package com.example.backend.model.auth;
+package com.example.backend.dto.auth.file;
 
 import com.example.backend.services.util.LocalDateAdapter;
-import jakarta.persistence.Column;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;
 import jakarta.xml.bind.annotation.XmlElement;
+import jakarta.xml.bind.annotation.XmlRootElement;
 import jakarta.xml.bind.annotation.adapters.XmlJavaTypeAdapter;
 import lombok.*;
 
 import java.time.LocalDate;
 import java.util.UUID;
 
+@XmlRootElement(name = "userBudget")
+@XmlAccessorType(XmlAccessType.FIELD)
 @Getter
 @Setter
 @Builder
-@AllArgsConstructor
 @NoArgsConstructor
-@XmlAccessorType(XmlAccessType.FIELD)
-public class UserProfile {
-//    @Id
-//    @UuidGenerator
-    @Column(name = "id", nullable = false)
-    @XmlElement(name = "id")
+@AllArgsConstructor
+public class UserBudgetFileDto {
+    @XmlElement
     private UUID id;
 
-    @Column(length = 32, nullable = false)
-    private String name;
+    @XmlElement
+    private Double spendingLimit;
 
-    @Column(length = 32, nullable = false)
-    private String surname;
+    @XmlElement
+    private Double currentSpending;
 
+    @XmlElement
     @XmlJavaTypeAdapter(LocalDateAdapter.class)
-    private LocalDate birthday;
+    private LocalDate lastLimitReset;
 }
