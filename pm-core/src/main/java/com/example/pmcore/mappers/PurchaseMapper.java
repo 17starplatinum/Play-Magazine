@@ -1,6 +1,7 @@
 package com.example.pmcore.mappers;
 
-import com.example.backend.model.data.app.App;
+import com.example.pmcore.model.data.app.App;
+import com.example.pmcore.model.data.finances.*;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;

@@ -1,7 +1,7 @@
 package com.example.pmcore.services.auth;
 
-import com.example.backend.model.auth.UserVerification;
-import com.example.backend.repositories.auth.file.FileBasedUserVerificationRepository;
+import com.example.pmcore.model.auth.UserVerification;
+import com.example.pmcore.repositories.auth.file.FileBasedUserVerificationRepository;
 import com.example.pmcore.services.util.EmailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;

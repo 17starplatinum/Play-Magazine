@@ -1,6 +1,6 @@
 package com.example.pmcore.repositories.data;
 
-import com.example.backend.model.data.Review;
+import com.example.pmcore.model.data.Review;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;

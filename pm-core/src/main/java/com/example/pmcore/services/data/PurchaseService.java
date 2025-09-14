@@ -1,28 +1,28 @@
 package com.example.pmcore.services.data;
 
-import com.example.backend.dto.data.purchase.PurchaseHistoryDto;
-import com.example.backend.dto.data.subscription.SubscriptionRequestDto;
-import com.example.backend.exceptions.conflict.AppAlreadyPurchasedException;
-import com.example.backend.exceptions.conflict.SubscriptionAlreadyPurchasedException;
-import com.example.backend.exceptions.notfound.AppNotFoundException;
-import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
-import com.example.backend.exceptions.prerequisites.InsufficientFundsException;
-import com.example.backend.mappers.PurchaseMapper;
-import com.example.backend.model.auth.User;
-import com.example.backend.model.auth.UserBudget;
-import com.example.backend.model.data.app.App;
-import com.example.backend.model.data.finances.Card;
-import com.example.backend.model.data.finances.Invoice;
-import com.example.backend.model.data.finances.MonetaryTransaction;
-import com.example.backend.model.data.finances.Purchase;
-import com.example.backend.model.data.subscriptions.Subscription;
-import com.example.backend.model.data.subscriptions.UserSubscription;
-import com.example.backend.repositories.data.app.AppRepository;
-import com.example.backend.repositories.data.finances.CardRepository;
-import com.example.backend.repositories.data.finances.InvoiceRepository;
-import com.example.backend.repositories.data.finances.MonetaryRepository;
-import com.example.backend.repositories.data.finances.PurchaseRepository;
-import com.example.backend.repositories.data.subscription.UserSubscriptionRepository;
+import com.example.pmcore.dto.data.purchase.PurchaseHistoryDto;
+import com.example.pmcore.dto.data.subscription.SubscriptionRequestDto;
+import com.example.pmcore.exceptions.conflict.AppAlreadyPurchasedException;
+import com.example.pmcore.exceptions.conflict.SubscriptionAlreadyPurchasedException;
+import com.example.pmcore.exceptions.notfound.AppNotFoundException;
+import com.example.pmcore.exceptions.paymentrequired.AppNotPurchasedException;
+import com.example.pmcore.exceptions.prerequisites.InsufficientFundsException;
+import com.example.pmcore.mappers.PurchaseMapper;
+import com.example.pmcore.model.auth.User;
+import com.example.pmcore.model.auth.UserBudget;
+import com.example.pmcore.model.data.app.App;
+import com.example.pmcore.model.data.finances.Card;
+import com.example.pmcore.model.data.finances.Invoice;
+import com.example.pmcore.model.data.finances.MonetaryTransaction;
+import com.example.pmcore.model.data.finances.Purchase;
+import com.example.pmcore.model.data.subscriptions.Subscription;
+import com.example.pmcore.model.data.subscriptions.UserSubscription;
+import com.example.pmcore.repositories.data.app.AppRepository;
+import com.example.pmcore.repositories.data.finances.CardRepository;
+import com.example.pmcore.repositories.data.finances.InvoiceRepository;
+import com.example.pmcore.repositories.data.finances.MonetaryRepository;
+import com.example.pmcore.repositories.data.finances.PurchaseRepository;
+import com.example.pmcore.repositories.data.subscription.UserSubscriptionRepository;
 import com.example.pmcore.services.auth.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -34,8 +34,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.UUID;
 
-import static com.example.backend.model.data.finances.PurchaseType.APP;
-import static com.example.backend.model.data.finances.PurchaseType.SUBSCRIPTION;
+import static com.example.pmcore.model.data.finances.PurchaseType.APP;
+import static com.example.pmcore.model.data.finances.PurchaseType.SUBSCRIPTION;
 
 @Service
 @RequiredArgsConstructor

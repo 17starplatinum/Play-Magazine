@@ -1,14 +1,14 @@
 package com.example.pmcore.mappers;
 
-import com.example.backend.dto.data.app.AppCreateRequest;
-import com.example.backend.dto.data.app.AppDownloadResponse;
-import com.example.backend.dto.data.app.AppDto;
-import com.example.backend.dto.data.app.AppInfoResponseDto;
-import com.example.pmweb.model.auth.User;
-import com.example.pmweb.model.data.app.App;
-import com.example.backend.model.data.app.AppFile;
-import com.example.backend.model.data.app.AppRequirements;
-import com.example.backend.model.data.app.AppVersion;
+import com.example.pmcore.dto.data.app.AppCreateRequest;
+import com.example.pmcore.dto.data.app.AppDownloadResponse;
+import com.example.pmcore.dto.data.app.AppDto;
+import com.example.pmcore.dto.data.app.AppInfoResponseDto;
+import com.example.pmcore.model.auth.User;
+import com.example.pmcore.model.data.app.App;
+import com.example.pmcore.model.data.app.AppFile;
+import com.example.pmcore.model.data.app.AppRequirements;
+import com.example.pmcore.model.data.app.AppVersion;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 

@@ -1,14 +1,15 @@
 package com.example.pmcore.security.auth;
 
-import com.example.backend.model.auth.Role;
-import com.example.backend.model.auth.User;
-import com.example.backend.model.auth.UserProfile;
-import com.example.backend.model.auth.UserVerification;
-import com.example.backend.repositories.auth.file.FileBasedUserProfileRepository;
-import com.example.backend.repositories.auth.file.FileBasedUserRepository;
+import com.example.pmcore.dto.auth.*;
+import com.example.pmcore.model.auth.Role;
+import com.example.pmcore.model.auth.User;
+import com.example.pmcore.model.auth.UserProfile;
+import com.example.pmcore.model.auth.UserVerification;
+import com.example.pmcore.repositories.auth.file.FileBasedUserProfileRepository;
+import com.example.pmcore.repositories.auth.file.FileBasedUserRepository;
 import com.example.pmcore.security.jwt.JwtService;
-import com.example.backend.services.auth.UserService;
-import com.example.backend.services.auth.UserVerificationService;
+import com.example.pmcore.services.auth.UserService;
+import com.example.pmcore.services.auth.UserVerificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;

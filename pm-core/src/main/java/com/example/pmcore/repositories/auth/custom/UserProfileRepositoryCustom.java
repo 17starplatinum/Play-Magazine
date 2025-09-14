@@ -1,6 +1,6 @@
 package com.example.pmcore.repositories.auth.custom;
 
-import com.example.backend.model.auth.UserProfile;
+import com.example.pmcore.model.auth.UserProfile;
 import java.util.UUID;
 
 public interface UserProfileRepositoryCustom {

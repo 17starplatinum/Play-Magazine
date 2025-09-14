@@ -1,6 +1,6 @@
 package com.example.pmcore.repositories.data.finances;
 
-import com.example.backend.model.data.finances.Card;
+import com.example.pmcore.model.data.finances.Card;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

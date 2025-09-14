@@ -1,10 +1,10 @@
 package com.example.pmcore.controllers;
 
-import com.example.backend.dto.data.ResponseDto;
-import com.example.backend.dto.data.card.CardDto;
-import com.example.backend.dto.data.card.DepositRequest;
-import com.example.backend.model.data.finances.Card;
-import com.example.backend.services.data.CardService;
+import com.example.pmcore.dto.data.ResponseDto;
+import com.example.pmcore.dto.data.card.CardDto;
+import com.example.pmcore.dto.data.card.DepositRequest;
+import com.example.pmcore.model.data.finances.Card;
+import com.example.pmcore.services.data.CardService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

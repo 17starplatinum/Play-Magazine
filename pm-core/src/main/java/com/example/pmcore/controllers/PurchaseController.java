@@ -1,7 +1,7 @@
 package com.example.pmcore.controllers;
 
-import com.example.backend.dto.data.purchase.PurchaseHistoryDto;
-import com.example.backend.services.data.PurchaseService;
+import com.example.pmcore.dto.data.purchase.PurchaseHistoryDto;
+import com.example.pmcore.services.data.PurchaseService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;

@@ -1,10 +1,10 @@
 package com.example.pmcore.services.util;
 
-import com.example.backend.dto.EmailMessageDto;
-import com.example.backend.exceptions.accepted.EmailSendingException;
-import com.example.backend.model.auth.User;
-import com.example.backend.model.data.subscriptions.Subscription;
-import com.example.backend.repositories.auth.file.FileBasedUserRepository;
+import com.example.pmcore.dto.EmailMessageDto;
+import com.example.pmcore.exceptions.accepted.EmailSendingException;
+import com.example.pmcore.model.auth.User;
+import com.example.pmcore.model.data.subscriptions.Subscription;
+import com.example.pmcore.repositories.auth.file.FileBasedUserRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

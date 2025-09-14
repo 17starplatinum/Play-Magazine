@@ -1,6 +1,6 @@
 package com.example.pmcore.repositories.auth.custom;
 
-import com.example.backend.model.auth.UserVerification;
+import com.example.pmcore.model.auth.UserVerification;
 import jakarta.validation.constraints.NotNull;
 
 import java.util.Optional;

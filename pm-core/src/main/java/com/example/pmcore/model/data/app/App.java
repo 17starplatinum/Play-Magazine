@@ -3,7 +3,7 @@ package com.example.pmcore.model.data.app;
 import com.example.pmcore.model.data.Review;
 import com.example.pmcore.model.data.finances.Purchase;
 import com.example.pmcore.model.data.subscriptions.Subscription;
-import com.example.backend.services.util.LocalDateAdapter;
+import com.example.pmcore.services.util.LocalDateAdapter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;

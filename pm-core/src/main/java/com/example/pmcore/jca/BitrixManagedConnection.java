@@ -11,7 +11,6 @@ import java.util.List;
 
 public class BitrixManagedConnection implements ManagedConnection {
 
-    private final BitrixManagedConnectionFactory mcf;
     private final String baseUrl;
     private final String userId;
     private final String token;
@@ -19,18 +18,16 @@ public class BitrixManagedConnection implements ManagedConnection {
     private BitrixConnectionImpl connection;
 
     public BitrixManagedConnection(
-            BitrixManagedConnectionFactory mcf,
             String baseUrl,
             String userId,
             String token) {
-        this.mcf = mcf;
         this.baseUrl = baseUrl;
         this.userId = userId;
         this.token = token;
     }
 
     @Override
-    public Object getConnection(Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
+    public Object getConnection(Subject subject, ConnectionRequestInfo cxRequestInfo) {
         if (connection == null || connection.isClosed()) {
             connection = new BitrixConnectionImpl(this, baseUrl, userId, token);
         }
@@ -38,7 +35,7 @@ public class BitrixManagedConnection implements ManagedConnection {
     }
 
     @Override
-    public void destroy() throws ResourceException {
+    public void destroy() {
         if (connection != null) {
             connection.close();
             connection = null;
@@ -46,7 +43,7 @@ public class BitrixManagedConnection implements ManagedConnection {
     }
 
     @Override
-    public void cleanup() throws ResourceException {
+    public void cleanup() {
     }
 
     @Override
@@ -106,11 +103,11 @@ public class BitrixManagedConnection implements ManagedConnection {
     }
 
     @Override
-    public void setLogWriter(PrintWriter out) throws ResourceException {
+    public void setLogWriter(PrintWriter out) {
     }
 
     @Override
-    public PrintWriter getLogWriter() throws ResourceException {
+    public PrintWriter getLogWriter() {
         return null;
     }
 

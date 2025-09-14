@@ -1,8 +1,8 @@
 package com.example.pmcore.mappers;
 
-import com.example.backend.dto.data.card.CardDto;
-import com.example.pmweb.model.auth.User;
-import com.example.pmweb.model.data.finances.Card;
+import com.example.pmcore.dto.data.card.CardDto;
+import com.example.pmcore.model.auth.User;
+import com.example.pmcore.model.data.finances.Card;
 import org.springframework.stereotype.Component;
 
 @Component

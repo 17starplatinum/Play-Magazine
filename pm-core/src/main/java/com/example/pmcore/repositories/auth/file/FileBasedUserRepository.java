@@ -1,15 +1,15 @@
 package com.example.pmcore.repositories.auth.file;
 
-import com.example.backend.dto.auth.file.UserDatabaseFileDto;
-import com.example.backend.dto.auth.file.UserFileDto;
-import com.example.backend.model.auth.RequestStatus;
-import com.example.backend.model.auth.Role;
-import com.example.backend.model.auth.User;
-import com.example.backend.model.data.subscriptions.Subscription;
+import com.example.pmcore.dto.auth.file.UserDatabaseFileDto;
+import com.example.pmcore.dto.auth.file.UserFileDto;
+import com.example.pmcore.model.auth.RequestStatus;
+import com.example.pmcore.model.auth.Role;
+import com.example.pmcore.model.auth.User;
+import com.example.pmcore.model.data.subscriptions.Subscription;
 import com.example.pmcore.repositories.auth.custom.UserRepositoryCustom;
 import com.example.pmcore.repositories.data.app.UserAppDownloadRepository;
 import com.example.pmcore.repositories.data.subscription.UserSubscriptionRepository;
-import com.example.backend.services.util.XMLParser;
+import com.example.pmcore.services.util.XMLParser;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;

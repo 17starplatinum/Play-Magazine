@@ -3,8 +3,6 @@ package com.example.pmcore.jca;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-import javax.resource.ResourceException;
-
 @Configuration
 public class JcaConfig {
 
@@ -17,7 +15,7 @@ public class JcaConfig {
     }
 
     @Bean
-    public BitrixConnectionFactory bitrixConnectionFactory(BitrixManagedConnectionFactory mcf) throws ResourceException {
+    public BitrixConnectionFactory bitrixConnectionFactory(BitrixManagedConnectionFactory mcf) {
         return (BitrixConnectionFactory) mcf.createConnectionFactory();
     }
 }

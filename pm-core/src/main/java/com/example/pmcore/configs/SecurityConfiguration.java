@@ -1,8 +1,8 @@
 package com.example.pmcore.configs;
 
-import com.example.backend.model.auth.Role;
-import com.example.backend.security.jwt.JwtAuthenticationFilter;
-import com.example.backend.services.auth.UserService;
+import com.example.pmcore.model.auth.Role;
+import com.example.pmcore.security.jwt.JwtAuthenticationFilter;
+import com.example.pmcore.services.auth.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

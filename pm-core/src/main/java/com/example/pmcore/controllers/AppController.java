@@ -1,15 +1,16 @@
 package com.example.pmcore.controllers;
 
-import com.example.backend.dto.data.ResponseDto;
-import com.example.backend.dto.data.review.ReviewRequestDto;
-import com.example.backend.dto.data.review.ReviewResponseDto;
-import com.example.backend.dto.util.AppCompatibilityResponse;
-import com.example.backend.exceptions.accepted.AppDownloadException;
-import com.example.backend.exceptions.paymentrequired.AppNotPurchasedException;
-import com.example.backend.exceptions.prerequisites.AppUpToDateException;
-import com.example.backend.model.data.app.App;
-import com.example.backend.services.data.AppService;
-import com.example.backend.services.data.ReviewService;
+import com.example.pmcore.dto.data.ResponseDto;
+import com.example.pmcore.dto.data.app.*;
+import com.example.pmcore.dto.data.review.ReviewRequestDto;
+import com.example.pmcore.dto.data.review.ReviewResponseDto;
+import com.example.pmcore.dto.util.AppCompatibilityResponse;
+import com.example.pmcore.exceptions.accepted.AppDownloadException;
+import com.example.pmcore.exceptions.paymentrequired.AppNotPurchasedException;
+import com.example.pmcore.exceptions.prerequisites.AppUpToDateException;
+import com.example.pmcore.model.data.app.App;
+import com.example.pmcore.services.data.AppService;
+import com.example.pmcore.services.data.ReviewService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;

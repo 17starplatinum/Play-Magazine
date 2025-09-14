@@ -1,8 +1,8 @@
 package com.example.pmcore.repositories.data.subscription;
 
-import com.example.backend.model.data.subscriptions.Subscription;
-import com.example.backend.model.data.subscriptions.UserSubscription;
-import com.example.backend.model.data.subscriptions.UserSubscriptionId;
+import com.example.pmcore.model.data.subscriptions.Subscription;
+import com.example.pmcore.model.data.subscriptions.UserSubscription;
+import com.example.pmcore.model.data.subscriptions.UserSubscriptionId;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;

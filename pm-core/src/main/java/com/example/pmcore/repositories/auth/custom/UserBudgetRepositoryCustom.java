@@ -1,6 +1,6 @@
 package com.example.pmcore.repositories.auth.custom;
 
-import com.example.backend.model.auth.UserBudget;
+import com.example.pmcore.model.auth.UserBudget;
 
 import java.util.List;
 import java.util.Optional;

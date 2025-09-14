@@ -1,10 +1,10 @@
 package com.example.pmcore.repositories.auth.file;
 
-import com.example.backend.dto.auth.file.UserDatabaseFileDto;
-import com.example.backend.dto.auth.file.UserProfileFileDto;
-import com.example.backend.model.auth.UserProfile;
+import com.example.pmcore.dto.auth.file.UserDatabaseFileDto;
+import com.example.pmcore.dto.auth.file.UserProfileFileDto;
+import com.example.pmcore.model.auth.UserProfile;
 import com.example.pmcore.repositories.auth.custom.UserProfileRepositoryCustom;
-import com.example.backend.services.util.XMLParser;
+import com.example.pmcore.services.util.XMLParser;
 import org.springframework.stereotype.Repository;
 
 import java.util.UUID;

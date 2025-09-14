@@ -1,18 +1,18 @@
 package com.example.pmcore.services.data;
 
-import com.example.backend.dto.data.bitrix.BitrixBankDetailResponse;
-import com.example.backend.dto.data.bitrix.BitrixCardResponse;
-import com.example.backend.dto.data.bitrix.CardResponse;
-import com.example.backend.dto.data.card.CardDto;
-import com.example.backend.dto.data.card.DepositRequest;
-import com.example.backend.exceptions.notfound.CardNotFoundException;
-import com.example.backend.exceptions.prerequisites.CardAlreadyExistsException;
-import com.example.backend.jca.BitrixConnection;
-import com.example.backend.jca.BitrixConnectionFactory;
-import com.example.backend.mappers.CardMapper;
-import com.example.backend.model.auth.User;
-import com.example.backend.model.data.finances.Card;
-import com.example.backend.repositories.data.finances.CardRepository;
+import com.example.pmcore.dto.data.bitrix.BitrixBankDetailResponse;
+import com.example.pmcore.dto.data.bitrix.BitrixCardResponse;
+import com.example.pmcore.dto.data.bitrix.CardResponse;
+import com.example.pmcore.dto.data.card.CardDto;
+import com.example.pmcore.dto.data.card.DepositRequest;
+import com.example.pmcore.exceptions.notfound.CardNotFoundException;
+import com.example.pmcore.exceptions.prerequisites.CardAlreadyExistsException;
+import com.example.pmcore.jca.BitrixConnection;
+import com.example.pmcore.jca.BitrixConnectionFactory;
+import com.example.pmcore.mappers.CardMapper;
+import com.example.pmcore.model.auth.User;
+import com.example.pmcore.model.data.finances.Card;
+import com.example.pmcore.repositories.data.finances.CardRepository;
 import com.example.pmcore.services.auth.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.persistence.EntityNotFoundException;
@@ -63,7 +63,7 @@ public class CardService {
 
         String jsonBody = "{ \"fields\": { " +
                 "\"ENTITY_ID\": 2, " +
-                "\"NAME\": \"" + card.getUser().getId() + "\", " +
+                "\"NAME\": \"" + card.getUserId() + "\", " +
                 "\"XML_ID\": \"" + card.getId() + "\", " +
                 "\"RQ_COR_ACC_NUM\": \"" + card.getExpiryDate().getDayOfMonth() + "/" + card.getExpiryDate().getYear() + "\", " +
                 "\"RQ_ACC_NUM\": \"" + card.getNumber() + "\" " +
@@ -168,8 +168,6 @@ public class CardService {
     }
 
     public void deleteCard(UUID cardId) {
-        UUID userId = userService.getCurrentUserId();
-        Card card = getCardByIdAndUser(cardId, userId);
         String token = "8uow3z4cz6a3x4ni";
         String endpoint = "/rest/1/" + token + "/crm.requisite.bankdetail.delete.json";
 
@@ -192,8 +190,8 @@ public class CardService {
             }
         }
 
-        User user = userService.getCurrentUser();
-        Card card = getCardByIdAndUser(cardId, user);
+        UUID userId = userService.getCurrentUserId();
+        Card card = getCardByIdAndUser(cardId, userId);
         cardRepository.delete(card);
     }
 }

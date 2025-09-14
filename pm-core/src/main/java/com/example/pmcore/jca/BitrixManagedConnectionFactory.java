@@ -1,5 +1,8 @@
 package com.example.pmcore.jca;
 
+import lombok.Getter;
+import lombok.Setter;
+
 import javax.resource.ResourceException;
 import javax.resource.spi.*;
 import javax.security.auth.Subject;
@@ -14,37 +17,43 @@ import java.util.Set;
 )
 public class BitrixManagedConnectionFactory implements ManagedConnectionFactory {
 
+    @Setter
+    @Getter
     @ConfigProperty(defaultValue = "https://b24-yc4n1w.bitrix24.ru")
     private String baseUrl;
+    @Getter
+    @Setter
     @ConfigProperty(defaultValue = "1")
     private String userId;
+    @Setter
+    @Getter
     @ConfigProperty
     private String token;
     private PrintWriter logWriter;
 
     @Override
-    public Object createConnectionFactory(ConnectionManager cxManager) throws ResourceException {
+    public Object createConnectionFactory(ConnectionManager cxManager) {
         return new BitrixConnectionFactoryImpl(this, cxManager);
     }
 
     @Override
-    public Object createConnectionFactory() throws ResourceException {
+    public Object createConnectionFactory() {
         return createConnectionFactory(new LocalConnectionManager());
     }
 
     @Override
-    public ManagedConnection createManagedConnection(Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
-        String token = this.token; // fallback
+    public ManagedConnection createManagedConnection(Subject subject, ConnectionRequestInfo cxRequestInfo) {
+        String token = this.token;
 
         if (cxRequestInfo instanceof BitrixConnectionRequestInfo) {
             token = ((BitrixConnectionRequestInfo) cxRequestInfo).getToken();
         }
 
-        return new BitrixManagedConnection(this, baseUrl, userId, token);
+        return new BitrixManagedConnection(baseUrl, userId, token);
     }
 
     @Override
-    public ManagedConnection matchManagedConnections(Set connectionSet, Subject subject, ConnectionRequestInfo cxRequestInfo) throws ResourceException {
+    public ManagedConnection matchManagedConnections(Set connectionSet, Subject subject, ConnectionRequestInfo cxRequestInfo) {
         String requestedToken = this.token;
         if (cxRequestInfo instanceof BitrixConnectionRequestInfo) {
             requestedToken = ((BitrixConnectionRequestInfo) cxRequestInfo).getToken();
@@ -52,20 +61,19 @@ public class BitrixManagedConnectionFactory implements ManagedConnectionFactory 
 
         for (Object obj : connectionSet) {
             if (obj instanceof BitrixManagedConnection) {
-                BitrixManagedConnection mc = (BitrixManagedConnection) obj;
-                return mc;
+                return (BitrixManagedConnection) obj;
             }
         }
         return null;
     }
 
     @Override
-    public void setLogWriter(PrintWriter out) throws ResourceException {
+    public void setLogWriter(PrintWriter out) {
         this.logWriter = out;
     }
 
     @Override
-    public PrintWriter getLogWriter() throws ResourceException {
+    public PrintWriter getLogWriter() {
         return logWriter;
     }
 
@@ -76,37 +84,12 @@ public class BitrixManagedConnectionFactory implements ManagedConnectionFactory 
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof BitrixManagedConnectionFactory) {
-            BitrixManagedConnectionFactory other = (BitrixManagedConnectionFactory) obj;
+        if (obj instanceof BitrixManagedConnectionFactory other) {
             return this.baseUrl.equals(other.baseUrl) &&
                     this.userId.equals(other.userId) &&
                     this.token.equals(other.token);
         }
         return false;
-    }
-
-    public String getBaseUrl() {
-        return baseUrl;
-    }
-
-    public void setBaseUrl(String baseUrl) {
-        this.baseUrl = baseUrl;
-    }
-
-    public String getUserId() {
-        return userId;
-    }
-
-    public void setUserId(String userId) {
-        this.userId = userId;
-    }
-
-    public String getToken() {
-        return token;
-    }
-
-    public void setToken(String token) {
-        this.token = token;
     }
 
     private static class LocalConnectionManager implements ConnectionManager {

@@ -1,11 +1,11 @@
 package com.example.pmcore.controllers;
 
-import com.example.backend.dto.auth.RoleChangeRequestDto;
-import com.example.backend.dto.auth.StatusResponse;
-import com.example.backend.dto.data.ResponseDto;
-import com.example.backend.model.auth.User;
-import com.example.backend.services.auth.RoleManagementService;
-import com.example.backend.services.auth.UserService;
+import com.example.pmcore.dto.auth.RoleChangeRequestDto;
+import com.example.pmcore.dto.auth.StatusResponse;
+import com.example.pmcore.dto.data.ResponseDto;
+import com.example.pmcore.model.auth.User;
+import com.example.pmcore.services.auth.RoleManagementService;
+import com.example.pmcore.services.auth.UserService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;

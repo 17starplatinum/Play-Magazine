@@ -1,14 +1,14 @@
 package com.example.pmcore.services.auth;
 
-import com.example.backend.exceptions.accepted.RequestPendingException;
-import com.example.backend.exceptions.badcredentials.InvalidRequestException;
-import com.example.backend.exceptions.conflict.AlreadyInRoleException;
-import com.example.backend.exceptions.prerequisites.InvalidRoleAssignmentException;
-import com.example.backend.model.auth.Role;
-import com.example.backend.model.auth.User;
-import com.example.backend.model.auth.UserProfile;
-import com.example.backend.repositories.auth.file.FileBasedUserProfileRepository;
-import com.example.backend.repositories.auth.file.FileBasedUserRepository;
+import com.example.pmcore.exceptions.accepted.RequestPendingException;
+import com.example.pmcore.exceptions.badcredentials.InvalidRequestException;
+import com.example.pmcore.exceptions.conflict.AlreadyInRoleException;
+import com.example.pmcore.exceptions.prerequisites.InvalidRoleAssignmentException;
+import com.example.pmcore.model.auth.Role;
+import com.example.pmcore.model.auth.User;
+import com.example.pmcore.model.auth.UserProfile;
+import com.example.pmcore.repositories.auth.file.FileBasedUserProfileRepository;
+import com.example.pmcore.repositories.auth.file.FileBasedUserRepository;
 import com.example.pmcore.services.util.NotificationService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
@@ -17,8 +17,9 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
-import static com.example.backend.model.auth.Role.ADMIN;
-import static com.example.backend.model.auth.Role.DEVELOPER;
+import static com.example.pmcore.model.auth.RequestStatus.*;
+import static com.example.pmcore.model.auth.Role.ADMIN;
+import static com.example.pmcore.model.auth.Role.DEVELOPER;
 
 @Service
 @RequiredArgsConstructor

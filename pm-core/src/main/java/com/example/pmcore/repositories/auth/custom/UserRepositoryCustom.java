@@ -1,8 +1,8 @@
 package com.example.pmcore.repositories.auth.custom;
 
-import com.example.backend.model.auth.RequestStatus;
-import com.example.backend.model.auth.Role;
-import com.example.backend.model.auth.User;
+import com.example.pmcore.model.auth.RequestStatus;
+import com.example.pmcore.model.auth.Role;
+import com.example.pmcore.model.auth.User;
 
 import java.util.List;
 import java.util.Optional;

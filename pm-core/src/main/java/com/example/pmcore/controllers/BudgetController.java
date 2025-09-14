@@ -1,9 +1,9 @@
 package com.example.pmcore.controllers;
 
-import com.example.backend.dto.data.ResponseDto;
-import com.example.backend.dto.data.budget.BudgetStatusDto;
-import com.example.backend.dto.data.budget.MonthlyLimitDto;
-import com.example.backend.services.data.BudgetService;
+import com.example.pmcore.dto.data.ResponseDto;
+import com.example.pmcore.dto.data.budget.BudgetStatusDto;
+import com.example.pmcore.dto.data.budget.MonthlyLimitDto;
+import com.example.pmcore.services.data.BudgetService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

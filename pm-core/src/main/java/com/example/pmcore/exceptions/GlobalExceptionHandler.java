@@ -13,7 +13,7 @@ import com.example.pmcore.exceptions.notfound.AppNotFoundException;
 import com.example.pmcore.exceptions.notfound.CardNotFoundException;
 import com.example.pmcore.exceptions.notfound.UserBudgetNotFoundException;
 import com.example.pmcore.exceptions.paymentrequired.AppNotPurchasedException;
-import com.example.backend.exceptions.prerequisites.*;
+import com.example.pmcore.exceptions.prerequisites.*;
 import com.example.pmcore.exceptions.prerequisites.*;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;

@@ -1,10 +1,10 @@
 package com.example.pmcore.services.data;
 
-import com.example.backend.dto.data.budget.BudgetStatusDto;
-import com.example.backend.exceptions.prerequisites.BudgetExceededException;
-import com.example.backend.mappers.BudgetMapper;
-import com.example.backend.model.auth.UserBudget;
-import com.example.backend.repositories.auth.file.FileBasedUserBudgetRepository;
+import com.example.pmcore.dto.data.budget.BudgetStatusDto;
+import com.example.pmcore.exceptions.prerequisites.BudgetExceededException;
+import com.example.pmcore.mappers.BudgetMapper;
+import com.example.pmcore.model.auth.UserBudget;
+import com.example.pmcore.repositories.auth.file.FileBasedUserBudgetRepository;
 import com.example.pmcore.services.auth.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.scheduling.annotation.Scheduled;

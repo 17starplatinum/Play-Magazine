@@ -1,6 +1,6 @@
 package com.example.pmcore.security.jwt;
 
-import com.example.backend.services.auth.UserService;
+import com.example.pmcore.services.auth.UserService;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.FilterChain;

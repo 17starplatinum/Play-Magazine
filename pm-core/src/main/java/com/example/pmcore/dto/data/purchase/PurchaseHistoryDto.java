@@ -1,6 +1,6 @@
 package com.example.pmcore.dto.data.purchase;
 
-import com.example.backend.model.data.finances.PurchaseType;
+import com.example.pmcore.model.data.finances.PurchaseType;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
 import lombok.AllArgsConstructor;

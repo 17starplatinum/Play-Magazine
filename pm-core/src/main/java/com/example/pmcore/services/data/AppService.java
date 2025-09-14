@@ -1,14 +1,17 @@
 package com.example.pmcore.services.data;
 
-import com.example.backend.dto.util.AppCompatibilityResponse;
-import com.example.backend.exceptions.accepted.AppDownloadException;
-import com.example.backend.exceptions.accepted.AppUpdateException;
-import com.example.backend.exceptions.notfound.AppNotFoundException;
-import com.example.backend.exceptions.prerequisites.AppUpToDateException;
-import com.example.backend.mappers.AppMapper;
-import com.example.backend.model.auth.User;
-import com.example.backend.model.data.finances.Purchase;
-import com.example.backend.repositories.data.finances.PurchaseRepository;
+import com.example.pmcore.dto.data.app.*;
+import com.example.pmcore.dto.util.AppCompatibilityResponse;
+import com.example.pmcore.exceptions.accepted.AppDownloadException;
+import com.example.pmcore.exceptions.accepted.AppUpdateException;
+import com.example.pmcore.exceptions.notfound.AppNotFoundException;
+import com.example.pmcore.exceptions.prerequisites.AppUpToDateException;
+import com.example.pmcore.mappers.AppMapper;
+import com.example.pmcore.model.auth.User;
+import com.example.pmcore.model.data.app.*;
+import com.example.pmcore.model.data.finances.Purchase;
+import com.example.pmcore.repositories.data.app.*;
+import com.example.pmcore.repositories.data.finances.PurchaseRepository;
 import com.example.pmcore.services.auth.UserService;
 import com.example.pmcore.services.util.FileUtils;
 import com.example.pmcore.services.util.MinioService;

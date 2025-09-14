@@ -1,6 +1,6 @@
 package com.example.pmcore.repositories.data.finances;
 
-import com.example.backend.model.data.finances.MonetaryTransaction;
+import com.example.pmcore.model.data.finances.MonetaryTransaction;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 import java.util.UUID;

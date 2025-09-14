@@ -1,9 +1,10 @@
 package com.example.pmcore.controllers;
 
-import com.example.backend.dto.data.ResponseDto;
-import com.example.backend.model.auth.UserVerification;
-import com.example.backend.security.auth.AuthenticationService;
-import com.example.backend.services.auth.RoleManagementService;
+import com.example.pmcore.dto.auth.*;
+import com.example.pmcore.dto.data.ResponseDto;
+import com.example.pmcore.model.auth.UserVerification;
+import com.example.pmcore.security.auth.AuthenticationService;
+import com.example.pmcore.services.auth.RoleManagementService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpHeaders;

@@ -1,13 +1,13 @@
 package com.example.pmcore.services.data;
 
-import com.example.backend.dto.data.review.ReviewInfoDto;
-import com.example.backend.dto.data.review.ReviewRequestDto;
-import com.example.backend.exceptions.notfound.ReviewNotFoundException;
-import com.example.backend.mappers.ReviewMapper;
-import com.example.backend.model.auth.User;
-import com.example.backend.model.data.Review;
-import com.example.backend.model.data.app.App;
-import com.example.backend.repositories.data.ReviewRepository;
+import com.example.pmcore.dto.data.review.ReviewInfoDto;
+import com.example.pmcore.dto.data.review.ReviewRequestDto;
+import com.example.pmcore.exceptions.notfound.ReviewNotFoundException;
+import com.example.pmcore.mappers.ReviewMapper;
+import com.example.pmcore.model.auth.User;
+import com.example.pmcore.model.data.Review;
+import com.example.pmcore.model.data.app.App;
+import com.example.pmcore.repositories.data.ReviewRepository;
 import com.example.pmcore.services.auth.UserService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.access.AccessDeniedException;
@@ -18,8 +18,8 @@ import java.math.RoundingMode;
 import java.util.List;
 import java.util.UUID;
 
-import static com.example.backend.model.auth.Role.DEVELOPER;
-import static com.example.backend.model.auth.Role.USER;
+import static com.example.pmcore.model.auth.Role.DEVELOPER;
+import static com.example.pmcore.model.auth.Role.USER;
 
 @Service
 @RequiredArgsConstructor

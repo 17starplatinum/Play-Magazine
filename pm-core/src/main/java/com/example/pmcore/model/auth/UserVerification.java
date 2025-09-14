@@ -1,6 +1,6 @@
 package com.example.pmcore.model.auth;
 
-import com.example.backend.services.util.VerificationCodeGenerator;
+import com.example.pmcore.services.util.VerificationCodeGenerator;
 import jakarta.persistence.Column;
 import jakarta.validation.constraints.Email;
 import jakarta.xml.bind.annotation.XmlAccessType;

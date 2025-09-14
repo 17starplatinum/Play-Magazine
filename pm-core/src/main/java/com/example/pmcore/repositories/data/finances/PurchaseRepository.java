@@ -1,7 +1,7 @@
 package com.example.pmcore.repositories.data.finances;
 
-import com.example.backend.model.data.app.App;
-import com.example.backend.model.data.finances.Purchase;
+import com.example.pmcore.model.data.app.App;
+import com.example.pmcore.model.data.finances.Purchase;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 

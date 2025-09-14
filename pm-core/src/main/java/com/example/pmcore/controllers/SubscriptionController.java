@@ -1,14 +1,14 @@
 package com.example.pmcore.controllers;
 
-import com.example.backend.dto.data.app.AppIdDto;
-import com.example.backend.dto.data.subscription.SubscriptionCreationDto;
-import com.example.backend.dto.data.subscription.SubscriptionMessageDto;
-import com.example.backend.dto.data.subscription.SubscriptionRequestDto;
-import com.example.backend.dto.data.subscription.SubscriptionResponseDto;
-import com.example.backend.model.auth.User;
-import com.example.backend.services.auth.UserService;
-import com.example.backend.services.data.PurchaseService;
-import com.example.backend.services.data.SubscriptionService;
+import com.example.pmcore.dto.data.app.AppIdDto;
+import com.example.pmcore.dto.data.subscription.SubscriptionCreationDto;
+import com.example.pmcore.dto.data.subscription.SubscriptionMessageDto;
+import com.example.pmcore.dto.data.subscription.SubscriptionRequestDto;
+import com.example.pmcore.dto.data.subscription.SubscriptionResponseDto;
+import com.example.pmcore.model.auth.User;
+import com.example.pmcore.services.auth.UserService;
+import com.example.pmcore.services.data.PurchaseService;
+import com.example.pmcore.services.data.SubscriptionService;
 import lombok.AllArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

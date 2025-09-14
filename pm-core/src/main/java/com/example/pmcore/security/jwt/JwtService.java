@@ -1,6 +1,6 @@
 package com.example.pmcore.security.jwt;
 
-import com.example.backend.model.auth.User;
+import com.example.pmcore.model.auth.User;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.Jwts;

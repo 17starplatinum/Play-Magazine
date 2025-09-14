@@ -1,6 +1,6 @@
 package com.example.pmcore.model.auth;
 
-import com.example.backend.services.util.LocalDateAdapter;
+import com.example.pmcore.services.util.LocalDateAdapter;
 import jakarta.persistence.Column;
 import jakarta.xml.bind.annotation.XmlAccessType;
 import jakarta.xml.bind.annotation.XmlAccessorType;

@@ -1,13 +1,14 @@
 package com.example.pmcore.services.auth;
 
-import com.example.backend.dto.auth.RoleChangeRequestDto;
-import com.example.backend.dto.auth.SignUpRequest;
-import com.example.backend.dto.auth.StatusResponse;
-import com.example.backend.dto.auth.rolestatus.AdminRequestStatusHandler;
-import com.example.backend.repositories.auth.file.FileBasedUserBudgetRepository;
-import com.example.backend.repositories.auth.file.FileBasedUserProfileRepository;
-import com.example.backend.repositories.auth.file.FileBasedUserRepository;
-import com.example.backend.security.jwt.JwtService;
+import com.example.pmcore.dto.auth.RoleChangeRequestDto;
+import com.example.pmcore.dto.auth.SignUpRequest;
+import com.example.pmcore.dto.auth.StatusResponse;
+import com.example.pmcore.dto.auth.rolestatus.AdminRequestStatusHandler;
+import com.example.pmcore.model.auth.*;
+import com.example.pmcore.repositories.auth.file.FileBasedUserBudgetRepository;
+import com.example.pmcore.repositories.auth.file.FileBasedUserProfileRepository;
+import com.example.pmcore.repositories.auth.file.FileBasedUserRepository;
+import com.example.pmcore.security.jwt.JwtService;
 import jakarta.annotation.Resource;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.authentication.BadCredentialsException;
