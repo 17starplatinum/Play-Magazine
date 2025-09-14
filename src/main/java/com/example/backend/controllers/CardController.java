@@ -32,8 +32,9 @@ public class CardController {
     }
 
     @GetMapping
-    public ResponseEntity<List<Card>> getCards() {
-        return ResponseEntity.ok(cardService.getUserCards());
+    public ResponseEntity<?> getCards() {
+        return ResponseEntity.ok().body(cardService.getAllCards());
+        // return ResponseEntity.ok(cardService.getUserCards());
     }
 
     @PutMapping("/{cardId}")
