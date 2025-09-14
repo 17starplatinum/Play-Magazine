@@ -176,7 +176,7 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Object> handleMethodArgumentNotValidException(Exception ex) {
         ErrorResponseDto responseDto = new ErrorResponseDto(
                 HttpStatus.BAD_REQUEST.value(),
-                "Объект запроса не прошёл валидацию",
+                "Объект запроса не прошёл валидацию: " + ex.getMessage(),
                 System.currentTimeMillis()
         );
         return new ResponseEntity<>(responseDto, HttpStatus.BAD_REQUEST);
