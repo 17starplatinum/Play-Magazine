@@ -2,9 +2,9 @@ package com.example.backend.mappers;
 
 import com.example.backend.dto.data.review.ReviewInfoDto;
 import com.example.backend.dto.data.review.ReviewRequestDto;
-import com.example.backend.model.auth.User;
-import com.example.backend.model.data.Review;
-import com.example.backend.model.data.app.App;
+import com.example.pmweb.model.auth.User;
+import com.example.pmweb.model.data.Review;
+import com.example.pmweb.model.data.app.App;
 import org.springframework.stereotype.Component;
 
 import java.util.UUID;

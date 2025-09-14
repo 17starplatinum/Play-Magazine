@@ -1,7 +1,7 @@
 package com.example.backend.mappers;
 
 import com.example.backend.dto.data.budget.BudgetStatusDto;
-import com.example.backend.model.auth.UserBudget;
+import com.example.pmweb.model.auth.UserBudget;
 import org.springframework.stereotype.Component;
 
 @Component

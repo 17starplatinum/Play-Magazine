@@ -18,8 +18,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @XmlAccessorType(XmlAccessType.FIELD)
 public class UserProfile {
-//    @Id
-//    @UuidGenerator
+
     @Column(name = "id", nullable = false)
     @XmlElement(name = "id")
     private UUID id;

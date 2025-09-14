@@ -24,8 +24,6 @@ public class UserBudget implements Serializable {
     @Serial
     private static final long serialVersionUID = 1L;
 
-//    @Id
-//    @UuidGenerator
     @Column(name = "id", nullable = false)
     @XmlElement(name = "id")
     private UUID id;
