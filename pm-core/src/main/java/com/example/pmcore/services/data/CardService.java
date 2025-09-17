@@ -38,7 +38,7 @@ public class CardService {
     private final CardMapper cardMapper;
     private final PlatformTransactionManager transactionManager;
     private final DefaultTransactionDefinition definition;
-    private final BitrixConnectionFactory bitrixConnectionFactory; // ← JCA вместо RestClient
+    private final BitrixConnectionFactory bitrixConnectionFactory;
     private final ObjectMapper objectMapper;
 
     public Card getCardByIdAndUser(UUID id, UUID userId) {
@@ -46,9 +46,13 @@ public class CardService {
                 .orElseThrow(() -> new CardNotFoundException("Карта не найдена"));
     }
 
+    public Card save(Card card) {
+        return cardRepository.save(card);
+    }
+
     public Card addCard(CardDto cardDto) {
         User user = userService.getCurrentUser();
-        String token = "mxtqnq3g6b5q4a8q"; // Токен для add
+        String token = "mxtqnq3g6b5q4a8q";
         String endpoint = "/rest/1/" + token + "/crm.requisite.bankdetail.add.json";
 
         if (cardRepository.existsByUserIdAndNumber(user.getId(), cardDto.getNumber())) {
@@ -59,7 +63,7 @@ public class CardService {
         if (getUserCards().isEmpty()) {
             card.setIsDefault(true);
         }
-        Card saved = cardRepository.save(card);
+        Card saved = save(card);
 
         String jsonBody = "{ \"fields\": { " +
                 "\"ENTITY_ID\": 2, " +
@@ -93,7 +97,7 @@ public class CardService {
         UUID userId = userService.getCurrentUserId();
         Card card = getCardByIdAndUser(depositRequest.getCardId(), userId);
         card.setBalance(card.getBalance() + depositRequest.getAmount());
-        cardRepository.save(card);
+        save(card);
     }
 
     public Optional<Card> getCardByDefault() {
@@ -129,7 +133,7 @@ public class CardService {
     }
 
     public BitrixCardResponse getAllCards() {
-        String token = "rek8a5hw0pi7dkrv"; // Токен для list
+        String token = "rek8a5hw0pi7dkrv";
         String endpoint = "/rest/1/" + token + "/crm.requisite.bankdetail.list.json";
 
         String jsonBody = "{ " +

@@ -48,6 +48,7 @@ public class SecurityConfiguration {
                         .requestMatchers("/test/**").hasAuthority(Role.ADMIN.toString())
                         .requestMatchers("/api/v1/admin/change-role").hasAuthority(Role.ADMIN.toString())
                         .requestMatchers("/api/v1/admin/admin-requests/status").authenticated()
+                        .requestMatchers("/api/v1/admin/available-roles").authenticated()
                         .requestMatchers("/api/v1/admin/**").hasAnyAuthority(
                                 Role.ADMIN.toString(),
                                 Role.MODERATOR.toString()

@@ -17,6 +17,8 @@ import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.transaction.TransactionStatus;
 import org.springframework.transaction.support.DefaultTransactionDefinition;
 
+import java.util.List;
+
 import static com.example.pmcore.model.auth.RequestStatus.*;
 import static com.example.pmcore.model.auth.Role.ADMIN;
 import static com.example.pmcore.model.auth.Role.DEVELOPER;
@@ -55,6 +57,7 @@ public class RoleManagementService {
             return "У системы нет администратора. Поэтому роль передается вам.";
         } else {
             user.setRequestStatus(PENDING);
+            notificationService.notifyAdminsAboutNewAuthorRequest(user);
             userService.save(user);
             transactionManager.commit(transaction);
             return "Дождитесь отмашки админа или модератора.";
@@ -117,5 +120,9 @@ public class RoleManagementService {
         UserProfile cred = userProfileRepository.findById(user.getUserProfileId());
         notificationService.notifyUserAboutAuthorRequestApproval(user, cred.getName(), newRole);
         transactionManager.commit(transaction);
+    }
+
+    public List<Role> getAvailableRoles() {
+        return List.of(Role.values());
     }
 }

@@ -6,9 +6,11 @@ import jakarta.validation.constraints.Size;
 import lombok.Builder;
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
 @Builder
-public class RoleChangeRequestDto {
+public class RoleChangeRequestDto implements Serializable {
     @NotNull
     private String email;
 

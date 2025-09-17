@@ -21,9 +21,6 @@ public class XMLParser {
     @Value("${spring.jpa.hibernate.ddl-auto}")
     private String ddlAutoMode;
 
-    @Value("${app.user-db.path}")
-    private String xmlPath;
-
     @Value("${app.user-db.create-if-missing:true}")
     private boolean createIfMissing;
 
@@ -44,6 +41,7 @@ public class XMLParser {
     @PostConstruct
     public void init() {
         try {
+            String xmlPath = "users.xml";
             setUpFile(xmlPath);
         } catch (IOException e) {
             throw new RuntimeException(e);

@@ -3,6 +3,7 @@ package com.example.pmcore.controllers;
 import com.example.pmcore.dto.auth.RoleChangeRequestDto;
 import com.example.pmcore.dto.auth.StatusResponse;
 import com.example.pmcore.dto.data.ResponseDto;
+import com.example.pmcore.model.auth.Role;
 import com.example.pmcore.model.auth.User;
 import com.example.pmcore.services.auth.RoleManagementService;
 import com.example.pmcore.services.auth.UserService;
@@ -25,6 +26,11 @@ public class AdminController {
     @GetMapping("/admin-requests/status")
     public ResponseEntity<StatusResponse> getAdminRequestsStatus() {
         return ResponseEntity.ok().body(userService.getAdminRequestStatus());
+    }
+
+    @GetMapping("/available-roles")
+    public ResponseEntity<List<Role>> getAvailableRoles() {
+        return ResponseEntity.ok().body(roleManagementService.getAvailableRoles());
     }
 
     @GetMapping("/requests/{requestStatus}")

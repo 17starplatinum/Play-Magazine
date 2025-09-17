@@ -1,0 +1,119 @@
+{
+  "components": [
+    {
+      "text": "# Управление правами пользователя",
+      "type": "text",
+      "layout": {
+        "row": "Row_0q954up",
+        "columns": null
+      },
+      "id": "Field_13dau8z"
+    },
+    {
+      "label": "Логин",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0qmm3xu",
+        "columns": null
+      },
+      "id": "Field_1itxavc",
+      "key": "UsernameField",
+      "validate": {
+        "required": true,
+        "validationType": "email"
+      }
+    },
+    {
+      "label": "Пароль",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0seq1w6",
+        "columns": null
+      },
+      "id": "Field_17xo5d6",
+      "key": "PasswordField",
+      "validate": {
+        "required": true
+      }
+    },
+    {
+      "label": "Имя пользователя, которому обработать заявку",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_1qjdl12",
+        "columns": null
+      },
+      "id": "Field_0nqvqks",
+      "key": "NewRoleUsername",
+      "validate": {
+        "required": true,
+        "validationType": "email"
+      }
+    },
+    {
+      "label": "Что делать с заявкой?",
+      "values": [
+        {
+          "label": "Разрешить",
+          "value": "APPROVE"
+        },
+        {
+          "label": "Отклонить",
+          "value": "REJECT"
+        }
+      ],
+      "type": "radio",
+      "layout": {
+        "row": "Row_1xrbcd9",
+        "columns": null
+      },
+      "id": "Field_0p4pasv",
+      "key": "RequestDecisionRadio",
+      "defaultValue": "APPROVE"
+    },
+    {
+      "label": "Выберите новое право",
+      "values": [
+        {
+          "label": "Пользователь",
+          "value": "USER"
+        },
+        {
+          "label": "Разработчик",
+          "value": "DEVELOPER"
+        },
+        {
+          "label": "Модератор",
+          "value": "MODERATOR"
+        },
+        {
+          "label": "Адинистратор",
+          "value": "ADMIN"
+        }
+      ],
+      "type": "select",
+      "layout": {
+        "row": "Row_034zw1i",
+        "columns": null
+      },
+      "id": "Field_1mo58al",
+      "key": "RoleName",
+      "validate": {
+        "required": true
+      },
+      "conditional": {
+        "hide": "=RequestDecisionRadio = \"REJECT\""
+      },
+      "defaultValue": "DEVELOPER"
+    }
+  ],
+  "type": "default",
+  "id": "UserRequestDecision",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.39.0"
+  },
+  "executionPlatform": "Camunda Platform",
+  "executionPlatformVersion": "7.23.0",
+  "schemaVersion": 19
+}

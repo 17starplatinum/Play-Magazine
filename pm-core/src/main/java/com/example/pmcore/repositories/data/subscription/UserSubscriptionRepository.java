@@ -10,6 +10,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -39,8 +40,10 @@ public interface UserSubscriptionRepository extends JpaRepository<UserSubscripti
     @Query("DELETE FROM UserSubscription us WHERE us.subscription = :subscription")
     void deleteBySubscription(@Param("subscription") Subscription subscription);
 
+    List<UserSubscription> findAllByIdUserIdAndEndDateBeforeAndActiveTrueAndAutoRenewalTrue(UUID id_userId, LocalDate endDate);
+
     @Modifying(clearAutomatically = true)
-    @Query("DELETE FROM UserSubscription us WHERE us.active = false")
+    @Query("DELETE FROM UserSubscription us WHERE us.endDate >= CURRENT DATE and (us.active = false or us.autoRenewal = false)")
     @Transactional
     void deleteUserSubscriptionsPeriodically();
 }

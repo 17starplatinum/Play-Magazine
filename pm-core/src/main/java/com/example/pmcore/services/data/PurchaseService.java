@@ -136,9 +136,8 @@ public class PurchaseService {
 
         card.setBalance(card.getBalance() - subscriptionPrice);
         cardRepository.save(card);
-
-        transactionManager.commit(transaction);
         purchaseRepository.save(purchaseMapper.mapToModel(SUBSCRIPTION, app, monetaryTransaction, user.getId()));
+        transactionManager.commit(transaction);
     }
 
     public List<PurchaseHistoryDto> getUserPurchases() {
