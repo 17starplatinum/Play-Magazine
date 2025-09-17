@@ -1,0 +1,22 @@
+<process-application
+        xmlns="http://www.camunda.org/schema/1.0/ProcessApplication">
+
+    <process-archive name="loan-approval">
+        <process-engine>default</process-engine>
+        <resource>role-request.bpmn</resource>
+        <resource>role_request.form</resource>
+
+        <resource>role-decision.bpmn</resource>
+        <resource>request_fetch.form</resource>
+        <resource>role_decision.form</resource>
+
+        <resource>card-set-default.bpmn</resource>
+        <resource>basic_login.form</resource>
+        <resource>card_set_to_default.form</resource>
+        <properties>
+            <property name="isDeleteUponUndeploy">false</property>
+            <property name="isScanForProcessDefinitions">true</property>
+        </properties>
+    </process-archive>
+
+</process-application>

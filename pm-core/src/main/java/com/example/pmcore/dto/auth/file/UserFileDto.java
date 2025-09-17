@@ -42,10 +42,12 @@ public class UserFileDto {
     @XmlElement
     private UUID userVerificationId;
 
+    @Builder.Default
     @XmlElementWrapper(name = "downloadedAppIds")
     @XmlElement(name = "appId")
     private Set<UUID> downloadedAppIds = new HashSet<>();
 
+    @Builder.Default
     @XmlElementWrapper(name = "userSubscriptionIds")
     @XmlElement(name = "subscriptionId")
     private Set<UUID> userSubscriptionIds = new HashSet<>();

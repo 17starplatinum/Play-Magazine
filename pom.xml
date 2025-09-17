@@ -12,7 +12,7 @@
     <artifactId>Play_Magazine</artifactId>
     <version>0.3</version>
     <name>Play Magazine</name>
-    <packaging>war</packaging>
+    <packaging>pom</packaging>
     <description>Play Market Rip Off</description>
     <url />
     <licenses>
@@ -36,6 +36,17 @@
         <java.version>17</java.version>
         <spring.version>3.5.5</spring.version>
     </properties>
+    <repositories>
+        <repository>
+            <id>camunda-bpm-nexus</id>
+            <name>Camunda BPM Maven Repository</name>
+            <url>https://app.camunda.com/nexus/content/groups/public</url>
+        </repository>
+        <repository>
+            <id>maven-central</id>
+            <url>https://repo.maven.apache.org/maven2</url>
+        </repository>
+    </repositories>
     <dependencies/>
     <build>
         <plugins>

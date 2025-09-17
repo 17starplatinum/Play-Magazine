@@ -1,0 +1,79 @@
+{
+  "components": [
+    {
+      "text": "# Введите роль",
+      "type": "text",
+      "layout": {
+        "row": "Row_1402lrh",
+        "columns": null
+      },
+      "id": "Field_1omttgg"
+    },
+    {
+      "label": "Логин",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0ape57h",
+        "columns": null
+      },
+      "id": "Field_1lsynfa",
+      "key": "UsernameField",
+      "validate": {
+        "required": true,
+        "validationType": "email"
+      }
+    },
+    {
+      "label": "Пароль",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0mb72pi",
+        "columns": null
+      },
+      "id": "Field_00xf9wg",
+      "key": "PasswordField",
+      "validate": {
+        "required": true
+      }
+    },
+    {
+      "label": "Select",
+      "values": [
+        {
+          "label": "Developer",
+          "value": "DEVELOPER"
+        },
+        {
+          "label": "Moderator",
+          "value": "MODERATOR"
+        },
+        {
+          "label": "Admin",
+          "value": "ADMIN"
+        }
+      ],
+      "type": "select",
+      "layout": {
+        "row": "Row_0v9hpuy",
+        "columns": null
+      },
+      "id": "Field_1lqsf5j",
+      "key": "RequestedRole",
+      "defaultValue": "DEVELOPER",
+      "searchable": false,
+      "readonly": false,
+      "validate": {
+        "required": true
+      }
+    }
+  ],
+  "type": "default",
+  "id": "RoleRequest",
+  "executionPlatform": "Camunda Cloud",
+  "executionPlatformVersion": "8.7.0",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.39.0"
+  },
+  "schemaVersion": 19
+}

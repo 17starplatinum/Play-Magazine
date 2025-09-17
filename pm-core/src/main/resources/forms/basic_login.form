@@ -1,0 +1,49 @@
+{
+  "components": [
+    {
+      "text": "# Логин",
+      "type": "text",
+      "layout": {
+        "row": "Row_1x7l7uk",
+        "columns": null
+      },
+      "id": "Field_0mwrf5w"
+    },
+    {
+      "label": "Логин",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_07ah1cp",
+        "columns": null
+      },
+      "id": "Field_16crnu1",
+      "key": "UsernameField",
+      "validate": {
+        "required": true,
+        "validationType": "email"
+      }
+    },
+    {
+      "label": "Пароль",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0ypoq22",
+        "columns": null
+      },
+      "id": "Field_1o3chma",
+      "key": "PasswordField",
+      "validate": {
+        "required": true
+      }
+    }
+  ],
+  "type": "default",
+  "id": "BasicLogin",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.39.0"
+  },
+  "executionPlatform": "Camunda Platform",
+  "executionPlatformVersion": "7.23.0",
+  "schemaVersion": 19
+}

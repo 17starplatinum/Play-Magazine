@@ -202,7 +202,6 @@ public class AppService {
             throw new AppDownloadException("Failed to download the application", e);
         }
 
-//        userRepository.addAppToUser(currentUser.getId(), appId);
         userAppDownloadRepository.save(new UserAppDownload(new UserAppDownloadId(currentUser.getId(), appId), app));
         purchase.setUserId(currentUser.getId());
         purchaseRepository.save(purchase);

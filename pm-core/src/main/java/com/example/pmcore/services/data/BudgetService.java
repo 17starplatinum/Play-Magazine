@@ -69,7 +69,7 @@ public class BudgetService {
         }
     }
 
-    private boolean isOverBudget(UserBudget userBudget, double amount) {
+    public boolean isOverBudget(UserBudget userBudget, double amount) {
         if (userBudget.getSpendingLimit() == null) {
             return false;
         }

@@ -1,0 +1,82 @@
+{
+  "components": [
+    {
+      "text": "# Просмотр заявок на изменение прав",
+      "type": "text",
+      "layout": {
+        "row": "Row_082gvt1",
+        "columns": null
+      },
+      "id": "Field_1ubmxu0"
+    },
+    {
+      "label": "Логин",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_0bsagwz",
+        "columns": null
+      },
+      "id": "Field_0on6ou5",
+      "key": "UsernameField",
+      "validate": {
+        "required": true,
+        "validationType": "email"
+      },
+      "appearance": {}
+    },
+    {
+      "label": "Пароль",
+      "type": "textfield",
+      "layout": {
+        "row": "Row_04omof2",
+        "columns": null
+      },
+      "id": "Field_05ihee9",
+      "key": "PasswordField",
+      "validate": {
+        "required": true
+      }
+    },
+    {
+      "label": "Выберите статус",
+      "values": [
+        {
+          "label": "Одобрено",
+          "value": "APPROVED"
+        },
+        {
+          "label": "Отклонено",
+          "value": "REJECTED"
+        },
+        {
+          "label": "В ожидании",
+          "value": "PENDING"
+        },
+        {
+          "label": "Не отправил заявку",
+          "value": "NOT_REQUESTED"
+        }
+      ],
+      "type": "select",
+      "layout": {
+        "row": "Row_0nz7hrr",
+        "columns": null
+      },
+      "id": "Field_1yar3j3",
+      "key": "RequestStatusList",
+      "validate": {
+        "required": true
+      },
+      "searchable": true
+    }
+  ],
+  "type": "default",
+  "id": "RequestFetch",
+  "exporter": {
+    "name": "Camunda Modeler",
+    "version": "5.39.0"
+  },
+  "executionPlatform": "Camunda Platform",
+  "executionPlatformVersion": "7.23.0",
+  "schemaVersion": 19
+}

@@ -4,6 +4,7 @@ import com.example.pmcore.dto.EmailMessageDto;
 import com.example.pmcore.exceptions.accepted.EmailSendingException;
 import com.example.pmcore.model.auth.User;
 import com.example.pmcore.model.data.subscriptions.Subscription;
+import com.example.pmcore.model.data.subscriptions.UserSubscription;
 import com.example.pmcore.repositories.auth.file.FileBasedUserRepository;
 import jakarta.annotation.PostConstruct;
 import lombok.RequiredArgsConstructor;
@@ -129,14 +130,30 @@ public class NotificationService {
         sendEmailAsync(user.getEmail(), subject, content);
     }
 
+    public void notifyUserAboutSubscriptionCharge(User user, Subscription subscription, UserSubscription userSubscription) {
+        String subject = "Продление подписки \"" + subscription.getName() + "\"";
+        String content = """
+                <html>
+                <body>
+                    <h2>Уважаемый %s,</h2>
+                    <p>Подписка %s на приложении %s было продлено до %s.</p>
+                    <p>Стоимость: %f, баланс привязанной карты: %f.</p>
+                    <p>С уважением,<br>Команда PlayMagazine</p>
+                    </body>
+                </html>
+        """.formatted(user.getUsername(), subscription.getName(), subscription.getApp().getName(),
+                userSubscription.getEndDate(), subscription.getPrice(), userSubscription.getCard().getBalance());
+        sendEmailAsync(user.getEmail(), subject, content);
+    }
+
     @PostConstruct
     public void init() {
         ConnectionFactory connectionFactory = rabbitTemplate.getConnectionFactory();
         if (connectionFactory instanceof CachingConnectionFactory) {
             CachingConnectionFactory ccf = (CachingConnectionFactory) connectionFactory;
-            System.out.println("🔗 RabbitMQ Host: " + ccf.getHost());
-            System.out.println("🔗 RabbitMQ Port: " + ccf.getPort());
-            System.out.println("🔗 RabbitMQ Username: " + ccf.getUsername());
+            System.out.println("RabbitMQ Host: " + ccf.getHost());
+            System.out.println("RabbitMQ Port: " + ccf.getPort());
+            System.out.println("RabbitMQ Username: " + ccf.getUsername());
         }
     }
 
@@ -149,7 +166,7 @@ public class NotificationService {
 
             rabbitTemplate.convertAndSend(emailQueue, message);
 
-            log.info("📩 Сообщение поставлено в очередь для отправки на {}", to);
+            log.info("Сообщение поставлено в очередь для отправки на {}", to);
         } catch (Exception e) {
             log.error("Ошибка при постановке сообщения в очередь для {}: {}", to, e.getMessage());
             throw new EmailSendingException("Не удалось поставить email в очередь", e);
